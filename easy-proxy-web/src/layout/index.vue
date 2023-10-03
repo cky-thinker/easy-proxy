@@ -42,7 +42,13 @@ import IconUser from '../components/icons/IconUser.vue'</script>
     align-items: center;
     width: 300px;
     height: 100%;
-    background: rgba(166, 193, 238, 0.5);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.app-container-r {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .app-icon {
@@ -66,6 +72,7 @@ import IconUser from '../components/icons/IconUser.vue'</script>
     justify-content: flex-start;
     width: 150px;
     padding: 12px 24px;
+    margin-top: 12px;
 }
 
 .app-menu-item:hover {
@@ -73,8 +80,9 @@ import IconUser from '../components/icons/IconUser.vue'</script>
 }
 
 .app-menu-item-active {
-    background-color: rgba(252, 252, 252, 0.3);
+    background-color: rgba(252, 252, 252, 0.4);
     border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(204, 204, 204, 0.05);
 }
 
 .app-menu-item-icon {
@@ -86,12 +94,6 @@ import IconUser from '../components/icons/IconUser.vue'</script>
 .app-menu-item-text {
     display: flex;
     justify-content: flex-start;
-}
-
-.app-container-r {
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.5);
 }
 
 </style>
