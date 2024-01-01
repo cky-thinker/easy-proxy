@@ -24,7 +24,35 @@ import IconUser from '../components/icons/IconUser.vue'</script>
             </div>
         </div>
         <div class="app-container-r">
-
+            <div class="app-header"
+                 style="margin-bottom: 24px; height: 60px; display: flex; justify-content: space-between; ">
+                <div class="app-header-l" style="font-size: 18px; font-weight: bold; color: #363B64">
+                    客户端管理
+                </div>
+                <div class="app-header-r">
+                    <div
+                        style="height: 60px; width: 60px; border-radius: 12px; box-shadow: 0 20px 50px rgba(204, 204, 204, 0.05); background-color: #fcfcfc">
+                    </div>
+                </div>
+            </div>
+            <div class="app-content" style="">
+                <div class="item-row">
+                    <div class="item">
+                    </div>
+                    <div class="item">
+                    </div>
+                    <div class="item">
+                    </div>
+                </div>
+                <div class="item-row">
+                    <div class="item">
+                    </div>
+                    <div class="item">
+                    </div>
+                    <div class="item">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -49,20 +77,23 @@ import IconUser from '../components/icons/IconUser.vue'</script>
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 0.5);
+    padding: 26px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .app-icon {
     font-size: 32px;
-    line-height: 64px;
     font-weight: bold;
     text-align: center;
     width: 100%;
-    height: 60px;
-    color: #363B64
+    color: #363B64;
+    margin-top: 12px;
 }
 
 .app-menu {
-    padding: 16px;
+    margin: 16px;
     font-size: 18px;
     color: #665E75;
 }
@@ -94,6 +125,21 @@ import IconUser from '../components/icons/IconUser.vue'</script>
 .app-menu-item-text {
     display: flex;
     justify-content: flex-start;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-around;
+}
+
+.item {
+    width: 300px;
+    height: 150px;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(204, 204, 204, 0.05);
+    background-color: #fcfcfc;
+    margin-right: 38px;
+    margin-bottom: 38px;
 }
 
 </style>
