@@ -132,13 +132,13 @@ public class Message {
             Promise<Message> promise = Promise.promise();
             parser.fixedSizeMode(4);
             parser.handler(dataLengthBf -> {
-                int dataLength1 = dataLengthBf.getInt(0);
-                message.setDataLength(dataLength1);
-                if (dataLength1 == 0) {
+                int dataLength = dataLengthBf.getInt(0);
+                message.setDataLength(dataLength);
+                if (dataLength == 0) {
                     message.setData(new byte[]{});
                     promise.complete(message);
                 } else {
-                    parser.fixedSizeMode(dataLength1);
+                    parser.fixedSizeMode(dataLength);
                     parser.handler(dataBf -> {
                         byte[] bytes = dataBf.getBytes();
                         message.setData(bytes);
