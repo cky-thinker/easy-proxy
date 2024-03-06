@@ -11,17 +11,15 @@ public class PromiseTest {
         delay(() -> {
             promise.complete("----- 1 -----");
         }, 1000);
-        Future<String> future = promise.future().transform(result -> {
+        Future<String> future = promise.future().compose(r1 -> {
             Promise<String> p2 = Promise.promise();
-            String r1 = result.result();
             log(r1);
             delay(() -> {
                 p2.complete("----- 2 -----");
             }, 1000);
             return p2.future();
-        }).transform(result -> {
+        }).compose(r1 -> {
             Promise<String> p2 = Promise.promise();
-            String r1 = result.result();
             log(r1);
             delay(() -> {
                 p2.complete("----- 3 -----");
@@ -30,23 +28,20 @@ public class PromiseTest {
                 throw new RuntimeException("xxx");
             }
             return p2.future();
-        }).transform(result -> {
+        }).compose(r1 -> {
             Promise<String> p2 = Promise.promise();
-            if (result.succeeded()) {
-                String r1 = result.result();
-                log(r1);
-                delay(() -> {
-                    p2.complete("----- 4 -----");
-                }, 1000);
-            } else {
-                result.cause().printStackTrace();
-            }
-
+            log(r1);
+            delay(() -> {
+                p2.complete("----- 4 -----");
+            }, 1000);
             return p2.future();
         });
 
         future.onSuccess(msg -> {
             log(msg);
+        });
+        future.onFailure(t -> {
+           t.printStackTrace();
         });
         sleep(9000);
     }

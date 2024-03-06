@@ -71,32 +71,38 @@ public class Message {
         });
     }
 
-    public static Future<Message> decodeMsgPromise(NetSocket dataSocket) {
+    public static void decodeMsgPromise(NetSocket dataSocket, Handler<Message> msgHandler) {
         RecordParser parser = RecordParser.newFixed(CHECK_LENGTH, dataSocket);
         parser.exceptionHandler(t -> {
-            log.error(t.getMessage(), t);
-            decodeMsg(parser);
+            log.error("RecordParser 异常：" + t.getMessage(), t);
+            decodeMsgParser(parser);
         });
-        return decodeMsg(parser);
+        Future<Message> future = decodeMsgParser(parser);
+        future.onFailure(t -> {
+            log.error("decodeMsg 消息解析失败：" + t.getMessage(), t);
+            decodeMsgParser(parser);
+        });
+        future.onSuccess(msg -> {
+            msgHandler.handle(msg);
+            decodeMsgParser(parser);
+        });
     }
 
-    public static Future<Message> decodeMsg(RecordParser parser) {
+    public static Future<Message> decodeMsgParser(RecordParser parser) {
         Promise<Message> checkPromise = Promise.promise();
         parser.fixedSizeMode(CHECK_LENGTH);
         parser.handler(checkBf -> {
             int check = checkBf.getInt(0);
             if (check != CHECK_VALUE) {
                 checkPromise.fail("校验头不匹配 " + check);
-                decodeMsg(parser);
             } else {
                 Message message = new Message();
                 message.setCheck(check);
                 checkPromise.complete(message);
             }
         });
-        return checkPromise.future().transform(result -> {
+        return checkPromise.future().compose(message -> {
             Promise<Message> promise = Promise.promise();
-            Message message = result.result();
             parser.fixedSizeMode(HEADER_LENGTH);
             parser.handler(headerBuffer -> {
                 message.setType(headerBuffer.getByte(0));
@@ -104,9 +110,8 @@ public class Message {
                 promise.complete(message);
             });
             return promise.future();
-        }).transform(result -> {
+        }).compose(message -> {
             Promise<Message> promise = Promise.promise();
-            Message message = result.result();
             parser.fixedSizeMode(message.getTokenLength());
             parser.handler(tokenBf -> {
                 String token1 = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
@@ -114,9 +119,8 @@ public class Message {
                 promise.complete(message);
             });
             return promise.future();
-        }).transform(result -> {
+        }).compose(message -> {
             Promise<Message> promise = Promise.promise();
-            Message message = result.result();
             parser.fixedSizeMode(message.getTokenLength());
             parser.handler(tokenBf -> {
                 String token1 = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
@@ -124,9 +128,8 @@ public class Message {
                 promise.complete(message);
             });
             return promise.future();
-        }).transform(result -> {
+        }).compose(message -> {
             Promise<Message> promise = Promise.promise();
-            Message message = result.result();
             parser.fixedSizeMode(4);
             parser.handler(dataLengthBf -> {
                 int dataLength1 = dataLengthBf.getInt(0);
@@ -134,14 +137,12 @@ public class Message {
                 if (dataLength1 == 0) {
                     message.setData(new byte[]{});
                     promise.complete(message);
-                    decodeMsg(parser);
                 } else {
                     parser.fixedSizeMode(dataLength1);
                     parser.handler(dataBf -> {
                         byte[] bytes = dataBf.getBytes();
                         message.setData(bytes);
                         promise.complete(message);
-                        decodeMsg(parser);
                     });
                 }
             });
