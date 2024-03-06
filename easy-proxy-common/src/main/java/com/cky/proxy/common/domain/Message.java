@@ -1,6 +1,8 @@
 package com.cky.proxy.common.domain;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.parsetools.RecordParser;
@@ -67,6 +69,71 @@ public class Message {
             log.error(t.getMessage(), t);
             nextLoop(parser, msgHandler);
         });
+    }
+
+    public static Future<Message> decodeMsgPromise(NetSocket dataSocket) {
+        RecordParser parser = RecordParser.newFixed(CHECK_LENGTH, dataSocket);
+        return decodeMsg(parser);
+    }
+
+    public static Future<Message> decodeMsg(RecordParser parser) {
+        Promise<Message> checkPromise = Promise.promise();
+        parser.fixedSizeMode(CHECK_LENGTH);
+        parser.handler(checkBf -> {
+            int check = checkBf.getInt(0);
+            if (check != CHECK_VALUE) {
+                checkPromise.fail("校验头不匹配 " + check);
+                decodeMsg(parser);
+            } else {
+                Message message = new Message();
+                message.setCheck(check);
+                checkPromise.complete(message);
+            }
+        });
+        parser.exceptionHandler(t -> {
+            log.error(t.getMessage(), t);
+            decodeMsg(parser);
+        });
+        Promise<Message> headerParse = Promise.promise();
+        checkPromise.future().onSuccess(message -> {
+            parser.fixedSizeMode(HEADER_LENGTH);
+            parser.handler(headerBuffer -> {
+                message.setType(headerBuffer.getByte(0));
+                message.setTokenLength(headerBuffer.getInt(1));
+                headerParse.complete(message);
+            });
+        });
+        Promise<Message> tokenParse = Promise.promise();
+        headerParse.future().onSuccess(message -> {
+            parser.fixedSizeMode(message.getTokenLength());
+            parser.handler(tokenBf -> {
+                String token = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
+                message.setToken(token);
+                tokenParse.complete(message);
+            });
+        });
+        Promise<Message> msgParse = Promise.promise();
+        tokenParse.future().onSuccess(message -> {
+            parser.fixedSizeMode(4);
+            parser.handler(dataLengthBf -> {
+                int dataLength = dataLengthBf.getInt(0);
+                message.setDataLength(dataLength);
+                if (dataLength == 0) {
+                    message.setData(new byte[]{});
+                    decodeMsg(parser);
+                    msgParse.complete(message);
+                } else {
+                    parser.fixedSizeMode(dataLength);
+                    parser.handler(dataBf -> {
+                        byte[] bytes = dataBf.getBytes();
+                        message.setData(bytes);
+                        decodeMsg(parser);
+                        msgParse.complete(message);
+                    });
+                }
+            });
+        });
+        return msgParse.future();
     }
 
     private static void parseCheck(Buffer checkBf, RecordParser parser, Handler<Message> msgHandler) {
