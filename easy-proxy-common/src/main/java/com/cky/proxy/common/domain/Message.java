@@ -94,46 +94,59 @@ public class Message {
                 checkPromise.complete(message);
             }
         });
-        Promise<Message> headerParse = Promise.promise();
-        checkPromise.future().onSuccess(message -> {
+        return checkPromise.future().transform(result -> {
+            Promise<Message> promise = Promise.promise();
+            Message message = result.result();
             parser.fixedSizeMode(HEADER_LENGTH);
             parser.handler(headerBuffer -> {
                 message.setType(headerBuffer.getByte(0));
                 message.setTokenLength(headerBuffer.getInt(1));
-                headerParse.complete(message);
+                promise.complete(message);
             });
-        });
-        Promise<Message> tokenParse = Promise.promise();
-        headerParse.future().onSuccess(message -> {
+            return promise.future();
+        }).transform(result -> {
+            Promise<Message> promise = Promise.promise();
+            Message message = result.result();
             parser.fixedSizeMode(message.getTokenLength());
             parser.handler(tokenBf -> {
-                String token = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
-                message.setToken(token);
-                tokenParse.complete(message);
+                String token1 = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
+                message.setToken(token1);
+                promise.complete(message);
             });
-        });
-        Promise<Message> msgParse = Promise.promise();
-        tokenParse.future().onSuccess(message -> {
+            return promise.future();
+        }).transform(result -> {
+            Promise<Message> promise = Promise.promise();
+            Message message = result.result();
+            parser.fixedSizeMode(message.getTokenLength());
+            parser.handler(tokenBf -> {
+                String token1 = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
+                message.setToken(token1);
+                promise.complete(message);
+            });
+            return promise.future();
+        }).transform(result -> {
+            Promise<Message> promise = Promise.promise();
+            Message message = result.result();
             parser.fixedSizeMode(4);
             parser.handler(dataLengthBf -> {
-                int dataLength = dataLengthBf.getInt(0);
-                message.setDataLength(dataLength);
-                if (dataLength == 0) {
+                int dataLength1 = dataLengthBf.getInt(0);
+                message.setDataLength(dataLength1);
+                if (dataLength1 == 0) {
                     message.setData(new byte[]{});
+                    promise.complete(message);
                     decodeMsg(parser);
-                    msgParse.complete(message);
                 } else {
-                    parser.fixedSizeMode(dataLength);
+                    parser.fixedSizeMode(dataLength1);
                     parser.handler(dataBf -> {
                         byte[] bytes = dataBf.getBytes();
                         message.setData(bytes);
+                        promise.complete(message);
                         decodeMsg(parser);
-                        msgParse.complete(message);
                     });
                 }
             });
+            return promise.future();
         });
-        return msgParse.future();
     }
 
     private static void parseCheck(Buffer checkBf, RecordParser parser, Handler<Message> msgHandler) {
