@@ -73,6 +73,10 @@ public class Message {
 
     public static Future<Message> decodeMsgPromise(NetSocket dataSocket) {
         RecordParser parser = RecordParser.newFixed(CHECK_LENGTH, dataSocket);
+        parser.exceptionHandler(t -> {
+            log.error(t.getMessage(), t);
+            decodeMsg(parser);
+        });
         return decodeMsg(parser);
     }
 
@@ -89,10 +93,6 @@ public class Message {
                 message.setCheck(check);
                 checkPromise.complete(message);
             }
-        });
-        parser.exceptionHandler(t -> {
-            log.error(t.getMessage(), t);
-            decodeMsg(parser);
         });
         Promise<Message> headerParse = Promise.promise();
         checkPromise.future().onSuccess(message -> {
