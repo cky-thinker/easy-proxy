@@ -35,28 +35,23 @@ import Computer from '../components/icons/Computer3.vue'
                     </div>
                 </div>
             </div>
-            <div class="app-content" style="">
-                <div class="item-row">
-                    <div class="item">
+            <div>
+
+            </div>
+            <div class="app-content" >
+                <div class="item" v-for='index in 10' :key='index'>
+                    <div class="item-left">
                         <computer class="item-logo"/>
                     </div>
-                    <div class="item">
-                        <computer class="item-logo"/>
+                    <div class="item-right">
+                        <div class="item-title" >OSS服务器</div>
+                        <div>配置</div>
                     </div>
-                    <div class="item">
-                        <computer class="item-logo"/>
-                    </div>
-                </div>
-                <div class="item-row">
-                    <div class="item">
-                        <computer class="item-logo"/>
-                    </div>
-                    <div class="item">
-                        <computer class="item-logo"/>
-                    </div>
-                    <div class="item">
-                        <computer class="item-logo"/>
-                    </div>
+                    <div class="bg1"></div>
+                    <div class="bg2"></div>
+                    <div class="status-label">
+                        <span class="" style="background: rgb(229, 0, 18);"></span>
+                        离线</div>
                 </div>
             </div>
         </div>
@@ -134,7 +129,7 @@ import Computer from '../components/icons/Computer3.vue'
 
 .app-header-l {
     font-size: var(--font-size-header-s);
-    font-weight: bold;
+    font-weight: 400;
     color: var(--color-text-primary);
     display: flex;
     justify-content: center;
@@ -204,8 +199,65 @@ import Computer from '../components/icons/Computer3.vue'
     height: 150px;
     border-radius: 12px;
     background-color: #fcfcfc;
-    margin-right: 38px;
-    margin-bottom: 38px;
+    color: var(--color-text-primary);
+    display: flex;
+    justify-content: left;
+    justify-items: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.bg1 {
+    position: absolute;
+    right: -39%;
+    top: -13%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: linear-gradient(188.4deg, rgba(229, 0, 18, .03) 22.94%, rgba(229, 0, 18, 0) 94.62%);
+}
+
+.bg2 {
+    position: absolute;
+    right: -52%;
+    top: 1%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: linear-gradient(188.4deg, rgba(229, 0, 18, 0.03) 30%, rgba(229, 0, 18, 0) 80%);
+}
+
+.status-label {
+    position: absolute;
+    width: 70px;
+    height: 30px;
+    right: -5%;
+    top: 18%;
+    border-radius: 15px;
+    background-color: rgba(229, 0, 18, 0.1);
+}
+
+.app-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 300px);
+    grid-gap: 32px;
+}
+
+.item-left {
+    width: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.item-title {
+    padding: var(--sp16) 0;
+    font-size: var(--sp16);
+    font-weight: 600;
+}
+
+.item-right {
+    width: 100%;
 }
 
 .item-logo {
