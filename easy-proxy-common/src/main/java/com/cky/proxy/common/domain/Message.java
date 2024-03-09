@@ -24,6 +24,7 @@ public class Message {
     public static final byte DATA = (byte) 0x04;
 
     // -----  协议 -----
+    // check | type | token-length | token | data-length | data
     public static final int CHECK_VALUE = 0xF0F0F0F0;
     public static final int CHECK_LENGTH = 4;
     public static final int HEADER_LENGTH = 1 + 4;
@@ -107,15 +108,6 @@ public class Message {
             parser.handler(headerBuffer -> {
                 message.setType(headerBuffer.getByte(0));
                 message.setTokenLength(headerBuffer.getInt(1));
-                promise.complete(message);
-            });
-            return promise.future();
-        }).compose(message -> {
-            Promise<Message> promise = Promise.promise();
-            parser.fixedSizeMode(message.getTokenLength());
-            parser.handler(tokenBf -> {
-                String token1 = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
-                message.setToken(token1);
                 promise.complete(message);
             });
             return promise.future();
