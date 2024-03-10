@@ -11,6 +11,13 @@
 
 ### mvn命令
 
+```
+npm cache clear --force
+rm -rf node_modules
+rm -rf package-lock.json
+npm config set strict-ssl false
+```
+
 To launch your tests:
 
 ```
