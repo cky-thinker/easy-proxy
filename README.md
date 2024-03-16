@@ -1,6 +1,6 @@
 ## Easy proxy
 
-一个简单的内网穿透工具
+一个简单、高效的内网穿透工具
 
 ## 开发
 
@@ -10,6 +10,13 @@
 - Maven 3.6.0+
 
 ### mvn命令
+
+```
+npm cache clear --force
+rm -rf node_modules
+rm -rf package-lock.json
+npm config set strict-ssl false
+```
 
 To launch your tests:
 
@@ -31,9 +38,4 @@ mvn clean compile exec:java
 
 ## 业务流程
 
-1. server start (system channel: 10090)
-2. client start
-3. client connect
-4. client auth
-5. server create data channel (data port: 10090)
 

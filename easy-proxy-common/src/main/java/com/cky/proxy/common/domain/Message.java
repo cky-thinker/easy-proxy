@@ -24,6 +24,7 @@ public class Message {
     public static final byte DATA = (byte) 0x04;
 
     // -----  协议 -----
+    // check | type | token-length | token | data-length | data
     public static final int CHECK_VALUE = 0xF0F0F0F0;
     public static final int CHECK_LENGTH = 4;
     public static final int HEADER_LENGTH = 1 + 4;
@@ -71,69 +72,74 @@ public class Message {
         });
     }
 
-    public static Future<Message> decodeMsgPromise(NetSocket dataSocket) {
+    public static void decodeMsgPromise(NetSocket dataSocket, Handler<Message> msgHandler) {
         RecordParser parser = RecordParser.newFixed(CHECK_LENGTH, dataSocket);
-        return decodeMsg(parser);
+        parser.exceptionHandler(t -> {
+            log.error("RecordParser 异常：" + t.getMessage(), t);
+            decodeMsgParser(parser);
+        });
+        Future<Message> future = decodeMsgParser(parser);
+        future.onFailure(t -> {
+            log.error("decodeMsg 消息解析失败：" + t.getMessage(), t);
+            decodeMsgParser(parser);
+        });
+        future.onSuccess(msg -> {
+            msgHandler.handle(msg);
+            decodeMsgParser(parser);
+        });
     }
 
-    public static Future<Message> decodeMsg(RecordParser parser) {
+    public static Future<Message> decodeMsgParser(RecordParser parser) {
         Promise<Message> checkPromise = Promise.promise();
         parser.fixedSizeMode(CHECK_LENGTH);
         parser.handler(checkBf -> {
             int check = checkBf.getInt(0);
             if (check != CHECK_VALUE) {
                 checkPromise.fail("校验头不匹配 " + check);
-                decodeMsg(parser);
             } else {
                 Message message = new Message();
                 message.setCheck(check);
                 checkPromise.complete(message);
             }
         });
-        parser.exceptionHandler(t -> {
-            log.error(t.getMessage(), t);
-            decodeMsg(parser);
-        });
-        Promise<Message> headerParse = Promise.promise();
-        checkPromise.future().onSuccess(message -> {
+        return checkPromise.future().compose(message -> {
+            Promise<Message> promise = Promise.promise();
             parser.fixedSizeMode(HEADER_LENGTH);
             parser.handler(headerBuffer -> {
                 message.setType(headerBuffer.getByte(0));
                 message.setTokenLength(headerBuffer.getInt(1));
-                headerParse.complete(message);
+                promise.complete(message);
             });
-        });
-        Promise<Message> tokenParse = Promise.promise();
-        headerParse.future().onSuccess(message -> {
+            return promise.future();
+        }).compose(message -> {
+            Promise<Message> promise = Promise.promise();
             parser.fixedSizeMode(message.getTokenLength());
             parser.handler(tokenBf -> {
-                String token = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
-                message.setToken(token);
-                tokenParse.complete(message);
+                String token1 = new String(tokenBf.getBytes(), StandardCharsets.UTF_8);
+                message.setToken(token1);
+                promise.complete(message);
             });
-        });
-        Promise<Message> msgParse = Promise.promise();
-        tokenParse.future().onSuccess(message -> {
+            return promise.future();
+        }).compose(message -> {
+            Promise<Message> promise = Promise.promise();
             parser.fixedSizeMode(4);
             parser.handler(dataLengthBf -> {
                 int dataLength = dataLengthBf.getInt(0);
                 message.setDataLength(dataLength);
                 if (dataLength == 0) {
                     message.setData(new byte[]{});
-                    decodeMsg(parser);
-                    msgParse.complete(message);
+                    promise.complete(message);
                 } else {
                     parser.fixedSizeMode(dataLength);
                     parser.handler(dataBf -> {
                         byte[] bytes = dataBf.getBytes();
                         message.setData(bytes);
-                        decodeMsg(parser);
-                        msgParse.complete(message);
+                        promise.complete(message);
                     });
                 }
             });
+            return promise.future();
         });
-        return msgParse.future();
     }
 
     private static void parseCheck(Buffer checkBf, RecordParser parser, Handler<Message> msgHandler) {

@@ -1,24 +1,19 @@
 <script setup lang="ts">
-import {RouterView} from 'vue-router'</script>
+import {ref} from 'vue'
+import {ElConfigProvider} from 'element-plus'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+
+const locale = ref(zhCn)
+</script>
 
 <template>
-    <RouterView/>
+  <el-config-provider :locale="locale">
+    <transition name="fade-transform" mode="out-in">
+      <router-view/>
+    </transition>
+  </el-config-provider>
 </template>
 
 <style>
 
-
-#app {
-    font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-    line-height: 1.7;
-    background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
-    background-blend-mode: screen, overlay, hard-light, color-burn, color-dodge, normal;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    background-position: 0 100%;
-    color: #ffffff;
-    width: 100%;
-    height: 100%;
-}
 </style>
