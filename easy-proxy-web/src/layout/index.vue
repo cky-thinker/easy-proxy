@@ -14,10 +14,16 @@ const key = computed(() => {
 <template>
   <div class="app-container">
     <el-container style="min-height: 100vh;">
-      <el-header class="header">Header</el-header>
-      <el-header class="header header-fix">Header</el-header>
+      <el-header class="header"></el-header>
+      <el-header class="header header-fix">
+        <div class="h-left">
+          <img src="@/assets/images/logo.png" class="logo" alt=""/>
+          <span class="logo-title">Easy Proxy</span>
+        </div>
+        <div class="h-right"></div>
+      </el-header>
       <el-container style="display: flex; flex-direction: row; position: relative;">
-        <el-aside class="aside">Aside</el-aside>
+        <el-aside class="aside"></el-aside>
         <el-aside class="aside aside-fix">Aside</el-aside>
         <el-main class="main">
           <router-view :key="key"/>
@@ -28,15 +34,28 @@ const key = computed(() => {
 </template>
 
 <style lang="scss">
+:root {
+  --color-white: #FFFFFF;
+}
+
+@font-face {
+  font-family: 'Alatsi-Regular';
+  src: url("@/assets/fonts/Alatsi-Regular.ttf")
+}
+
 .app-container {
   min-height: 100vh;
 }
 
 .header {
-  background-color: var(--el-color-primary-light-7);
+  background-color: var(--color-white);
   height: 60px;
   line-height: 60px;
   width: 100%;
+  box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
+  display: flex;
+  justify-items: center;
+  justify-content: space-between;
 }
 
 .header-fix {
@@ -45,9 +64,26 @@ const key = computed(() => {
   z-index: 100;
 }
 
+.h-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  max-height: 40px;
+}
+
+.logo-title {
+  font-family: 'Alatsi-Regular', serif;
+  font-size: 20px;
+  font-style: italic;
+  color: #003087;
+  margin-left: 6px;
+}
+
 .aside {
   width: 200px;
-  background-color: var(--el-color-primary-light-8);
+  background-color: var(--color-white);
 }
 
 .aside-fix {
