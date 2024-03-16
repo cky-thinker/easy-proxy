@@ -20,7 +20,11 @@ const key = computed(() => {
           <img src="@/assets/images/logo.png" class="logo" alt=""/>
           <span class="logo-title">Easy Proxy</span>
         </div>
-        <div class="h-right"></div>
+        <div class="h-right">
+          <div class="avatar">
+            <img src="@/assets/images/avatar.png" alt=""/>
+          </div>
+        </div>
       </el-header>
       <el-container style="display: flex; flex-direction: row; position: relative;">
         <el-aside class="aside"></el-aside>
@@ -67,6 +71,22 @@ const key = computed(() => {
 .h-left {
   display: flex;
   align-items: center;
+}
+
+.h-right {
+  display: flex;
+  align-items: center;
+
+  .avatar {
+    img {
+      max-height: 50px;
+    }
+
+    height: 50px;
+    width: 50px;
+    border-radius: 25px;
+    overflow: hidden;
+  }
 }
 
 .logo {
