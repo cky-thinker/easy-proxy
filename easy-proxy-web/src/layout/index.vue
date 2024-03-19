@@ -10,9 +10,15 @@ const key = computed(() => {
 })
 
 const menuList = ref([
-  {title: '工作台', iconName: 'DataLine'},
-  {title: '客户端管理', iconName: 'Monitor'},
-  {title: '账号设置', iconName: 'Setting'}])
+  {title: '工作台', iconName: 'DataLine', selected: true},
+  {title: '客户端管理', iconName: 'Monitor', selected: false},
+  {title: '账号设置', iconName: 'Setting', selected: false}])
+
+function onMenuClickHandler(menu: any) {
+  menuList.value.forEach(m => {
+    m.selected = m.title === menu.title
+  })
+}
 
 </script>
 
@@ -35,7 +41,7 @@ const menuList = ref([
         <el-aside class="aside"></el-aside>
         <el-aside class="aside aside-fix">
           <div class="menu-item-wrapper">
-            <div class="menu-item" v-for="menu of menuList">
+            <div @click="onMenuClickHandler(menu)" v-for="menu of menuList" :class="'menu-item' + (menu.selected ? ' selected' : '')">
               <div class="menu-title-wrapper">
                 <div class="menu-icon">
                   <component :is="menu.iconName"></component>
@@ -141,12 +147,24 @@ const menuList = ref([
   margin-top: 12px;
 }
 
+.menu-item:hover {
+  color: #165DFF;
+}
+
+.selected {
+  background-color: #f0f6ff;
+  color: #165DFF;
+  border-right: 3px solid #165DFF ;
+}
+
 .menu-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-direction: row;
   padding: 12px 16px;
+  cursor: pointer;
+  margin-top: 8px;
 
   .menu-title-wrapper {
     display: flex;
