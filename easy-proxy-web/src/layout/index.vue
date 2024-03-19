@@ -32,6 +32,7 @@ function onMenuClickHandler(menu: any) {
           <span class="logo-title">Easy Proxy</span>
         </div>
         <div class="h-right">
+          <div class="username">管理员</div>
           <div class="avatar">
             <img src="@/assets/images/avatar.png" alt=""/>
           </div>
@@ -106,6 +107,13 @@ function onMenuClickHandler(menu: any) {
 .h-right {
   display: flex;
   align-items: center;
+
+  .username {
+    margin-right: 12px;
+    font-size: 14px;
+    line-height: 14px;
+    color: #000000d9;
+  }
 
   .avatar {
     img {
