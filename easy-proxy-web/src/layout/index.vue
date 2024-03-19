@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ElAside, ElContainer, ElHeader} from 'element-plus'
-import {computed} from "vue";
+import {computed, ref} from "vue";
 import {useRoute} from "vue-router";
 
 let route = useRoute();
@@ -8,6 +8,11 @@ let route = useRoute();
 const key = computed(() => {
   return route.path
 })
+
+const menuList = ref([
+  {title: '工作台', iconName: 'DataLine'},
+  {title: '客户端管理', iconName: 'Monitor'},
+  {title: '账号设置', iconName: 'Setting'}])
 
 </script>
 
@@ -28,7 +33,21 @@ const key = computed(() => {
       </el-header>
       <el-container style="display: flex; flex-direction: row; position: relative;">
         <el-aside class="aside"></el-aside>
-        <el-aside class="aside aside-fix">Aside</el-aside>
+        <el-aside class="aside aside-fix">
+          <div class="menu-item-wrapper">
+            <div class="menu-item" v-for="menu of menuList">
+              <div class="menu-title-wrapper">
+                <div class="menu-icon">
+                  <component :is="menu.iconName"></component>
+                </div>
+                <div class="menu-title">{{ menu.title }}</div>
+              </div>
+              <div class="menu-fold">
+                <!--                <ArrowDownBold/>-->
+              </div>
+            </div>
+          </div>
+        </el-aside>
         <el-main class="main">
           <router-view :key="key"/>
         </el-main>
@@ -47,6 +66,11 @@ const key = computed(() => {
   src: url("@/assets/fonts/Alatsi-Regular.ttf")
 }
 
+@font-face {
+  font-family: 'AliRegular';
+  src: url("@/assets/fonts/AlibabaPuHuiTi-2-55-Regular.ttf")
+}
+
 .app-container {
   min-height: 100vh;
 }
@@ -56,7 +80,7 @@ const key = computed(() => {
   height: 60px;
   line-height: 60px;
   width: 100%;
-  box-shadow: rgba(149, 157, 165, 0.2) 0 8px 24px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0 3px 4px;
   display: flex;
   justify-items: center;
   justify-content: space-between;
@@ -98,7 +122,7 @@ const key = computed(() => {
   font-size: 20px;
   font-style: italic;
   color: #003087;
-  margin-left: 6px;
+  margin-left: 8px;
 }
 
 .aside {
@@ -111,6 +135,52 @@ const key = computed(() => {
   top: 60px;
   left: 0;
   bottom: 0;
+}
+
+.menu-item-wrapper {
+  margin-top: 12px;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  padding: 12px 16px;
+
+  .menu-title-wrapper {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+
+    .menu-icon {
+      height: 18px;
+      width: 18px;
+      margin-right: 16px;
+
+      svg {
+        height: 18px;
+        width: 18px;
+      }
+    }
+
+    .menu-title {
+      font-family: 'AliRegular' !important;
+      font-weight: normal;
+      height: 20px;
+      line-height: 20px;
+    }
+  }
+
+  .menu-fold {
+    height: 16px;
+    width: 16px;
+
+    svg {
+      height: 12px;
+      width: 12px;
+    }
+  }
 }
 
 .main {
