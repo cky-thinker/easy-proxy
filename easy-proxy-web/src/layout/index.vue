@@ -79,12 +79,12 @@ const key = computed(() => {
 
   .avatar {
     img {
-      max-height: 50px;
+      max-height: 40px;
     }
 
-    height: 50px;
-    width: 50px;
-    border-radius: 25px;
+    height: 40px;
+    width: 40px;
+    border-radius: 20px;
     overflow: hidden;
   }
 }
