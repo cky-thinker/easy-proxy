@@ -1,5 +1,7 @@
 package com.cky.proxy.server;
 
+import com.cky.proxy.server.verticle.MainVerticle;
+import com.cky.proxy.server.verticle.WebVerticle;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,9 +12,14 @@ public class ProxyServer {
         vertx.exceptionHandler(t -> {
             log.error(t.getMessage(), t);
         });
-        vertx.deployVerticle("com.cky.proxy.server.verticle.MainVerticle", res -> {
+        vertx.deployVerticle(MainVerticle.class.getCanonicalName(), res -> {
             if (!res.succeeded()) {
-                log.info("deploy fail", res.cause());
+                log.info("deploy MainVerticle fail", res.cause());
+            }
+        });
+        vertx.deployVerticle(WebVerticle.class.getCanonicalName(), res -> {
+            if (!res.succeeded()) {
+                log.info("deploy WebVerticle fail", res.cause());
             }
         });
     }

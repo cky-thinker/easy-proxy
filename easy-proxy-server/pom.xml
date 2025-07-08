@@ -8,7 +8,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>proxy-server</artifactId>
+    <artifactId>easy-proxy-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>easy-proxy-server</name>
     <description>easy-proxy-server</description>

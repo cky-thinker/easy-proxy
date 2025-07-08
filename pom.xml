@@ -17,14 +17,14 @@
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 
-        <vertx.version>4.4.3</vertx.version>
+        <vertx.version>4.5.16</vertx.version>
         <junit-jupiter.version>5.9.1</junit-jupiter.version>
 
         <launcher.class>io.vertx.core.Launcher</launcher.class>
 
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.5.18</logback.version>
         <lombok.version>1.18.20</lombok.version>
-        <hutool.version>5.8.20</hutool.version>
+        <hutool.version>5.8.36</hutool.version>
     </properties>
 
     <dependencyManagement>

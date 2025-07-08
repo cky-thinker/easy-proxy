@@ -191,7 +191,7 @@ function onMenuClickHandler(menu: any) {
     }
 
     .menu-title {
-      font-family: 'AliRegular' !important;
+        font-family: 'AliRegular', serif !important;
       font-weight: normal;
       height: 20px;
       line-height: 20px;
