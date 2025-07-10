@@ -40,6 +40,14 @@ public class DbUtil {
         return proxyClientConfigs;
     }
 
+    // 根据 token 获取单个客户端配置
+    public static ProxyClientConfig getProxyClientByToken(String token) {
+        if (tokenConfigMap == null) {
+            getProxyClients();
+        }
+        return tokenConfigMap.get(token);
+    }
+
     public static void updateProxyClient(ProxyClientConfig proxyClientConfig) {
         tokenConfigMap.put(proxyClientConfig.getToken(), proxyClientConfig);
         syncConfigFile();

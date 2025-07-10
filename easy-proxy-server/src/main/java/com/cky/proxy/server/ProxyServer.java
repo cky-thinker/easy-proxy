@@ -13,13 +13,10 @@ public class ProxyServer {
             log.error(t.getMessage(), t);
         });
         vertx.deployVerticle(MainVerticle.class.getCanonicalName(), res -> {
-            if (!res.succeeded()) {
-                log.info("deploy MainVerticle fail", res.cause());
-            }
-        });
-        vertx.deployVerticle(WebVerticle.class.getCanonicalName(), res -> {
-            if (!res.succeeded()) {
-                log.info("deploy WebVerticle fail", res.cause());
+            if (res.succeeded()) {
+                log.info("deploy MainVerticle success!");
+            } else {
+                log.error("deploy MainVerticle fail!", res.cause());
             }
         });
     }

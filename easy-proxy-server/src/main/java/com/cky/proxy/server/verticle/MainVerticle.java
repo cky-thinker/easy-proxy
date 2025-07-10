@@ -26,6 +26,15 @@ public class MainVerticle extends AbstractVerticle {
             .onFailure(t -> log.error("Server start failed", t));
         // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
         flushServerProxySocket();
+        
+        // 部署WebVerticle以提供HTTP API
+        vertx.deployVerticle(new WebVerticle(), res -> {
+            if (res.succeeded()) {
+                log.info("deploy web server success!");
+            } else {
+                log.error("deploy web server fail!", res.cause());
+            }
+        });
     }
 
     private void flushServerProxySocket() {
