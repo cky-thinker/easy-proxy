@@ -21,18 +21,26 @@ public class MainVerticle extends AbstractVerticle {
         Integer serverMngPort = config.getInt("server.port");
         log.error("Server starting {}", serverMngPort);
         vertx.createNetServer()
-            .connectHandler(new ServerMngSocketHandler())
-            .listen(serverMngPort)
-            .onFailure(t -> log.error("Server start failed", t));
+                .connectHandler(new ServerMngSocketHandler())
+                .listen(serverMngPort)
+                .onFailure(t -> log.error("Server start failed", t));
         // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
         flushServerProxySocket();
-        
+
         // 部署WebVerticle以提供HTTP API
         vertx.deployVerticle(new WebVerticle(), res -> {
             if (res.succeeded()) {
                 log.info("deploy web server success!");
             } else {
                 log.error("deploy web server fail!", res.cause());
+            }
+        });
+        // 部署OpenApiVerticle以提供Swagger UI
+        vertx.deployVerticle(new OpenApiVerticle(), openApiRes -> {
+            if (openApiRes.succeeded()) {
+                log.info("deploy OpenAPI documentation server success!");
+            } else {
+                log.error("deploy OpenAPI documentation server fail!", openApiRes.cause());
             }
         });
     }
@@ -43,10 +51,11 @@ public class MainVerticle extends AbstractVerticle {
             log.debug("EP>> Init client {} ", proxyClientConfig.getName());
             for (ProxyRule proxyRule : proxyClientConfig.getProxyRules()) {
                 vertx.createNetServer()
-                    .connectHandler(new UserProxySocketHandler(proxyClientConfig, proxyRule))
-                    .listen(proxyRule.getServerPort())
-                    .onFailure(t -> log.error("sMngServer 启动失败", t));
-                log.debug("EP>> Init rule {} {} -> {}", proxyRule.getName(), proxyRule.getServerPort(), proxyRule.getClientAddress());
+                        .connectHandler(new UserProxySocketHandler(proxyClientConfig, proxyRule))
+                        .listen(proxyRule.getServerPort())
+                        .onFailure(t -> log.error("sMngServer 启动失败", t));
+                log.debug("EP>> Init rule {} {} -> {}", proxyRule.getName(), proxyRule.getServerPort(),
+                        proxyRule.getClientAddress());
             }
         }
     }

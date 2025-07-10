@@ -21,10 +21,11 @@ public class WebVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) {
-        Router router = Router.router(vertx);
+        // 创建基础路由器
+        Router baseRouter = Router.router(vertx);
         
         // 添加CORS处理
-        router.route().handler(ctx -> {
+        baseRouter.route().handler(ctx -> {
             ctx.response()
                 .putHeader("Access-Control-Allow-Origin", "*")
                 .putHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -39,17 +40,17 @@ public class WebVerticle extends AbstractVerticle {
             }
         });
         
-        router.route().handler(BodyHandler.create());
+        baseRouter.route().handler(BodyHandler.create());
         
         // 健康检查端点
-        router.get("/health").handler(ctx -> {
+        baseRouter.get("/health").handler(ctx -> {
             ctx.response()
                 .putHeader("content-type", "application/json")
                 .end(new JsonObject().put("status", "UP").encode());
         });
         
         // API文档端点
-        router.get("/api").handler(ctx -> {
+        baseRouter.get("/api").handler(ctx -> {
             JsonObject apiDocs = new JsonObject()
                 .put("name", "Easy Proxy API")
                 .put("version", "1.0.0")
@@ -66,15 +67,8 @@ public class WebVerticle extends AbstractVerticle {
                 .end(Json.encodePrettily(apiDocs));
         });
         
-        // API路由设置
-        router.get("/api/proxy-clients").handler(this::getAllProxyClients);
-        router.get("/api/proxy-clients/:token").handler(this::getProxyClientByToken);
-        router.post("/api/proxy-clients").handler(this::addProxyClient);
-        router.put("/api/proxy-clients/:token").handler(this::updateProxyClient);
-        router.delete("/api/proxy-clients/:token").handler(this::deleteProxyClient);
-        
         // 添加全局错误处理
-        router.route().failureHandler(ctx -> {
+        baseRouter.route().failureHandler(ctx -> {
             int statusCode = ctx.statusCode();
             if (statusCode == -1) {
                 statusCode = 500;
@@ -95,9 +89,16 @@ public class WebVerticle extends AbstractVerticle {
                     .encode());
         });
         
+        // 手动设置API路由
+        baseRouter.get("/api/proxy-clients").handler(this::getAllProxyClients);
+        baseRouter.get("/api/proxy-clients/:token").handler(this::getProxyClientByToken);
+        baseRouter.post("/api/proxy-clients").handler(this::addProxyClient);
+        baseRouter.put("/api/proxy-clients/:token").handler(this::updateProxyClient);
+        baseRouter.delete("/api/proxy-clients/:token").handler(this::deleteProxyClient);
+        
         // 启动HTTP服务器
         vertx.createHttpServer()
-            .requestHandler(router)
+            .requestHandler(baseRouter)
             .listen(8888, http -> {
                 if (http.succeeded()) {
                     startPromise.complete();

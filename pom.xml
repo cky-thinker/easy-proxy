@@ -22,7 +22,7 @@
 
         <launcher.class>io.vertx.core.Launcher</launcher.class>
 
-        <logback.version>1.5.18</logback.version>
+        <logback.version>1.2.11</logback.version>
         <lombok.version>1.18.20</lombok.version>
         <hutool.version>5.8.36</hutool.version>
     </properties>

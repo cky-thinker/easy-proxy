@@ -1,0 +1,195 @@
+openapi: 3.0.3
+info:
+  title: Easy Proxy API
+  description: API for managing proxy client configurations
+  version: 1.0.0
+  contact:
+    name: Easy Proxy Team
+
+servers:
+  - url: http://localhost:8888
+    description: Local development server
+
+paths:
+  /api/proxy-clients:
+    get:
+      operationId: getAllProxyClients
+      summary: Get all proxy client configurations
+      description: Returns a list of all proxy client configurations
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProxyClientConfig'
+    post:
+      operationId: addProxyClient
+      summary: Add a new proxy client configuration
+      description: Creates a new proxy client configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyClientConfig'
+      responses:
+        '201':
+          description: Successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyClientConfig'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/proxy-clients/{token}:
+    parameters:
+      - name: token
+        in: path
+        description: Token of the proxy client
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getProxyClientByToken
+      summary: Get proxy client by token
+      description: Returns a single proxy client configuration
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyClientConfig'
+        '404':
+          description: Proxy client not found
+    put:
+      operationId: updateProxyClient
+      summary: Update an existing proxy client
+      description: Updates a proxy client configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyClientConfig'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyClientConfig'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Proxy client not found
+    delete:
+      operationId: deleteProxyClient
+      summary: Delete a proxy client
+      description: Deletes a proxy client configuration
+      responses:
+        '204':
+          description: Successful operation
+        '404':
+          description: Proxy client not found
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check endpoint
+      description: Returns the health status of the API
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+
+components:
+  schemas:
+    ProxyClientConfig:
+      type: object
+      required:
+        - name
+        - token
+      properties:
+        name:
+          type: string
+          description: Client name
+          example: "My Proxy Client"
+        token:
+          type: string
+          description: Unique token for the client
+          example: "abc123"
+        status:
+          type: string
+          description: Online status (online/offline)
+          enum: [online, offline]
+          example: "offline"
+        usedTraffic:
+          type: integer
+          format: int64
+          description: Used traffic in bytes
+          example: 1024
+        enableFlag:
+          type: boolean
+          description: Whether the client is enabled
+          example: true
+        proxyRules:
+          type: array
+          description: List of proxy rules
+          items:
+            $ref: '#/components/schemas/ProxyRule'
+
+    ProxyRule:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Rule name
+          example: "Web Server"
+        serverPort:
+          type: integer
+          description: Server port
+          example: 8080
+        clientAddress:
+          type: string
+          description: Client address
+          example: "localhost:3000"
+        enableFlag:
+          type: boolean
+          description: Whether the rule is enabled
+          example: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid input data"
+        path:
+          type: string
+          description: Request path
+          example: "/api/proxy-clients"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
