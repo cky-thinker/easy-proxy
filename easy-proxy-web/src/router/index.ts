@@ -22,6 +22,11 @@ const router = createRouter({
           name: 'proxy',
           component: () => import('../views/ProxyView.vue'),
       },
+      {
+          path: '/tailwind',
+          name: 'tailwind',
+          component: () => import('../views/TailwindView.vue'),
+      },
   ],
 })
 
