@@ -6,7 +6,7 @@ import { RouterLink, RouterView } from 'vue-router'
     <div class="flex flex-col min-h-screen bg-gray-50">
         <!-- 顶部导航栏 -->
         <header class="bg-white shadow-sm py-4 px-6">
-            <div class="container mx-auto flex justify-between items-center">
+            <div class="mx-auto flex justify-between items-center">
                 <div class="flex items-center space-x-4">
                     <span class="logo w-8 h-8 bg-blue-500 rounded-md"></span>
                     <span class="title text-xl font-bold text-gray-800">Easy Proxy</span>
@@ -15,7 +15,7 @@ import { RouterLink, RouterView } from 'vue-router'
         </header>
 
         <!-- 主体内容区 -->
-        <div class="flex flex-1 container mx-auto mt-6 px-6">
+        <div class="flex flex-1 mt-6 px-6">
             <!-- 侧边栏导航 -->
             <aside class="w-64 pr-8">
                 <div class="bg-white rounded-lg shadow-sm p-4">
