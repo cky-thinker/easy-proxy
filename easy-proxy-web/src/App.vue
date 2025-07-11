@@ -9,12 +9,12 @@ import { RouterLink, RouterView } from 'vue-router'
             <div class="container gap-6 flex justify-start items-center">
                 <div class="flex items-center space-x-4">
                     <span class="logo w-8 h-8 bg-blue-500 rounded-md"></span>
-                    <span class="title text-xl font-bold text-gray-800">Easy Proxy</span>
+                    <span class="title text-xl font-bold text-gray-800">EasyProxy</span>
                 </div>
                 
                 <!-- 导航菜单 -->
                 <nav>
-                    <div class="flex space-x-6">
+                    <div class="flex space-x-6 mt-0.5">
                         <RouterLink to="/" class="py-2 px-3 text-gray-700 hover:text-blue-600 font-medium hover:bg-blue-50 rounded-md transition-colors">数据看板</RouterLink>
                         <RouterLink to="/proxy" class="py-2 px-3 text-gray-700 hover:text-blue-600 font-medium hover:bg-blue-50 rounded-md transition-colors">客户端管理</RouterLink>
                         <RouterLink to="/proxy" class="py-2 px-3 text-gray-700 hover:text-blue-600 font-medium hover:bg-blue-50 rounded-md transition-colors">账号管理</RouterLink>
