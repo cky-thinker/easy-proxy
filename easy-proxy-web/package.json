@@ -1,5 +1,5 @@
 {
-    "name": "easy-proxy-web",
+    "name": "easy-proxy",
     "version": "0.0.0",
     "private": true,
     "type": "module",
@@ -21,6 +21,7 @@
     "devDependencies": {
         "@tsconfig/node22": "^22.0.2",
         "@types/node": "^22.15.32",
+        "@types/vue-router": "^2.0.0",
         "@vitejs/plugin-vue": "^6.0.0",
         "@vitejs/plugin-vue-jsx": "^5.0.0",
         "@vue/tsconfig": "^0.7.0",
