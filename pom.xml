@@ -50,6 +50,11 @@
                 <version>${hutool.version}</version>
             </dependency>
             <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-db</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-stack-depchain</artifactId>
                 <version>${vertx.version}</version>

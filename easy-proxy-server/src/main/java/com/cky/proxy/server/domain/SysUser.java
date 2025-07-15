@@ -1,0 +1,59 @@
+package com.cky.proxy.server.domain;
+
+import java.sql.Date;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+import lombok.Data;
+
+@Data
+@DatabaseTable(tableName = "sys_user")
+public class SysUser {
+    @DatabaseField(generatedId = true)
+    public Integer id;
+    /**
+     * 头像
+     */
+    @DatabaseField
+    public String avatar;
+    /**
+     * 账号
+     */
+    @DatabaseField
+    public String username;
+    /**
+     * 手机号
+     */
+    @DatabaseField
+    public String mobile;
+    /**
+     * 邮箱
+     */
+    @DatabaseField
+    public String email;
+    /**
+     * 密码
+     */
+    @DatabaseField
+    public String password;
+    /**
+     * 创建人
+     */
+    @DatabaseField
+    private String createBy;
+    /**
+     * 创建时间
+     */
+    @DatabaseField
+    private Date createTime;
+    /**
+     * 更新人
+     */
+    @DatabaseField
+    private String updateBy;
+    /**
+     * 更新时间
+     */
+    @DatabaseField
+    private Date updateTime;
+}
