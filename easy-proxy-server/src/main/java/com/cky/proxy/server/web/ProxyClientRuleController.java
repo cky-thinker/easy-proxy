@@ -17,13 +17,13 @@ public class ProxyClientRuleController {
     }
 
     private void initRoutes() {
-        // 查询客户端分组
+        // 查询转发规则
         router.get("/api/proxyClientRule/all").handler(this::getAllProxyClientGroup);
-        // 新增客户端分组
+        // 新增转发规则
         router.post("/api/proxyClientRule").handler(this::addProxyClientGroup);
-        // 修改客户端分组
+        // 修改转发规则
         router.put("/api/proxyClientRule").handler(this::updateProxyClientGroup);
-        // 删除客户端分组
+        // 删除转发规则
         router.delete("/api/proxyClientRule").handler(this::deleteProxyClientGroup);
     }
 
