@@ -1,4 +1,4 @@
-package com.cky.proxy.server.domain;
+package com.cky.proxy.server.bean.entity;
 
 import java.sql.Date;
 import com.j256.ormlite.field.DatabaseField;

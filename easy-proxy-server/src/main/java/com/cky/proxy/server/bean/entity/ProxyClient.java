@@ -1,4 +1,4 @@
-package com.cky.proxy.server.domain;
+package com.cky.proxy.server.bean.entity;
 
 import java.time.LocalDateTime;
 

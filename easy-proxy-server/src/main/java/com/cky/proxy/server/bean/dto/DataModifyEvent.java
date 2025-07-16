@@ -1,4 +1,4 @@
-package com.cky.proxy.server.domain;
+package com.cky.proxy.server.bean.dto;
 
 import com.cky.proxy.common.domain.ProxyClientConfig;
 import com.cky.proxy.server.consts.ModifyType;

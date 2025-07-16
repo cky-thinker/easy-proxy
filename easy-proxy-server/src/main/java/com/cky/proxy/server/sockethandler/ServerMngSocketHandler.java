@@ -1,4 +1,4 @@
-package com.cky.proxy.server.handler;
+package com.cky.proxy.server.sockethandler;
 
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.util.SocketUtil;

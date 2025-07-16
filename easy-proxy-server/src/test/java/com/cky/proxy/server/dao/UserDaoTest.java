@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.cky.proxy.server.bo.PageResult;
-import com.cky.proxy.server.domain.SysUser;
+import com.cky.proxy.server.bean.dto.PageResult;
+import com.cky.proxy.server.bean.entity.SysUser;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 

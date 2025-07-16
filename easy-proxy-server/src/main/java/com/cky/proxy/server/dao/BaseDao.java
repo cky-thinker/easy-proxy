@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.cky.proxy.common.util.ConfigUtil;
-import com.cky.proxy.server.bo.PageResult;
+import com.cky.proxy.server.bean.dto.PageResult;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;

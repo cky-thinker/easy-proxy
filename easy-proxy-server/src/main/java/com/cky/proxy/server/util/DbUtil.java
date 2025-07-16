@@ -6,7 +6,8 @@ import cn.hutool.core.io.resource.FileResource;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONUtil;
 import com.cky.proxy.common.domain.ProxyClientConfig;
-import com.cky.proxy.server.domain.DataModifyEvent;
+import com.cky.proxy.server.bean.dto.DataModifyEvent;
+
 import io.vertx.core.Handler;
 import lombok.extern.slf4j.Slf4j;
 
