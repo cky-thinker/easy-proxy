@@ -1,7 +1,6 @@
 package com.cky.proxy.server;
 
 import com.cky.proxy.server.verticle.MainVerticle;
-import com.cky.proxy.server.verticle.WebVerticle;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 

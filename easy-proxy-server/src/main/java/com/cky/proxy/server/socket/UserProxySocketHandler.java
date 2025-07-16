@@ -1,4 +1,4 @@
-package com.cky.proxy.server.sockethandler;
+package com.cky.proxy.server.socket;
 
 import cn.hutool.core.util.IdUtil;
 import com.cky.proxy.common.domain.Message;

@@ -2,6 +2,9 @@ package com.cky.proxy.server.verticle;
 
 import com.cky.proxy.common.domain.ProxyClientConfig;
 import com.cky.proxy.server.util.DbUtil;
+import com.cky.proxy.server.web.ProxyClientController;
+import com.cky.proxy.server.web.SysUserController;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServerResponse;
@@ -90,11 +93,8 @@ public class WebVerticle extends AbstractVerticle {
         });
         
         // 手动设置API路由
-        baseRouter.get("/api/proxy-clients").handler(this::getAllProxyClients);
-        baseRouter.get("/api/proxy-clients/:token").handler(this::getProxyClientByToken);
-        baseRouter.post("/api/proxy-clients").handler(this::addProxyClient);
-        baseRouter.put("/api/proxy-clients/:token").handler(this::updateProxyClient);
-        baseRouter.delete("/api/proxy-clients/:token").handler(this::deleteProxyClient);
+        new ProxyClientController(baseRouter);
+        new SysUserController(baseRouter);
         
         // 启动HTTP服务器
         vertx.createHttpServer()
@@ -107,88 +107,5 @@ public class WebVerticle extends AbstractVerticle {
                     startPromise.fail(http.cause());
                 }
             });
-    }
-    
-    // 获取所有代理客户端配置
-    private void getAllProxyClients(RoutingContext context) {
-        Collection<ProxyClientConfig> clientsCollection = DbUtil.getProxyClients();
-        // 将Collection转换为List，避免序列化HashMap$Values的问题
-        List<ProxyClientConfig> clients = new ArrayList<>(clientsCollection);
-        context.response()
-            .putHeader("content-type", "application/json")
-            .end(Json.encodePrettily(clients));
-    }
-    
-    // 根据token获取特定代理客户端配置
-    private void getProxyClientByToken(RoutingContext context) {
-        String token = context.pathParam("token");
-        ProxyClientConfig client = DbUtil.getProxyClientByToken(token);
-        HttpServerResponse response = context.response();
-        
-        if (client != null) {
-            response.putHeader("content-type", "application/json")
-                .end(Json.encodePrettily(client));
-        } else {
-            response.setStatusCode(404).end();
-        }
-    }
-    
-    // 添加新的代理客户端配置
-    private void addProxyClient(RoutingContext context) {
-        try {
-            ProxyClientConfig client = Json.decodeValue(context.getBodyAsString(), ProxyClientConfig.class);
-            DbUtil.addProxyClient(client);
-            context.response()
-                .setStatusCode(201)
-                .putHeader("content-type", "application/json")
-                .end(Json.encodePrettily(client));
-        } catch (Exception e) {
-            log.error("Failed to add proxy client", e);
-            context.response().setStatusCode(400).end(new JsonObject()
-                .put("error", e.getMessage()).encode());
-        }
-    }
-    
-    // 更新现有代理客户端配置
-    private void updateProxyClient(RoutingContext context) {
-        String token = context.pathParam("token");
-        try {
-            ProxyClientConfig client = Json.decodeValue(context.getBodyAsString(), ProxyClientConfig.class);
-            
-            // 确保路径参数中的token与请求体中的token一致
-            if (!token.equals(client.getToken())) {
-                context.response().setStatusCode(400).end(new JsonObject()
-                    .put("error", "Token in path does not match token in request body").encode());
-                return;
-            }
-            
-            // 检查客户端是否存在
-            if (DbUtil.getProxyClientByToken(token) == null) {
-                context.response().setStatusCode(404).end();
-                return;
-            }
-            
-            DbUtil.updateProxyClient(client);
-            context.response()
-                .putHeader("content-type", "application/json")
-                .end(Json.encodePrettily(client));
-        } catch (Exception e) {
-            log.error("Failed to update proxy client", e);
-            context.response().setStatusCode(400).end(new JsonObject()
-                .put("error", e.getMessage()).encode());
-        }
-    }
-    
-    // 删除代理客户端配置
-    private void deleteProxyClient(RoutingContext context) {
-        String token = context.pathParam("token");
-        ProxyClientConfig client = DbUtil.getProxyClientByToken(token);
-        
-        if (client != null) {
-            DbUtil.deleteProxyClient(client);
-            context.response().setStatusCode(204).end();
-        } else {
-            context.response().setStatusCode(404).end();
-        }
     }
 }
