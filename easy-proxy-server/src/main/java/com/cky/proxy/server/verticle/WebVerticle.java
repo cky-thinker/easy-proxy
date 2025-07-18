@@ -1,23 +1,15 @@
 package com.cky.proxy.server.verticle;
 
-import com.cky.proxy.common.domain.ProxyClientConfig;
-import com.cky.proxy.server.util.DbUtil;
 import com.cky.proxy.server.web.ProxyClientController;
 import com.cky.proxy.server.web.SysUserController;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 @Slf4j
 public class WebVerticle extends AbstractVerticle {

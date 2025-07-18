@@ -4,9 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.domain.ProxyClientConfig;
 import com.cky.proxy.common.domain.ProxyRule;
-import com.cky.proxy.server.context.DataSocketManager;
-import com.cky.proxy.server.context.MngSocketManager;
-import com.cky.proxy.server.context.UserSocketManager;
+
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;

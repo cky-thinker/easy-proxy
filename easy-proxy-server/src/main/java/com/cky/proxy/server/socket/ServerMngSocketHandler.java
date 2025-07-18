@@ -2,9 +2,7 @@ package com.cky.proxy.server.socket;
 
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.util.SocketUtil;
-import com.cky.proxy.server.context.DataSocketManager;
-import com.cky.proxy.server.context.MngSocketManager;
-import com.cky.proxy.server.context.UserSocketManager;
+
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
