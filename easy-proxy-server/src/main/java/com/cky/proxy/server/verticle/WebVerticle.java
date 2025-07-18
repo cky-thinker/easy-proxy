@@ -94,7 +94,7 @@ public class WebVerticle extends AbstractVerticle {
         
         // 手动设置API路由
         new ProxyClientController(baseRouter);
-        new SysUserController(baseRouter);
+        new SysUserController(baseRouter, vertx);
         
         // 启动HTTP服务器
         vertx.createHttpServer()
