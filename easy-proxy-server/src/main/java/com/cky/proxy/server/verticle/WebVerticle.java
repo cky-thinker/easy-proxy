@@ -1,7 +1,7 @@
 package com.cky.proxy.server.verticle;
 
-import com.cky.proxy.server.web.ProxyClientController;
-import com.cky.proxy.server.web.SysUserController;
+import com.cky.proxy.server.controller.ProxyClientController;
+import com.cky.proxy.server.controller.SysUserController;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;

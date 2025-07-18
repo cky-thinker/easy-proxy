@@ -1,5 +1,5 @@
 
-package com.cky.proxy.server.web;
+package com.cky.proxy.server.controller;
 
 import java.util.List;
 

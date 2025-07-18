@@ -1,4 +1,4 @@
-package com.cky.proxy.server.web;
+package com.cky.proxy.server.controller;
 
 import com.cky.proxy.server.bean.dto.PageResult;
 import com.cky.proxy.server.bean.entity.ProxyClient;
