@@ -1,5 +1,10 @@
 package com.cky.proxy.server.verticle;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.cky.proxy.server.controller.ProxyClientController;
 import com.cky.proxy.server.controller.SysUserController;
 
@@ -7,15 +12,25 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.JWTAuthHandler;
+import io.vertx.ext.auth.PubSecKeyOptions;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class WebVerticle extends AbstractVerticle {
 
+    private JWTAuth jwtAuth;
+    private static final Set<String> WHITE_LIST = new HashSet<>(Arrays.asList("/api/auth/login", "/api/auth/captcha"));
+    
     @Override
     public void start(Promise<Void> startPromise) {
+        // 初始化JWT认证
+        initJWTAuth();
+        
         // 创建基础路由器
         Router baseRouter = Router.router(vertx);
         
@@ -84,6 +99,23 @@ public class WebVerticle extends AbstractVerticle {
                     .encode());
         });
         
+        // 添加JWT认证中间件到API路由
+        JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth);
+        
+        // 将API路由挂载到基础路由，并添加JWT认证
+        baseRouter.route("/api/*").handler(ctx -> {
+            // 排除不需要认证的路径
+            String path = ctx.request().path();
+            if (path.equals("/api/captchaImage") || path.equals("/api/loginUser") || 
+                path.equals("/api") || path.equals("/health")) {
+                ctx.next();
+                return;
+            }
+            
+            // 其他API路径需要JWT认证
+            jwtAuthHandler.handle(ctx);
+        });
+        
         // 手动设置API路由
         new ProxyClientController(baseRouter);
         new SysUserController(baseRouter, vertx);
@@ -99,5 +131,19 @@ public class WebVerticle extends AbstractVerticle {
                     startPromise.fail(http.cause());
                 }
             });
+    }
+    
+    /**
+     * 初始化JWT认证
+     */
+    private void initJWTAuth() {
+        // 配置JWT认证选项
+        JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()
+                .addPubSecKey(new PubSecKeyOptions()
+                        .setAlgorithm("HS256")
+                        .setBuffer("easy-proxy-secret-key-for-jwt-authentication"));
+        
+        // 创建JWT认证实例
+        this.jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
     }
 }
