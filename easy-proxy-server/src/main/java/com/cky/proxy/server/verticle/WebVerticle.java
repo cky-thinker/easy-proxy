@@ -106,7 +106,7 @@ public class WebVerticle extends AbstractVerticle {
         baseRouter.route("/api/*").handler(ctx -> {
             // 排除不需要认证的路径
             String path = ctx.request().path();
-            if (path.equals("/api/captchaImage") || path.equals("/api/loginUser") || 
+            if (path.equals("/api/sys/captchaImage") || path.equals("/api/sys/loginUser") || 
                 path.equals("/api") || path.equals("/health")) {
                 ctx.next();
                 return;

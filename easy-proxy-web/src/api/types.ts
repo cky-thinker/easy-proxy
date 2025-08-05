@@ -27,3 +27,32 @@ export interface ErrorResponse {
 export interface HealthResponse {
   status: string;
 }
+
+// 登录请求接口
+export interface LoginRequest {
+  username: string;
+  password: string;
+  captchaId: string;
+  captchaCode: string;
+}
+
+// 验证码图片接口
+export interface CaptchaImage {
+  captchaId: string;
+  img: string;
+}
+
+// 用户信息接口
+export interface UserInfo {
+  userId: number;
+  username: string;
+  avatar?: string;
+  token: string;
+}
+
+// API响应接口
+export interface ApiResponse<T = any> {
+  code: number;
+  msg: string;
+  data: T;
+}

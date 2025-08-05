@@ -9,3 +9,6 @@ export * from './proxyClient';
 
 // 导出健康检查API
 export * from './health';
+
+// 导出认证API
+export * from './auth';

@@ -35,14 +35,6 @@ public class MainVerticle extends AbstractVerticle {
                 log.error("deploy web server fail!", res.cause());
             }
         });
-        // 部署OpenApiVerticle以提供Swagger UI
-        vertx.deployVerticle(new OpenApiVerticle(), openApiRes -> {
-            if (openApiRes.succeeded()) {
-                log.info("deploy OpenAPI documentation server success!");
-            } else {
-                log.error("deploy OpenAPI documentation server fail!", openApiRes.cause());
-            }
-        });
     }
 
     private void flushServerProxySocket() {

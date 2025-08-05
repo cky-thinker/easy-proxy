@@ -26,9 +26,9 @@ public class SysUserController {
 
     private void initRoutes() {
         // 生成验证码图片
-        router.get("/api/captchaImage").handler(this::captchaImage);
+        router.get("/api/sys/captchaImage").handler(this::captchaImage);
         // 用户登录
-        router.post("/api/loginUser").handler(this::loginUser);
+        router.post("/api/sys/loginUser").handler(this::loginUser);
     }
 
     private void loginUser(RoutingContext ctx) {
