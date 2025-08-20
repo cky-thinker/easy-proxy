@@ -1,36 +1,19 @@
-# easy-proxy-web
+1. 总览
+- 客户端在线数
+- 客户端离线数
+- 流量排行
+    - 按天
+    - 按周
+    - 按月
+- 实时流量趋势图
+    - 按天
+    - 按周
+    - 按月
 
-This template should help get you started developing with Vue 3 in Vite.
+2. 客户端管理
+- 新增、编辑、删除
+- 端口管理
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and
-disable Vetur).
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for
-type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the
-TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-pnpm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-pnpm dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-pnpm build
-```
+3. 账号管理
+- 新增、编辑、删除
+- 权限管理

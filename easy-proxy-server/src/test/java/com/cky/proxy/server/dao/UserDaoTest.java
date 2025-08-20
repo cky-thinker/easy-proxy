@@ -41,4 +41,14 @@ public class UserDaoTest {
         log.info("======selectPage======");
         log.info("pageResult:{}", JSONUtil.toJsonStr(pageResult));
     }
+
+    @Test
+    public void initUser() throws SQLException {
+        SysUserDao userDao = new SysUserDao();
+        TableUtils.dropTable(userDao.getDaoTemplate(), false);
+        SysUser sysUser = new SysUser();
+        sysUser.setUsername("admin");
+        sysUser.setPassword("123456");
+        userDao.insert(sysUser);
+    }
 }
