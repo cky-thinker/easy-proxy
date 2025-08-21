@@ -50,6 +50,74 @@ export interface UserInfo {
   token: string;
 }
 
+// 仪表板统计接口
+export interface DashboardStats {
+  onlineClients: number;
+  offlineClients: number;
+  totalTraffic: number;
+  activeConnections: number;
+}
+
+// 流量排行接口
+export interface TrafficRanking {
+  name: string;
+  ip: string;
+  traffic: number;
+  connections: number;
+}
+
+// 流量趋势数据接口
+export interface TrafficTrend {
+  time: string;
+  upload: number;
+  download: number;
+}
+
+// 最近活动接口
+export interface RecentActivity {
+  message: string;
+  time: string;
+  type: 'info' | 'warning' | 'error' | 'success';
+}
+
+// 账号管理接口
+export interface Account {
+  id: number;
+  username: string;
+  email: string;
+  role: 'admin' | 'user' | 'viewer';
+  status: 'active' | 'inactive';
+  lastLogin?: string;
+  createdAt: string;
+  permissions: Record<string, boolean>;
+}
+
+// 权限定义接口
+export interface Permission {
+  name: string;
+  description: string;
+  actions: string[];
+}
+
+// 创建账号请求接口
+export interface CreateAccountRequest {
+  username: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'user' | 'viewer';
+  status: 'active' | 'inactive';
+}
+
+// 更新账号请求接口
+export interface UpdateAccountRequest {
+  id: number;
+  username?: string;
+  email?: string;
+  role?: 'admin' | 'user' | 'viewer';
+  status?: 'active' | 'inactive';
+  permissions?: Record<string, boolean>;
+}
+
 // API响应接口
 export interface ApiResponse<T = any> {
   code: number;

@@ -19,7 +19,7 @@ public class MainVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) {
         Props config = ConfigUtil.getConfig();
         Integer serverMngPort = config.getInt("server.port");
-        log.error("Server starting {}", serverMngPort);
+        log.info("Server starting {}", serverMngPort);
         vertx.createNetServer()
                 .connectHandler(new ServerMngSocketHandler())
                 .listen(serverMngPort)

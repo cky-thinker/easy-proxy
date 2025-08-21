@@ -6,8 +6,8 @@ const router = createRouter({
         {
             path: '/',
             name: 'home',
-            component: () => import('../views/TailwindView.vue'),
-            meta: { requiresAuth: false }
+            component: () => import('../views/DashboardView.vue'),
+            meta: { requiresAuth: true }
         },
         {
             path: '/login',
@@ -19,6 +19,24 @@ const router = createRouter({
             path: '/proxy',
             name: 'proxy',
             component: () => import('../views/ProxyView.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/dashboard',
+            name: 'dashboard',
+            component: () => import('../views/DashboardView.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/clients',
+            name: 'clients',
+            component: () => import('../views/ClientManageView.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/accounts',
+            name: 'accounts',
+            component: () => import('../views/AccountManageView.vue'),
             meta: { requiresAuth: true }
         },
         {

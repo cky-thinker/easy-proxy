@@ -11,11 +11,28 @@
           <!-- Navigation Links -->
           <div class="hidden md:ml-6 md:flex md:space-x-8">
             <router-link
+              v-if="authStore.isLoggedIn"
               to="/"
               class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               active-class="text-indigo-600 border-b-2 border-indigo-600"
             >
-              首页
+              总览
+            </router-link>
+            <router-link
+              v-if="authStore.isLoggedIn"
+              to="/clients"
+              class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+              active-class="text-indigo-600 border-b-2 border-indigo-600"
+            >
+              客户端管理
+            </router-link>
+            <router-link
+              v-if="authStore.isLoggedIn"
+              to="/accounts"
+              class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+              active-class="text-indigo-600 border-b-2 border-indigo-600"
+            >
+              账号管理
             </router-link>
             <router-link
               v-if="authStore.isLoggedIn"
