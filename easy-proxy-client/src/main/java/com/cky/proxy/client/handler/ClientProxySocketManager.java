@@ -1,6 +1,5 @@
 package com.cky.proxy.client.handler;
 
-import cn.hutool.setting.dialect.Props;
 import com.cky.proxy.client.context.DataSocketContext;
 import com.cky.proxy.client.context.MngSocketContext;
 import com.cky.proxy.client.context.ProxySocketContext;
@@ -27,9 +26,8 @@ public class ClientProxySocketManager {
         proxySocket.pause();
 
         log.debug("EP>>ClientProxy>> Create data socket");
-        Props config = ConfigUtil.getConfig();
         vertx.createNetClient()
-            .connect(config.getInt("server.port"), config.getStr("server.ip"))
+            .connect(ConfigUtil.getInt("server.port"), ConfigUtil.getStr("server.ip"))
             .onSuccess(dataSocket -> {
                 ClientDataSocketManager manager = new ClientDataSocketManager(userId, dataSocket, proxySocket);
                 manager.init();

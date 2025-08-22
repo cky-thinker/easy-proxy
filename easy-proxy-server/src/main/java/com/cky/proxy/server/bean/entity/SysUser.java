@@ -1,10 +1,10 @@
 package com.cky.proxy.server.bean.entity;
 
-import java.sql.Date;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-
 import lombok.Data;
+
+import java.sql.Date;
 
 @Data
 @DatabaseTable(tableName = "sys_user")
@@ -19,17 +19,17 @@ public class SysUser {
     /**
      * 账号
      */
-    @DatabaseField
+    @DatabaseField(unique = true)
     public String username;
     /**
      * 手机号
      */
-    @DatabaseField
+    @DatabaseField(unique = true)
     public String mobile;
     /**
      * 邮箱
      */
-    @DatabaseField
+    @DatabaseField(unique = true)
     public String email;
     /**
      * 密码

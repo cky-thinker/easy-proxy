@@ -1,8 +1,8 @@
 package com.cky.proxy.server.dao;
 
-import java.sql.SQLException;
-import java.util.List;
-
+import cn.hutool.db.Page;
+import cn.hutool.db.sql.Direction;
+import cn.hutool.db.sql.Order;
 import com.cky.proxy.common.util.ConfigUtil;
 import com.cky.proxy.server.bean.dto.PageResult;
 import com.j256.ormlite.dao.Dao;
@@ -12,11 +12,10 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-
-import cn.hutool.db.Page;
-import cn.hutool.db.sql.Direction;
-import cn.hutool.db.sql.Order;
 import lombok.SneakyThrows;
+
+import java.sql.SQLException;
+import java.util.List;
 
 public abstract class BaseDao<T> {
     protected Dao<T, Integer> dao = null;
@@ -89,16 +88,15 @@ public abstract class BaseDao<T> {
     }
 
     public ConnectionSource getConnectionSource() throws SQLException {
-        String url = ConfigUtil.getConfig().getProperty("db.url");
-        String username = ConfigUtil.getConfig().getProperty("db.username");
-        String password = ConfigUtil.getConfig().getProperty("db.password");
-        ConnectionSource connectionSource = new JdbcConnectionSource(url, username, password);
-        return connectionSource;
+        String url = ConfigUtil.getProperty("db.url");
+        String username = ConfigUtil.getProperty("db.username");
+        String password = ConfigUtil.getProperty("db.password");
+        return new JdbcConnectionSource(url, username, password);
     }
 
     /**
      * 获取泛型类型
-     * 
+     *
      * @return 实体类类型
      */
     @SuppressWarnings("unchecked")

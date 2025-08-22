@@ -1,6 +1,5 @@
 package com.cky.proxy.client.verticle;
 
-import cn.hutool.setting.dialect.Props;
 import com.cky.proxy.client.context.MngSocketContext;
 import com.cky.proxy.client.handler.ClientMngSocketManager;
 import com.cky.proxy.common.util.ConfigUtil;
@@ -16,11 +15,10 @@ public class MainVerticle extends AbstractVerticle {
     private int waitTime = 1000;
 
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        Props config = ConfigUtil.getConfig();
-        serverIp = config.getStr("server.ip");
-        serverPort = config.getInt("server.port");
-        token = config.getStr("client.token");
+    public void start(Promise<Void> startPromise) {
+        serverIp = ConfigUtil.getStr("server.ip");
+        serverPort = ConfigUtil.getInt("server.port");
+        token = ConfigUtil.getStr("client.token");
         connectMngServer();
     }
 

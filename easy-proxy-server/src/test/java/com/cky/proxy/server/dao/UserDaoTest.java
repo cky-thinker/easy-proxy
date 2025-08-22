@@ -1,6 +1,5 @@
 package com.cky.proxy.server.dao;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -8,8 +7,6 @@ import org.junit.jupiter.api.Test;
 import com.cky.proxy.server.bean.dto.PageResult;
 import com.cky.proxy.server.bean.entity.SysUser;
 import com.cky.proxy.server.util.JsonUtil;
-import com.j256.ormlite.support.ConnectionSource;
-import com.j256.ormlite.table.TableUtils;
 
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
@@ -20,8 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserDaoTest {
     @Test
-    public void test() throws SQLException {
-        // TableUtils.dropTable(userDao.getDaoTemplate(), false);
+    public void insertTest() {
         SysUserDao userDao = new SysUserDao();
         for (int i = 0; i < 100; i++) {
             SysUser sysUser = new SysUser();
@@ -44,7 +40,7 @@ public class UserDaoTest {
     }
 
     @Test
-    public void initUser() throws SQLException {
+    public void initUser() {
         SysUserDao userDao = new SysUserDao();
         SysUser sysUser = new SysUser();
         sysUser.setUsername("admin");
