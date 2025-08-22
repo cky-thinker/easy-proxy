@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import com.cky.proxy.server.bean.dto.PageResult;
 import com.cky.proxy.server.bean.entity.SysUser;
+import com.cky.proxy.server.util.JsonUtil;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -20,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 public class UserDaoTest {
     @Test
     public void test() throws SQLException {
+        // TableUtils.dropTable(userDao.getDaoTemplate(), false);
         SysUserDao userDao = new SysUserDao();
-        TableUtils.dropTable(userDao.getDaoTemplate(), false);
         for (int i = 0; i < 100; i++) {
             SysUser sysUser = new SysUser();
             sysUser.setUsername("admin" + i);
@@ -45,10 +46,15 @@ public class UserDaoTest {
     @Test
     public void initUser() throws SQLException {
         SysUserDao userDao = new SysUserDao();
-        TableUtils.dropTable(userDao.getDaoTemplate(), false);
         SysUser sysUser = new SysUser();
         sysUser.setUsername("admin");
         sysUser.setPassword("123456");
         userDao.insert(sysUser);
+
+        SysUser user = userDao.selectList(queryBuilder -> {
+            queryBuilder.where().eq("username", "admin");
+        }).stream().findFirst().orElse(null);
+        System.out.println("------selectList------");
+        System.out.println(JsonUtil.toJson(user));
     }
 }

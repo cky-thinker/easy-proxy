@@ -16,12 +16,6 @@ const router = createRouter({
             meta: { requiresAuth: false }
         },
         {
-            path: '/proxy',
-            name: 'proxy',
-            component: () => import('../views/ProxyView.vue'),
-            meta: { requiresAuth: true }
-        },
-        {
             path: '/dashboard',
             name: 'dashboard',
             component: () => import('../views/DashboardView.vue'),
@@ -38,13 +32,7 @@ const router = createRouter({
             name: 'accounts',
             component: () => import('../views/AccountManageView.vue'),
             meta: { requiresAuth: true }
-        },
-        {
-            path: '/tailwind',
-            name: 'tailwind',
-            component: () => import('../views/TailwindView.vue'),
-            meta: { requiresAuth: false }
-        },
+        }
     ],
 })
 

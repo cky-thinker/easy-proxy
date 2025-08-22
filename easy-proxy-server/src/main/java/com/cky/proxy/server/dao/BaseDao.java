@@ -19,6 +19,7 @@ import cn.hutool.db.sql.Order;
 import lombok.SneakyThrows;
 
 public abstract class BaseDao<T> {
+    protected Dao<T, Integer> dao = null;
 
     @SneakyThrows
     public void insert(T t) {
@@ -77,10 +78,13 @@ public abstract class BaseDao<T> {
 
     @SneakyThrows
     public Dao<T, Integer> getDaoTemplate() {
-        ConnectionSource connectionSource = getConnectionSource();
-        Class<T> entityClass = getEntityClass();
-        TableUtils.createTableIfNotExists(connectionSource, entityClass);
-        Dao<T, Integer> dao = DaoManager.createDao(connectionSource, entityClass);
+        if (dao == null) {
+            ConnectionSource connectionSource = getConnectionSource();
+            Class<T> entityClass = getEntityClass();
+            TableUtils.createTableIfNotExists(connectionSource, entityClass);
+            dao = DaoManager.createDao(connectionSource, entityClass);
+        }
+
         return dao;
     }
 
