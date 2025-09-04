@@ -21,9 +21,10 @@ public class BandWidthLimitVerticle extends AbstractVerticle {
                 fs.readFile(filePath, result -> {
                     if (result.succeeded()) {
                         // 带宽限流：1Mbps = 1024 * 1024 / 8 = 131072 bytes/second
-                        int bandwidthLimit = 1024 * 1024; // bytes per second
+                        int bandwidthLimit = 1024 * 1024 / 8; // bytes per second
                         int chunkSize = 8192; // 8KB chunks
                         long delayMs = (chunkSize * 1000L) / bandwidthLimit; // delay between chunks
+                        log.info("delayMs {}", delayMs);
 
                         byte[] fileData = result.result().getBytes();
                         log.info("Start send file: {}", filePath);
@@ -54,7 +55,7 @@ public class BandWidthLimitVerticle extends AbstractVerticle {
             return;
         }
 
-        long currentTime = System.currentTimeMillis();
+//        long currentTime = System.currentTimeMillis();
 
         int remainingBytes = data.length - offset;
         int currentChunkSize = Math.min(chunkSize, remainingBytes);
@@ -65,22 +66,24 @@ public class BandWidthLimitVerticle extends AbstractVerticle {
         socket.write(Buffer.buffer(chunk));
 
         long afterWriteTime = System.currentTimeMillis();
-        long processingTime = afterWriteTime - currentTime;
+//        long processingTime = afterWriteTime - currentTime;
+        vertx.setTimer(delayMs, id -> {
+            sendWithBandwidthLimit(socket, data, chunkSize, delayMs, offset + currentChunkSize, afterWriteTime);
+        });
 
         // 调整延迟时间，减去已经消耗的处理时间
-        long adjustedDelay = Math.max(0, delayMs - processingTime);
-
-        if (adjustedDelay > 1) {
-            log.debug("Chunk sent: {} bytes, processing time: {}ms, adjusted delay: {}ms",
-                currentChunkSize, processingTime, adjustedDelay);
-
-            // Schedule next chunk with adjusted delay
-            vertx.setTimer(adjustedDelay, id -> {
-                sendWithBandwidthLimit(socket, data, chunkSize, delayMs, offset + currentChunkSize, afterWriteTime);
-            });
-        } else {
-            sendWithBandwidthLimit(socket, data, chunkSize, delayMs, offset + currentChunkSize, afterWriteTime);
-        }
-
+//        long adjustedDelay = Math.max(0, delayMs - processingTime);
+//
+//        if (adjustedDelay > 1) {
+//            log.debug("Chunk sent: {} bytes, processing time: {}ms, adjusted delay: {}ms",
+//                currentChunkSize, processingTime, adjustedDelay);
+//
+//            // Schedule next chunk with adjusted delay
+//            vertx.setTimer(adjustedDelay, id -> {
+//                sendWithBandwidthLimit(socket, data, chunkSize, delayMs, offset + currentChunkSize, afterWriteTime);
+//            });
+//        } else {
+//            sendWithBandwidthLimit(socket, data, chunkSize, delayMs, offset + currentChunkSize, afterWriteTime);
+//        }
     }
 }
