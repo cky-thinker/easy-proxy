@@ -26,7 +26,8 @@ public class BandWidthLimitVerticle extends AbstractVerticle {
                             long delayMs = (chunkSize * 1000L) / bandwidthLimit; // delay between chunks
 
                             byte[] fileData = result.result().getBytes();
-                            sendWithBandwidthLimit(socket, fileData, chunkSize, delayMs, 0);
+                            log.info("Start send file: {}", filePath);
+                            sendWithBandwidthLimit(socket, fileData, chunkSize, delayMs, 0, System.currentTimeMillis());
                             log.info("File sent successfully with bandwidth limit");
                         } else {
                             String errorMsg = "Error reading file: " + result.cause().getMessage();
@@ -41,11 +42,13 @@ public class BandWidthLimitVerticle extends AbstractVerticle {
             .onFailure(t -> log.error("Server start failed", t));
     }
 
-    private void sendWithBandwidthLimit(NetSocket socket, byte[] data, int chunkSize, long delayMs, int offset) {
+    private void sendWithBandwidthLimit(NetSocket socket, byte[] data, int chunkSize, long delayMs, int offset, long lastSendTime) {
         if (offset >= data.length) {
             socket.close();
             return;
         }
+
+        long currentTime = System.currentTimeMillis();
 
         int remainingBytes = data.length - offset;
         int currentChunkSize = Math.min(chunkSize, remainingBytes);
@@ -55,9 +58,18 @@ public class BandWidthLimitVerticle extends AbstractVerticle {
 
         socket.write(Buffer.buffer(chunk));
 
-        // Schedule next chunk with delay
-        vertx.setTimer(delayMs, id -> {
-            sendWithBandwidthLimit(socket, data, chunkSize, delayMs, offset + currentChunkSize);
+        long afterWriteTime = System.currentTimeMillis();
+        long processingTime = afterWriteTime - currentTime;
+
+        // 调整延迟时间，减去已经消耗的处理时间
+        long adjustedDelay = Math.max(0, delayMs - processingTime);
+
+        log.debug("Chunk sent: {} bytes, processing time: {}ms, adjusted delay: {}ms",
+                 currentChunkSize, processingTime, adjustedDelay);
+
+        // Schedule next chunk with adjusted delay
+        vertx.setTimer(adjustedDelay, id -> {
+            sendWithBandwidthLimit(socket, data, chunkSize, delayMs, offset + currentChunkSize, afterWriteTime);
         });
     }
 }
