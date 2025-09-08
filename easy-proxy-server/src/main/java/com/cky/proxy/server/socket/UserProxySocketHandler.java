@@ -2,9 +2,8 @@ package com.cky.proxy.server.socket;
 
 import cn.hutool.core.util.IdUtil;
 import com.cky.proxy.common.domain.Message;
-import com.cky.proxy.common.domain.ProxyClientConfig;
-import com.cky.proxy.common.domain.ProxyRule;
-
+import com.cky.proxy.server.bean.entity.ProxyClient;
+import com.cky.proxy.server.bean.entity.ProxyClientRule;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
@@ -14,8 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class UserProxySocketHandler implements Handler<NetSocket> {
-    private final ProxyClientConfig proxyClientConfig;
-    private final ProxyRule proxyRule;
+    private final ProxyClient proxyClientConfig;
+    private final ProxyClientRule proxyRule;
 
     @Override
     public void handle(NetSocket userProxySocket) {

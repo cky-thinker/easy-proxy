@@ -1,19 +1,20 @@
 package com.cky.proxy.server;
 
-import com.cky.proxy.server.verticle.WebVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+@Slf4j
 @ExtendWith(VertxExtension.class)
-public class TestWebVerticle {
+public class ReadServerConfigVerticle {
 
     @BeforeEach
     void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-        vertx.deployVerticle(new WebVerticle(), testContext.succeeding(id -> testContext.completeNow()));
+
     }
 
     @Test

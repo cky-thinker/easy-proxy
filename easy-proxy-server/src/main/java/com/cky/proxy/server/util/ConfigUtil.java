@@ -1,4 +1,4 @@
-package com.cky.proxy.common.util;
+package com.cky.proxy.server.util;
 
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
