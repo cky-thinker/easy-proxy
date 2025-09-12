@@ -3,6 +3,7 @@ package com.cky.proxy.server.controller;
 import java.util.List;
 
 import com.cky.proxy.server.dao.ProxyClientGroupDao;
+import com.cky.proxy.server.util.VertxUtil;
 
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -41,16 +42,9 @@ private final Router router;
             });
             
             // 返回结果
-            ctx.response()
-                .putHeader("content-type", "application/json")
-                .end(io.vertx.core.json.Json.encode(groups));
+            VertxUtil.success(ctx, groups);
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to get proxy client groups: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to get proxy client groups: " + e.getMessage());
         }
     }
 
@@ -59,12 +53,7 @@ private final Router router;
             // 从请求体获取JSON数据
             io.vertx.core.json.JsonObject body = ctx.getBodyAsJson();
             if (body == null) {
-                ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "Request body is required")
-                        .encode());
+                VertxUtil.error(ctx, 400, "Request body is required");
                 return;
             }
             
@@ -83,12 +72,7 @@ private final Router router;
                 .putHeader("content-type", "application/json")
                 .end(io.vertx.core.json.Json.encode(group));
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to add proxy client group: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to add proxy client group: " + e.getMessage());
         }
     }
 
@@ -97,12 +81,7 @@ private final Router router;
             // 从请求体获取JSON数据
             io.vertx.core.json.JsonObject body = ctx.getBodyAsJson();
             if (body == null || !body.containsKey("id")) {
-                ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "Request body with id is required")
-                        .encode());
+                VertxUtil.error(ctx, 400, "Request body with id is required");
                 return;
             }
             
@@ -110,12 +89,7 @@ private final Router router;
             com.cky.proxy.server.domain.entity.ProxyClientGroup existingGroup = proxyClientGroupDao.selectById(id);
             
             if (existingGroup == null) {
-                ctx.response()
-                    .setStatusCode(404)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "ProxyClientGroup not found with id: " + id)
-                        .encode());
+                VertxUtil.error(ctx, 404, "ProxyClientGroup not found with id: " + id);
                 return;
             }
             
@@ -130,16 +104,9 @@ private final Router router;
             proxyClientGroupDao.updateById(existingGroup);
             
             // 返回成功响应
-            ctx.response()
-                .putHeader("content-type", "application/json")
-                .end(io.vertx.core.json.Json.encode(existingGroup));
+            VertxUtil.success(ctx, existingGroup);
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to update proxy client group: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to update proxy client group: " + e.getMessage());
         }
     }
 
@@ -148,12 +115,7 @@ private final Router router;
             // 获取ID参数
             String idParam = ctx.request().getParam("id");
             if (idParam == null || idParam.isEmpty()) {
-                ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "Missing required parameter: id")
-                        .encode());
+                VertxUtil.error(ctx, 400, "Missing required parameter: id");
                 return;
             }
             
@@ -161,12 +123,7 @@ private final Router router;
             com.cky.proxy.server.domain.entity.ProxyClientGroup existingGroup = proxyClientGroupDao.selectById(id);
             
             if (existingGroup == null) {
-                ctx.response()
-                    .setStatusCode(404)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "ProxyClientGroup not found with id: " + id)
-                        .encode());
+                VertxUtil.error(ctx, 404, "ProxyClientGroup not found with id: " + id);
                 return;
             }
             
@@ -174,23 +131,11 @@ private final Router router;
             proxyClientGroupDao.deleteById(id);
             
             // 返回成功响应
-            ctx.response()
-                .setStatusCode(204)
-                .end();
+            VertxUtil.success(ctx, null);
         } catch (NumberFormatException e) {
-            ctx.response()
-                .setStatusCode(400)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Invalid id format")
-                    .encode());
+            VertxUtil.error(ctx, 400, "Invalid id format");
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to delete proxy client group: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to delete proxy client group: " + e.getMessage());
         }
     }
 }

@@ -67,21 +67,14 @@ public class ProxyClientController {
                 });
 
         // 返回结果
-        ctx.response()
-                .putHeader("content-type", "application/json")
-                .end(Json.encode(result));
+        VertxUtil.success(ctx, result);
     }
 
     private void getProxyClientDetail(RoutingContext ctx) {
         // 获取ID参数
         String idParam = ctx.request().getParam("id");
         if (idParam == null || idParam.isEmpty()) {
-            ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new JsonObject()
-                            .put("error", "Missing required parameter: id")
-                            .encode());
+            VertxUtil.error(ctx, 400, "Missing required parameter: id");
             return;
         }
 
@@ -90,24 +83,13 @@ public class ProxyClientController {
             ProxyClient proxyClient = proxyClientDao.selectById(id);
 
             if (proxyClient == null) {
-                ctx.response()
-                        .setStatusCode(404)
-                        .putHeader("content-type", "application/json")
-                        .end(new JsonObject()
-                                .put("error", "ProxyClient not found with id: " + id)
-                                .encode());
+                VertxUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
                 return;
             }
 
             VertxUtil.response(ctx, Result.success(proxyClient));
         } catch (NumberFormatException e) {
-            ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new JsonObject()
-                            .put("error", "Invalid id format: " + idParam)
-                            .encode());
-
+            VertxUtil.error(ctx, 400, "Invalid id format: " + idParam);
         }
     }
 
@@ -204,9 +186,7 @@ public class ProxyClientController {
             proxyClientDao.deleteById(id);
 
             // 返回成功响应
-            ctx.response()
-                    .setStatusCode(204)
-                    .end();
+            VertxUtil.success(ctx, null);
         } catch (NumberFormatException e) {
             VertxUtil.error(ctx, 400, "Invalid id format");
         } catch (Exception e) {

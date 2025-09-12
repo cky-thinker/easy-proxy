@@ -4,6 +4,7 @@ package com.cky.proxy.server.controller;
 import java.util.List;
 
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
+import com.cky.proxy.server.util.VertxUtil;
 
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -42,16 +43,9 @@ public class ProxyClientRuleController {
             });
             
             // 返回结果
-            ctx.response()
-                .putHeader("content-type", "application/json")
-                .end(io.vertx.core.json.Json.encode(rules));
+            VertxUtil.success(ctx, rules);
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to get proxy client rules: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to get proxy client rules: " + e.getMessage());
         }
     }
     
@@ -60,12 +54,7 @@ public class ProxyClientRuleController {
             // 获取ID参数
             String idParam = ctx.request().getParam("id");
             if (idParam == null || idParam.isEmpty()) {
-                ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "Missing required parameter: id")
-                        .encode());
+                VertxUtil.error(ctx, 400, "Missing required parameter: id");
                 return;
             }
             
@@ -73,33 +62,16 @@ public class ProxyClientRuleController {
             com.cky.proxy.server.domain.entity.ProxyClientRule rule = proxyClientRuleDao.selectById(id);
             
             if (rule == null) {
-                ctx.response()
-                    .setStatusCode(404)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "ProxyClientRule not found with id: " + id)
-                        .encode());
+                VertxUtil.error(ctx, 404, "ProxyClientRule not found with id: " + id);
                 return;
             }
             
             // 返回结果
-            ctx.response()
-                .putHeader("content-type", "application/json")
-                .end(io.vertx.core.json.Json.encode(rule));
+            VertxUtil.success(ctx, rule);
         } catch (NumberFormatException e) {
-            ctx.response()
-                .setStatusCode(400)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Invalid id format")
-                    .encode());
+            VertxUtil.error(ctx, 400, "Invalid id format");
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to get proxy client rule: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to get proxy client rule: " + e.getMessage());
         }
     }
 
@@ -108,12 +80,7 @@ public class ProxyClientRuleController {
             // 从请求体获取JSON数据
             io.vertx.core.json.JsonObject body = ctx.getBodyAsJson();
             if (body == null) {
-                ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "Request body is required")
-                        .encode());
+                VertxUtil.error(ctx, 400, "Request body is required");
                 return;
             }
             
@@ -130,17 +97,9 @@ public class ProxyClientRuleController {
             proxyClientRuleDao.insert(rule);
             
             // 返回成功响应
-            ctx.response()
-                .setStatusCode(201)
-                .putHeader("content-type", "application/json")
-                .end(io.vertx.core.json.Json.encode(rule));
+            VertxUtil.success(ctx, rule);
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to add proxy client rule: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to add proxy client rule: " + e.getMessage());
         }
     }
 
@@ -149,12 +108,7 @@ public class ProxyClientRuleController {
             // 从请求体获取JSON数据
             io.vertx.core.json.JsonObject body = ctx.getBodyAsJson();
             if (body == null || !body.containsKey("id")) {
-                ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "Request body with id is required")
-                        .encode());
+                VertxUtil.error(ctx, 400, "Request body with id is required");
                 return;
             }
             
@@ -162,12 +116,7 @@ public class ProxyClientRuleController {
             com.cky.proxy.server.domain.entity.ProxyClientRule existingRule = proxyClientRuleDao.selectById(id);
             
             if (existingRule == null) {
-                ctx.response()
-                    .setStatusCode(404)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "ProxyClientRule not found with id: " + id)
-                        .encode());
+                VertxUtil.error(ctx, 404, "ProxyClientRule not found with id: " + id);
                 return;
             }
             
@@ -191,16 +140,9 @@ public class ProxyClientRuleController {
             proxyClientRuleDao.updateById(existingRule);
             
             // 返回成功响应
-            ctx.response()
-                .putHeader("content-type", "application/json")
-                .end(io.vertx.core.json.Json.encode(existingRule));
+            VertxUtil.success(ctx, existingRule);
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to update proxy client rule: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to update proxy client rule: " + e.getMessage());
         }
     }
 
@@ -209,12 +151,7 @@ public class ProxyClientRuleController {
             // 获取ID参数
             String idParam = ctx.request().getParam("id");
             if (idParam == null || idParam.isEmpty()) {
-                ctx.response()
-                    .setStatusCode(400)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "Missing required parameter: id")
-                        .encode());
+                VertxUtil.error(ctx, 400, "Missing required parameter: id");
                 return;
             }
             
@@ -222,12 +159,7 @@ public class ProxyClientRuleController {
             com.cky.proxy.server.domain.entity.ProxyClientRule existingRule = proxyClientRuleDao.selectById(id);
             
             if (existingRule == null) {
-                ctx.response()
-                    .setStatusCode(404)
-                    .putHeader("content-type", "application/json")
-                    .end(new io.vertx.core.json.JsonObject()
-                        .put("error", "ProxyClientRule not found with id: " + id)
-                        .encode());
+                VertxUtil.error(ctx, 404, "ProxyClientRule not found with id: " + id);
                 return;
             }
             
@@ -235,23 +167,11 @@ public class ProxyClientRuleController {
             proxyClientRuleDao.deleteById(id);
             
             // 返回成功响应
-            ctx.response()
-                .setStatusCode(204)
-                .end();
+            VertxUtil.success(ctx, null);
         } catch (NumberFormatException e) {
-            ctx.response()
-                .setStatusCode(400)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Invalid id format")
-                    .encode());
+            VertxUtil.error(ctx, 400, "Invalid id format");
         } catch (Exception e) {
-            ctx.response()
-                .setStatusCode(500)
-                .putHeader("content-type", "application/json")
-                .end(new io.vertx.core.json.JsonObject()
-                    .put("error", "Failed to delete proxy client rule: " + e.getMessage())
-                    .encode());
+            VertxUtil.error(ctx, 500, "Failed to delete proxy client rule: " + e.getMessage());
         }
     }
 }
