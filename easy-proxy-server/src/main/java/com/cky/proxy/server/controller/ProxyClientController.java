@@ -2,27 +2,25 @@ package com.cky.proxy.server.controller;
 
 import java.util.Date;
 
-import com.cky.proxy.server.dao.ProxyClientDao;
+import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.util.PageUtil;
 import com.cky.proxy.server.util.VertxUtil;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.db.Page;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 public class ProxyClientController {
     private final Router router;
-    private final ProxyClientDao proxyClientDao;
+    private final ProxyClientService proxyClientService;
 
     public ProxyClientController(Router router) {
         this.router = router;
-        this.proxyClientDao = new ProxyClientDao();
+        this.proxyClientService = new ProxyClientService();
         initRoutes();
     }
 
@@ -41,30 +39,16 @@ public class ProxyClientController {
 
     private void getProxyClientsPageable(RoutingContext ctx) {
         // 创建分页对象
-        Page hutoolPage = PageUtil.getPage(ctx);
+        Page page = PageUtil.getPage(ctx);
+
+        // 获取查询参数
+        String name = ctx.request().getParam("name");
+        Integer groupId = ctx.request().getParam("groupId") != null
+                ? Integer.parseInt(ctx.request().getParam("groupId"))
+                : null;
 
         // 执行分页查询
-        PageResult<ProxyClient> result = proxyClientDao.selectPage(
-                hutoolPage,
-                where -> {
-                    // 获取查询参数
-                    String name = ctx.request().getParam("name");
-                    String token = ctx.request().getParam("token");
-                    Integer groupId = ctx.request().getParam("groupId") != null
-                            ? Integer.parseInt(ctx.request().getParam("groupId"))
-                            : null;
-
-                    // 构建查询条件
-                    if (name != null && !name.isEmpty()) {
-                        where.like("name", "%" + name + "%");
-                    }
-                    if (token != null && !token.isEmpty()) {
-                        where.eq("token", token);
-                    }
-                    if (groupId != null) {
-                        where.eq("groupId", groupId);
-                    }
-                });
+        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, name, groupId);
 
         // 返回结果
         VertxUtil.success(ctx, result);
@@ -80,7 +64,7 @@ public class ProxyClientController {
 
         try {
             Integer id = Integer.parseInt(idParam);
-            ProxyClient proxyClient = proxyClientDao.selectById(id);
+            ProxyClient proxyClient = proxyClientService.getProxyClientById(id);
 
             if (proxyClient == null) {
                 VertxUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
@@ -106,14 +90,13 @@ public class ProxyClientController {
             ProxyClient proxyClient = new ProxyClient();
             proxyClient.setName(body.getString("name"));
             proxyClient.setToken(body.getString("token"));
-            proxyClient.setGroupId(body.getInteger("groupId", 0));
             proxyClient.setStatus("offline"); // 默认离线状态
             proxyClient.setEnableFlag(body.getBoolean("enableFlag", true));
             proxyClient.setCreateBy(body.getString("createBy", "system"));
             proxyClient.setCreateTime(new Date());
 
             // 保存到数据库
-            proxyClientDao.insert(proxyClient);
+            proxyClientService.addProxyClient(proxyClient);
 
             // 返回成功响应
             VertxUtil.success(ctx, proxyClient);
@@ -131,35 +114,15 @@ public class ProxyClientController {
                 return;
             }
 
-            Integer id = body.getInteger("id");
-            ProxyClient existingClient = proxyClientDao.selectById(id);
-
-            if (existingClient == null) {
-                VertxUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
-                return;
-            }
-
-            // 更新字段
-            if (body.containsKey("name")) {
-                existingClient.setName(body.getString("name"));
-            }
-            if (body.containsKey("token")) {
-                existingClient.setToken(body.getString("token"));
-            }
-            if (body.containsKey("groupId")) {
-                existingClient.setGroupId(body.getInteger("groupId"));
-            }
-            if (body.containsKey("enableFlag")) {
-                existingClient.setEnableFlag(body.getBoolean("enableFlag"));
-            }
-            existingClient.setUpdateBy(body.getString("updateBy", "system"));
-            existingClient.setUpdateTime(new Date());
-
+            ProxyClient proxyClient = new ProxyClient();
+            proxyClient.setId(body.getInteger("id"));
+            proxyClient.setName(body.getString("name"));
+            proxyClient.setToken(body.getString("token"));
+            proxyClient.setEnableFlag(body.getBoolean("enableFlag", true));
             // 保存到数据库
-            proxyClientDao.updateById(existingClient);
-
+            proxyClient = proxyClientService.updateProxyClient(proxyClient);
             // 返回成功响应
-            VertxUtil.success(ctx, existingClient);
+            VertxUtil.success(ctx, proxyClient);
         } catch (Exception e) {
             VertxUtil.error(ctx, 500, "Failed to update proxy client: " + e.getMessage());
         }
@@ -175,15 +138,12 @@ public class ProxyClientController {
             }
 
             Integer id = Integer.parseInt(idParam);
-            ProxyClient existingClient = proxyClientDao.selectById(id);
-
-            if (existingClient == null) {
-                VertxUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
+            // 从数据库删除
+            boolean deleted = proxyClientService.deleteProxyClient(id);
+            if (!deleted) {
+                VertxUtil.error(ctx, 404, "Proxy client not found");
                 return;
             }
-
-            // 从数据库删除
-            proxyClientDao.deleteById(id);
 
             // 返回成功响应
             VertxUtil.success(ctx, null);

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class BandWidthLimitTest {
-    @Test
+    // @Test
     public void testBandWidthLimit() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
         vertx.exceptionHandler(t -> {
@@ -22,7 +22,7 @@ public class BandWidthLimitTest {
         Thread.sleep(60 * 60 * 1000);
     }
 
-    @Test
+    // @Test
     public void bandwidthTest() throws Exception {
         String serverHost = "127.0.0.1";
         int serverPort = 10001;

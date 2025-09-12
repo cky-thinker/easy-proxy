@@ -1,12 +1,12 @@
 package com.cky.proxy.server.verticle;
 
+import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.controller.ProxyClientController;
 import com.cky.proxy.server.controller.SysUserController;
 import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.util.VertxUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -54,24 +54,6 @@ public class WebManageVerticle extends AbstractVerticle {
                 .end(new JsonObject().put("status", "UP").encode());
         });
 
-        // API文档端点
-        baseRouter.get("/api").handler(ctx -> {
-            JsonObject apiDocs = new JsonObject()
-                .put("name", "Easy Proxy API")
-                .put("version", "1.0.0")
-                .put("endpoints", new JsonObject()
-                    .put("GET /api/proxy-clients", "获取所有代理客户端配置")
-                    .put("GET /api/proxy-clients/:token", "根据token获取特定代理客户端配置")
-                    .put("POST /api/proxy-clients", "添加新的代理客户端配置")
-                    .put("PUT /api/proxy-clients/:token", "更新现有代理客户端配置")
-                    .put("DELETE /api/proxy-clients/:token", "删除代理客户端配置")
-                );
-
-            ctx.response()
-                .putHeader("content-type", "application/json")
-                .end(Json.encodePrettily(apiDocs));
-        });
-
         // 添加全局错误处理
         baseRouter.route().failureHandler(ctx -> {
             int statusCode = ctx.statusCode();
@@ -108,12 +90,14 @@ public class WebManageVerticle extends AbstractVerticle {
         new SysUserController(baseRouter, vertx);
 
         // 启动HTTP服务器
+        ConfigProperty configProperty = ConfigProperty.getInstance();
+        int webPort = configProperty.getServer().getWebPort();
         vertx.createHttpServer()
             .requestHandler(baseRouter)
-            .listen(8888, http -> {
+            .listen(webPort, http -> {
                 if (http.succeeded()) {
                     startPromise.complete();
-                    log.info("HTTP server started on port 8888");
+                    log.info("HTTP server started on port {}", webPort);
                 } else {
                     startPromise.fail(http.cause());
                 }

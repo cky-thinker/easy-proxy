@@ -39,21 +39,21 @@ public class User {
     /**
      * 创建人
      */
-    @DatabaseField
+    @DatabaseField(columnName="create_by")
     private String createBy;
     /**
      * 创建时间
      */
-    @DatabaseField
+    @DatabaseField(columnName="create_time")
     private Date createTime;
     /**
      * 更新人
      */
-    @DatabaseField
+    @DatabaseField(columnName="update_by")
     private String updateBy;
     /**
      * 更新时间
      */
-    @DatabaseField
+    @DatabaseField(columnName="update_time")
     private Date updateTime;
 }

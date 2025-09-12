@@ -6,7 +6,7 @@ import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 
-import com.cky.proxy.server.dao.SysUserDao;
+import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
 import com.cky.proxy.server.domain.dto.UserInfo;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserService {
-    private final SysUserDao sysUserDao;
+    private final UserDao sysUserDao;
     private final JWTAuth jwtAuth;
     private final Vertx vertx;
     // 验证码缓存，key为验证码ID，value为验证码文本
@@ -30,7 +30,7 @@ public class UserService {
     private static final long CAPTCHA_EXPIRE_TIME = 5 * 60 * 1000;
 
     public UserService(Vertx vertx) {
-        this.sysUserDao = new SysUserDao();
+        this.sysUserDao = new UserDao();
         this.vertx = vertx;
         // 配置JWT
         JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()

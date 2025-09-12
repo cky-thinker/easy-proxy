@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserDaoTest {
     @Test
     public void insertTest() {
-        SysUserDao userDao = new SysUserDao();
+        UserDao userDao = new UserDao();
         for (int i = 0; i < 100; i++) {
             User sysUser = new User();
             sysUser.setUsername("admin" + i);
@@ -41,7 +41,7 @@ public class UserDaoTest {
 
     @Test
     public void initUser() {
-        SysUserDao userDao = new SysUserDao();
+        UserDao userDao = new UserDao();
         User sysUser = new User();
         sysUser.setUsername("admin");
         sysUser.setPassword("123456");
