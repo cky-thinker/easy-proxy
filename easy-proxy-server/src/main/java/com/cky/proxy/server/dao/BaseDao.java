@@ -3,8 +3,9 @@ package com.cky.proxy.server.dao;
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
-import com.cky.proxy.common.util.ConfigUtil;
 import com.cky.proxy.server.bean.dto.PageResult;
+import com.cky.proxy.server.config.DatabaseProperty;
+import com.cky.proxy.server.config.ConfigProperty;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
@@ -88,10 +89,8 @@ public abstract class BaseDao<T> {
     }
 
     public ConnectionSource getConnectionSource() throws SQLException {
-        String url = ConfigUtil.getProperty("db.url");
-        String username = ConfigUtil.getProperty("db.username");
-        String password = ConfigUtil.getProperty("db.password");
-        return new JdbcConnectionSource(url, username, password);
+        DatabaseProperty db = ConfigProperty.getInstance().getDb();
+        return new JdbcConnectionSource(db.getUrl(), db.getUsername(), db.getPassword());
     }
 
     /**

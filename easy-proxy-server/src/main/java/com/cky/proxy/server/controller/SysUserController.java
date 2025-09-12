@@ -6,7 +6,7 @@ import com.cky.proxy.server.bean.dto.CaptchaImage;
 import com.cky.proxy.server.bean.dto.LoginReq;
 import com.cky.proxy.server.bean.dto.Result;
 import com.cky.proxy.server.bean.dto.UserInfo;
-import com.cky.proxy.server.service.AuthService;
+import com.cky.proxy.server.service.UserService;
 import com.cky.proxy.server.util.JsonUtil;
 import com.cky.proxy.server.util.VertxUtil;
 
@@ -16,11 +16,11 @@ import io.vertx.ext.web.RoutingContext;
 
 public class SysUserController {
     private final Router router;
-    private final AuthService authService;
+    private final UserService authService;
 
     public SysUserController(Router router, Vertx vertx) {
         this.router = router;
-        this.authService = new AuthService(vertx);
+        this.authService = new UserService(vertx);
         initRoutes();
     }
 

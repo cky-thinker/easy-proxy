@@ -11,7 +11,6 @@ import com.cky.proxy.server.bean.dto.LoginReq;
 import com.cky.proxy.server.bean.dto.UserInfo;
 import com.cky.proxy.server.bean.entity.SysUser;
 import com.cky.proxy.server.dao.SysUserDao;
-import com.cky.proxy.server.util.JsonUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -20,7 +19,7 @@ import io.vertx.ext.auth.JWTOptions;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class AuthService {
+public class UserService {
     private final SysUserDao sysUserDao;
     private final JWTAuth jwtAuth;
     private final Vertx vertx;
@@ -29,7 +28,7 @@ public class AuthService {
     // 验证码有效期（毫秒）
     private static final long CAPTCHA_EXPIRE_TIME = 5 * 60 * 1000;
 
-    public AuthService(Vertx vertx) {
+    public UserService(Vertx vertx) {
         this.sysUserDao = new SysUserDao();
         this.vertx = vertx;
         // 配置JWT
@@ -38,21 +37,6 @@ public class AuthService {
                         .setAlgorithm("HS256")
                         .setBuffer("easy-proxy-secret-key-for-jwt-authentication"));
         this.jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
-    }
-
-    public static void main(String[] args) {
-        SysUserDao userDao = new SysUserDao();
-        // TableUtils.dropTable(userDao.getDaoTemplate(), false);
-        SysUser sysUser = new SysUser();
-        sysUser.setUsername("admin");
-        sysUser.setPassword("123456");
-        userDao.insert(sysUser);
-
-        SysUser user = userDao.selectList(queryBuilder -> {
-            queryBuilder.where().eq("username", "admin");
-        }).stream().findFirst().orElse(null);
-        System.out.println("------selectList------");
-        System.out.println(JsonUtil.toJson(user));
     }
 
     public UserInfo login(LoginReq loginReq) {

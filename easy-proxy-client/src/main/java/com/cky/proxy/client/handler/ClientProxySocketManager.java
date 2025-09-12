@@ -1,10 +1,11 @@
 package com.cky.proxy.client.handler;
 
+import com.cky.proxy.client.config.ConfigProperty;
+import com.cky.proxy.client.config.ServerProperty;
 import com.cky.proxy.client.context.DataSocketContext;
 import com.cky.proxy.client.context.MngSocketContext;
 import com.cky.proxy.client.context.ProxySocketContext;
 import com.cky.proxy.common.domain.Message;
-import com.cky.proxy.common.util.ConfigUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetSocket;
 import lombok.RequiredArgsConstructor;
@@ -25,16 +26,17 @@ public class ClientProxySocketManager {
         // pause util data socket success
         proxySocket.pause();
 
+        ServerProperty server = ConfigProperty.getInstance().getServer();
         log.debug("EP>>ClientProxy>> Create data socket");
         vertx.createNetClient()
-            .connect(ConfigUtil.getInt("server.port"), ConfigUtil.getStr("server.ip"))
-            .onSuccess(dataSocket -> {
-                ClientDataSocketManager manager = new ClientDataSocketManager(userId, dataSocket, proxySocket);
-                manager.init();
-            }).onFailure(e -> {
-                log.error("EP>>ClientProxy>> Create data socket failed", e);
-                MngSocketContext.getMngSocket().write(Message.createDisConnectMsg(userId));
-            });
+                .connect(server.getPort(), server.getIp())
+                .onSuccess(dataSocket -> {
+                    ClientDataSocketManager manager = new ClientDataSocketManager(userId, dataSocket, proxySocket);
+                    manager.init();
+                }).onFailure(e -> {
+                    log.error("EP>>ClientProxy>> Create data socket failed", e);
+                    MngSocketContext.getMngSocket().write(Message.createDisConnectMsg(userId));
+                });
     }
 
     private void handleClose() {

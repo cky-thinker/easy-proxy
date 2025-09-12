@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "SysConfig",
+            "request": "launch",
+            "mainClass": "com.cky.proxy.server.config.SysConfig",
+            "projectName": "easy-proxy-server"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"
