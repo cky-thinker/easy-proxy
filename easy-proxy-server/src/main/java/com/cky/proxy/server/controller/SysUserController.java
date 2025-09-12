@@ -2,10 +2,10 @@ package com.cky.proxy.server.controller;
 
 import cn.hutool.core.util.StrUtil;
 
-import com.cky.proxy.server.bean.dto.CaptchaImage;
-import com.cky.proxy.server.bean.dto.LoginReq;
-import com.cky.proxy.server.bean.dto.Result;
-import com.cky.proxy.server.bean.dto.UserInfo;
+import com.cky.proxy.server.domain.dto.CaptchaImage;
+import com.cky.proxy.server.domain.dto.LoginReq;
+import com.cky.proxy.server.domain.dto.Result;
+import com.cky.proxy.server.domain.dto.UserInfo;
 import com.cky.proxy.server.service.UserService;
 import com.cky.proxy.server.util.JsonUtil;
 import com.cky.proxy.server.util.VertxUtil;

@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.cky.proxy.server.bean.dto.PageResult;
-import com.cky.proxy.server.bean.entity.SysUser;
+import com.cky.proxy.server.domain.dto.PageResult;
+import com.cky.proxy.server.domain.entity.User;
 import com.cky.proxy.server.util.JsonUtil;
 
 import cn.hutool.db.Page;
@@ -20,19 +20,19 @@ public class UserDaoTest {
     public void insertTest() {
         SysUserDao userDao = new SysUserDao();
         for (int i = 0; i < 100; i++) {
-            SysUser sysUser = new SysUser();
+            User sysUser = new User();
             sysUser.setUsername("admin" + i);
             sysUser.setPassword("123456");
             userDao.insert(sysUser);
         }
-        List<SysUser> users = userDao.selectList(qb -> {
+        List<User> users = userDao.selectList(qb -> {
             qb.where().eq("username", "admin1");
         });
         log.info("======selectList======");
         log.info("users:{}", users);
         Page page = new Page(1, 10);
         page.setOrder(new Order("id", Direction.DESC));
-        PageResult<SysUser> pageResult = userDao.selectPage(page, (qb) -> {
+        PageResult<User> pageResult = userDao.selectPage(page, (qb) -> {
             qb.like("username", "%admin%");
         });
         log.info("======selectPage======");
@@ -42,12 +42,12 @@ public class UserDaoTest {
     @Test
     public void initUser() {
         SysUserDao userDao = new SysUserDao();
-        SysUser sysUser = new SysUser();
+        User sysUser = new User();
         sysUser.setUsername("admin");
         sysUser.setPassword("123456");
         userDao.insert(sysUser);
 
-        SysUser user = userDao.selectList(queryBuilder -> {
+        User user = userDao.selectList(queryBuilder -> {
             queryBuilder.where().eq("username", "admin");
         }).stream().findFirst().orElse(null);
         System.out.println("------selectList------");

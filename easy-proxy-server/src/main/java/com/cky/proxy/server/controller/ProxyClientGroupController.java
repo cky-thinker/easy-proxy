@@ -34,7 +34,7 @@ private final Router router;
             String name = ctx.request().getParam("name");
             
             // 执行查询
-            List<com.cky.proxy.server.bean.entity.ProxyClientGroup> groups = proxyClientGroupDao.selectList(qb -> {
+            List<com.cky.proxy.server.domain.entity.ProxyClientGroup> groups = proxyClientGroupDao.selectList(qb -> {
                 if (name != null && !name.isEmpty()) {
                     qb.where().like("name", "%" + name + "%");
                 }
@@ -69,7 +69,7 @@ private final Router router;
             }
             
             // 创建ProxyClientGroup对象
-            com.cky.proxy.server.bean.entity.ProxyClientGroup group = new com.cky.proxy.server.bean.entity.ProxyClientGroup();
+            com.cky.proxy.server.domain.entity.ProxyClientGroup group = new com.cky.proxy.server.domain.entity.ProxyClientGroup();
             group.setName(body.getString("name"));
             group.setCreateBy(body.getString("createBy", "system"));
             group.setCreateTime(new java.sql.Date(System.currentTimeMillis()));
@@ -107,7 +107,7 @@ private final Router router;
             }
             
             Integer id = body.getInteger("id");
-            com.cky.proxy.server.bean.entity.ProxyClientGroup existingGroup = proxyClientGroupDao.selectById(id);
+            com.cky.proxy.server.domain.entity.ProxyClientGroup existingGroup = proxyClientGroupDao.selectById(id);
             
             if (existingGroup == null) {
                 ctx.response()
@@ -158,7 +158,7 @@ private final Router router;
             }
             
             Integer id = Integer.parseInt(idParam);
-            com.cky.proxy.server.bean.entity.ProxyClientGroup existingGroup = proxyClientGroupDao.selectById(id);
+            com.cky.proxy.server.domain.entity.ProxyClientGroup existingGroup = proxyClientGroupDao.selectById(id);
             
             if (existingGroup == null) {
                 ctx.response()

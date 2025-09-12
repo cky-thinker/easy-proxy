@@ -1,4 +1,4 @@
-package com.cky.proxy.server.bean.dto;
+package com.cky.proxy.server.domain.dto;
 
 import java.util.List;
 

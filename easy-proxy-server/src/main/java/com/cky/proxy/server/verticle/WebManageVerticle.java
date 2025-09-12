@@ -1,8 +1,8 @@
 package com.cky.proxy.server.verticle;
 
-import com.cky.proxy.server.bean.dto.Result;
 import com.cky.proxy.server.controller.ProxyClientController;
 import com.cky.proxy.server.controller.SysUserController;
+import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.util.VertxUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;

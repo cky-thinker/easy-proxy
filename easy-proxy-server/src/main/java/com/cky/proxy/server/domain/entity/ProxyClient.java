@@ -1,62 +1,63 @@
-package com.cky.proxy.server.bean.entity;
+package com.cky.proxy.server.domain.entity;
+
+import java.util.Date;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+
 import lombok.Data;
 
-import java.sql.Date;
-
 /**
- * 代理客户端规则
+ * 代理客户端配置
  */
 @Data
-@DatabaseTable(tableName = "proxy_client_rule")
-public class ProxyClientRule {
+@DatabaseTable(tableName = "proxy_client")
+public class ProxyClient {
     @DatabaseField(generatedId = true)
     private Integer id;
     /**
-     * 代理客户端ID
+     * 分组id，默认0
      */
     @DatabaseField
-    private Integer proxyClientId;
+     private Integer groupId;
     /**
-     * 规则名称
+     * 客户端名称
      */
     @DatabaseField
-    private String name;
+     private String name;
     /**
-     * 服务端监听端口
+     * token
      */
     @DatabaseField
-    private int serverPort;
+     private String token;
     /**
-     * 客户端转发地址，格式为 ip:port
+     * 在线状态 online offline
      */
     @DatabaseField
-    private String clientAddress;
+     private String status;
     /**
      * 启用标记
      */
     @DatabaseField
-    private Boolean enableFlag;
+     private Boolean enableFlag;
     /**
      * 创建人
      */
     @DatabaseField
-    private String createBy;
+     private String createBy;
     /**
      * 创建时间
      */
     @DatabaseField
-    private Date createTime;
+     private Date createTime;
     /**
      * 更新人
      */
     @DatabaseField
-    private String updateBy;
+     private String updateBy;
     /**
      * 更新时间
      */
     @DatabaseField
-    private Date updateTime;
+     private Date updateTime;
 }

@@ -2,8 +2,9 @@ package com.cky.proxy.server.socket;
 
 import cn.hutool.core.util.IdUtil;
 import com.cky.proxy.common.domain.Message;
-import com.cky.proxy.server.bean.entity.ProxyClient;
-import com.cky.proxy.server.bean.entity.ProxyClientRule;
+import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.domain.entity.ProxyClientRule;
+
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;

@@ -35,7 +35,7 @@ public class ProxyClientRuleController {
             String name = ctx.request().getParam("name");
             
             // 执行查询
-            List<com.cky.proxy.server.bean.entity.ProxyClientRule> rules = proxyClientRuleDao.selectList(qb -> {
+            List<com.cky.proxy.server.domain.entity.ProxyClientRule> rules = proxyClientRuleDao.selectList(qb -> {
                 if (name != null && !name.isEmpty()) {
                     qb.where().like("name", "%" + name + "%");
                 }
@@ -70,7 +70,7 @@ public class ProxyClientRuleController {
             }
             
             Integer id = Integer.parseInt(idParam);
-            com.cky.proxy.server.bean.entity.ProxyClientRule rule = proxyClientRuleDao.selectById(id);
+            com.cky.proxy.server.domain.entity.ProxyClientRule rule = proxyClientRuleDao.selectById(id);
             
             if (rule == null) {
                 ctx.response()
@@ -118,7 +118,7 @@ public class ProxyClientRuleController {
             }
             
             // 创建ProxyClientRule对象
-            com.cky.proxy.server.bean.entity.ProxyClientRule rule = new com.cky.proxy.server.bean.entity.ProxyClientRule();
+            com.cky.proxy.server.domain.entity.ProxyClientRule rule = new com.cky.proxy.server.domain.entity.ProxyClientRule();
             rule.setName(body.getString("name"));
             rule.setServerPort(body.getInteger("serverPort"));
             rule.setClientAddress(body.getString("clientAddress"));
@@ -159,7 +159,7 @@ public class ProxyClientRuleController {
             }
             
             Integer id = body.getInteger("id");
-            com.cky.proxy.server.bean.entity.ProxyClientRule existingRule = proxyClientRuleDao.selectById(id);
+            com.cky.proxy.server.domain.entity.ProxyClientRule existingRule = proxyClientRuleDao.selectById(id);
             
             if (existingRule == null) {
                 ctx.response()
@@ -219,7 +219,7 @@ public class ProxyClientRuleController {
             }
             
             Integer id = Integer.parseInt(idParam);
-            com.cky.proxy.server.bean.entity.ProxyClientRule existingRule = proxyClientRuleDao.selectById(id);
+            com.cky.proxy.server.domain.entity.ProxyClientRule existingRule = proxyClientRuleDao.selectById(id);
             
             if (existingRule == null) {
                 ctx.response()

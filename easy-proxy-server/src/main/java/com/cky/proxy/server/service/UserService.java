@@ -6,11 +6,12 @@ import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 
-import com.cky.proxy.server.bean.dto.CaptchaImage;
-import com.cky.proxy.server.bean.dto.LoginReq;
-import com.cky.proxy.server.bean.dto.UserInfo;
-import com.cky.proxy.server.bean.entity.SysUser;
 import com.cky.proxy.server.dao.SysUserDao;
+import com.cky.proxy.server.domain.dto.CaptchaImage;
+import com.cky.proxy.server.domain.dto.LoginReq;
+import com.cky.proxy.server.domain.dto.UserInfo;
+import com.cky.proxy.server.domain.entity.User;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -66,7 +67,7 @@ public class UserService {
             }
 
             // 查询用户
-            SysUser user = null;
+            User user = null;
             try {
                 user = sysUserDao.selectList(queryBuilder -> {
                     queryBuilder.where().eq("username", loginReq.getUsername());

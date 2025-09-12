@@ -1,9 +1,9 @@
 package com.cky.proxy.server.verticle;
 
-import com.cky.proxy.server.bean.entity.ProxyClient;
-import com.cky.proxy.server.bean.entity.ProxyClientRule;
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.config.ServerProperty;
+import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
