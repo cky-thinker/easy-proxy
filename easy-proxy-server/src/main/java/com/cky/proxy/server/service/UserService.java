@@ -5,18 +5,18 @@ import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
-
+import com.cky.proxy.server.dao.DaoManager;
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
 import com.cky.proxy.server.domain.dto.UserInfo;
 import com.cky.proxy.server.domain.entity.User;
-
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
-import io.vertx.ext.auth.JWTOptions;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,7 +30,7 @@ public class UserService {
     private static final long CAPTCHA_EXPIRE_TIME = 5 * 60 * 1000;
 
     public UserService(Vertx vertx) {
-        this.sysUserDao = new UserDao();
+        this.sysUserDao = DaoManager.getUserDao();
         this.vertx = vertx;
         // 配置JWT
         JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()

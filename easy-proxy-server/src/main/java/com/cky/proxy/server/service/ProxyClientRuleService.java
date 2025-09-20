@@ -1,15 +1,15 @@
 package com.cky.proxy.server.service;
 
+import com.cky.proxy.server.dao.DaoManager;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
-
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
 import java.util.List;
 
 public class ProxyClientRuleService {
-    private ProxyClientRuleDao proxyClientRuleDao = new ProxyClientRuleDao();
+    private final ProxyClientRuleDao proxyClientRuleDao = DaoManager.getProxyClientRuleDao();
 
     public List<ProxyClientRule> getProxyClientRules(Integer proxyClientId) {
         return proxyClientRuleDao.selectList(qb -> {
@@ -47,7 +47,7 @@ public class ProxyClientRuleService {
         rule.setEnableFlag(body.getBoolean("enableFlag", false));
         rule.setCreateBy(body.getString("createBy", "system"));
         rule.setCreateTime(new Date());
-        
+
         proxyClientRuleDao.insert(rule);
         return rule;
     }
@@ -60,7 +60,7 @@ public class ProxyClientRuleService {
         if (existingRule == null) {
             return null;
         }
-        
+
         if (rule.getName() != null) {
             existingRule.setName(rule.getName());
         }
@@ -70,7 +70,7 @@ public class ProxyClientRuleService {
         if (rule.getServerPort() != null) {
             existingRule.setServerPort(rule.getServerPort());
         }
-        if (rule.getClientAddress() != null) {      
+        if (rule.getClientAddress() != null) {
             existingRule.setClientAddress(rule.getClientAddress());
         }
         if (rule.getEnableFlag() != null) {
@@ -78,7 +78,7 @@ public class ProxyClientRuleService {
         }
         existingRule.setUpdateBy("system");
         existingRule.setUpdateTime(new Date());
-        
+
         proxyClientRuleDao.updateById(existingRule);
         return existingRule;
     }
@@ -91,7 +91,7 @@ public class ProxyClientRuleService {
         if (existingRule == null) {
             return false;
         }
-        
+
         proxyClientRuleDao.deleteById(id);
         return true;
     }

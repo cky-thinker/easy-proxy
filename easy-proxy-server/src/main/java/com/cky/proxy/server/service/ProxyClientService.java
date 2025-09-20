@@ -1,15 +1,16 @@
 package com.cky.proxy.server.service;
 
+import cn.hutool.db.Page;
+import com.cky.proxy.server.dao.DaoManager;
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 
-import cn.hutool.db.Page;
 import java.util.Date;
 import java.util.List;
 
 public class ProxyClientService {
-    private ProxyClientDao proxyClientDao = new ProxyClientDao();
+    private final ProxyClientDao proxyClientDao = DaoManager.getProxyClientDao();
 
     public List<ProxyClient> getProxyClients() {
         return proxyClientDao.selectList(qb -> {

@@ -1,0 +1,170 @@
+package com.cky.proxy.server.dao;
+
+import com.cky.proxy.server.config.DatabaseConnectionManager;
+import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.domain.entity.ProxyClientRule;
+import com.cky.proxy.server.domain.entity.User;
+import com.j256.ormlite.jdbc.db.H2DatabaseType;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.DatabaseTableConfig;
+import com.j256.ormlite.table.TableUtils;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * 数据库初始化服务
+ * 负责在应用启动时检查和创建所有必要的数据库表
+ */
+@Slf4j
+public class DaoManager {
+
+    private static volatile DaoManager instance;
+    private static final Object lock = new Object();
+
+    // DAO实例
+    private UserDao userDao;
+    private ProxyClientDao proxyClientDao;
+    private ProxyClientRuleDao proxyClientRuleDao;
+
+    private DaoManager() {
+    }
+
+    /**
+     * 获取数据库初始化服务实例
+     */
+    public static DaoManager getInstance() {
+        if (instance == null) {
+            synchronized (lock) {
+                if (instance == null) {
+                    instance = new DaoManager();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public static UserDao getUserDao() {
+        return instance.userDao;
+    }
+
+    public static ProxyClientDao getProxyClientDao() {
+        return instance.proxyClientDao;
+    }
+
+    public static ProxyClientRuleDao getProxyClientRuleDao() {
+        return instance.proxyClientRuleDao;
+    }
+
+    /**
+     * 初始化所有数据库表
+     */
+    @SneakyThrows
+    public void initializeDatabase() {
+        try {
+            // 初始化Dao
+            initializeDao();
+            // 初始化所有表
+            initializeAllTables();
+            // 初始化默认数据
+            initializeDefaultData();
+            log.info("数据库初始化完成");
+        } catch (SQLException e) {
+            log.error("数据库初始化失败", e);
+            throw new SQLException("数据库初始化失败: " + e.getMessage(), e);
+        }
+    }
+
+    private void initializeDao() {
+        // 初始化Dao
+        userDao = new UserDao();
+        proxyClientDao = new ProxyClientDao();
+        proxyClientRuleDao = new ProxyClientRuleDao();
+    }
+
+    /**
+     * 初始化所有表
+     */
+    private void initializeAllTables() {
+        try (ConnectionSource connectionSource = DatabaseConnectionManager.getInstance().createConnectionSource()) {
+            // 初始化用户表
+            initializeTable(connectionSource, User.class);
+            // 初始化代理客户端表
+            initializeTable(connectionSource, ProxyClient.class);
+            // 初始化代理客户端规则表
+            initializeTable(connectionSource, ProxyClientRule.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 初始化单个表
+     */
+    private void initializeTable(ConnectionSource connectionSource, Class<?> entityClass)
+        throws SQLException {
+        String tableName = DatabaseTableConfig.extractTableName(new H2DatabaseType(), entityClass);
+        try {
+            int tableExists = TableUtils.createTableIfNotExists(connectionSource, entityClass);
+            if (tableExists == 1) {
+                log.info(tableName + " 已存在，跳过创建");
+            } else {
+                log.info(tableName + " 创建成功");
+            }
+            log.info("表 {} 初始化完成", tableName);
+        } catch (SQLException e) {
+            String errorMsg = "创建表 " + tableName + " 失败: " + e.getMessage();
+            log.info(errorMsg);
+            log.error(errorMsg, e);
+            throw new SQLException(errorMsg, e);
+        }
+    }
+
+    /**
+     * 初始化默认数据
+     */
+    private void initializeDefaultData() throws SQLException {
+        try {
+            // 检查是否需要创建默认管理员用户
+            initializeDefaultAdminUser();
+
+        } catch (SQLException e) {
+            log.error("初始化默认数据失败", e);
+            log.info("初始化默认数据失败: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 初始化默认管理员用户
+     */
+    private void initializeDefaultAdminUser() throws SQLException {
+        try {
+            // 检查是否已存在管理员用户
+            List<User> existingUsers = userDao.selectList(qb -> {
+                qb.where().eq("username", "admin");
+            });
+
+            if (existingUsers.isEmpty()) {
+                // 创建默认管理员用户
+                User adminUser = new User();
+                adminUser.setUsername("admin");
+                adminUser.setPassword("admin123"); // 注意：实际项目中应该使用加密密码
+                adminUser.setCreateTime(new Date());
+
+                userDao.insert(adminUser);
+                log.info("默认管理员用户创建成功 (用户名: admin, 密码: admin123)");
+                log.info("默认管理员用户创建成功");
+            } else {
+                log.info("管理员用户已存在，跳过创建");
+                log.info("管理员用户已存在，跳过创建");
+            }
+        } catch (Exception e) {
+            log.error("初始化默认管理员用户失败", e);
+            throw new SQLException("初始化默认管理员用户失败: " + e.getMessage(), e);
+        }
+    }
+}

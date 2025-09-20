@@ -1,10 +1,10 @@
 package com.cky.proxy.server.domain.entity;
 
+import java.util.Date;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
-
-import java.sql.Date;
 
 @Data
 @DatabaseTable(tableName = "user")

@@ -1,11 +1,12 @@
 package com.cky.proxy.server.config;
 
-import com.cky.proxy.common.util.PathUtil;
-
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.setting.yaml.YamlUtil;
+import com.cky.proxy.common.util.PathUtil;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.File;
 
 @Getter
 @Setter
@@ -25,7 +26,7 @@ public class ConfigProperty {
             synchronized (ConfigProperty.class) {
                 if (instance == null) {
                     String jarFilePath = PathUtil.getJarFilePath(ConfigProperty.class);
-                    String configFilePath = jarFilePath.substring(0, jarFilePath.lastIndexOf("/")) + "/config.yaml";
+                    String configFilePath = jarFilePath + File.separator + "config.yaml";
                     if (FileUtil.exist(configFilePath)) {
                         instance = YamlUtil.loadByPath(configFilePath, ConfigProperty.class);
                     } else {
@@ -35,10 +36,5 @@ public class ConfigProperty {
             }
         }
         return instance;
-    }
-
-    // 保持向后兼容性
-    public static ConfigProperty getSysConfig() {
-        return getInstance();
     }
 }
