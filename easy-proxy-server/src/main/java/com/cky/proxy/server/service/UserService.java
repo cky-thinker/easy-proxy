@@ -1,27 +1,28 @@
 package com.cky.proxy.server.service;
 
-import cn.hutool.captcha.CaptchaUtil;
-import cn.hutool.captcha.LineCaptcha;
-import cn.hutool.captcha.generator.RandomGenerator;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
-import com.cky.proxy.server.dao.DaoManager;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
 import com.cky.proxy.server.domain.dto.UserInfo;
 import com.cky.proxy.server.domain.entity.User;
+import com.cky.proxy.server.util.BeanContext;
+
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.LineCaptcha;
+import cn.hutool.captcha.generator.RandomGenerator;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class UserService {
-    private final UserDao sysUserDao;
+    private final UserDao userDao;
     private final JWTAuth jwtAuth;
     private final Vertx vertx;
     // 验证码缓存，key为验证码ID，value为验证码文本
@@ -30,7 +31,7 @@ public class UserService {
     private static final long CAPTCHA_EXPIRE_TIME = 5 * 60 * 1000;
 
     public UserService(Vertx vertx) {
-        this.sysUserDao = DaoManager.getUserDao();
+        this.userDao = BeanContext.getUserDao();
         this.vertx = vertx;
         // 配置JWT
         JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()
@@ -69,7 +70,7 @@ public class UserService {
             // 查询用户
             User user = null;
             try {
-                user = sysUserDao.selectList(queryBuilder -> {
+                user = userDao.selectList(queryBuilder -> {
                     queryBuilder.where().eq("username", loginReq.getUsername());
                 }).stream().findFirst().orElse(null);
             } catch (Exception e) {

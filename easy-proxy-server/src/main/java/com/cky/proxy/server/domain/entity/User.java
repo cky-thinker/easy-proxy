@@ -1,11 +1,10 @@
 package com.cky.proxy.server.domain.entity;
 
-import java.util.Date;
-
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-
 import lombok.Data;
+
+import java.util.Date;
 
 @Data
 @DatabaseTable(tableName = "user")
@@ -15,7 +14,7 @@ public class User {
     /**
      * 是否管理员
      */
-    @DatabaseField
+    @DatabaseField(columnName = "is_admin")
     public Boolean isAdmin;
     /**
      * 头像

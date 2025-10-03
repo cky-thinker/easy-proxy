@@ -1,8 +1,8 @@
 package com.cky.proxy.server.dao;
 
-import cn.hutool.db.Page;
-import cn.hutool.db.sql.Direction;
-import cn.hutool.db.sql.Order;
+import java.sql.SQLException;
+import java.util.List;
+
 import com.cky.proxy.server.config.DatabaseConnectionManager;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.j256.ormlite.dao.Dao;
@@ -10,14 +10,25 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
-import lombok.SneakyThrows;
 
-import java.sql.SQLException;
-import java.util.List;
+import cn.hutool.db.Page;
+import cn.hutool.db.sql.Direction;
+import cn.hutool.db.sql.Order;
+import lombok.SneakyThrows;
 
 public abstract class BaseDao<T> {
     protected volatile Dao<T, Integer> dao = null;
     private final Object daoLock = new Object();
+    private ConnectionSource connectionSource;
+
+    public BaseDao() {
+        this.connectionSource = createConnectionSource();
+        dao = getDao();
+    }
+
+    public ConnectionSource getConnectionSource() {
+        return connectionSource;
+    }
 
     @SneakyThrows
     public void insert(T t) {
@@ -75,7 +86,7 @@ public abstract class BaseDao<T> {
             consumer.accept(countWhere);
             int totle = (int) countQuery.countOf();
             int totlePage = (int) (totle % page.getPageSize() == 0 ? totle / page.getPageSize()
-                : totle / page.getPageSize() + 1);
+                    : totle / page.getPageSize() + 1);
             // 查询列表
             QueryBuilder<T, Integer> queryBuilder = getDao().queryBuilder();
             Where<T, Integer> where = queryBuilder.where();
@@ -105,7 +116,6 @@ public abstract class BaseDao<T> {
             synchronized (daoLock) {
                 if (dao == null) {
                     try {
-                        ConnectionSource connectionSource = getConnectionSource();
                         Class<T> entityClass = getEntityClass();
                         dao = DaoManager.createDao(connectionSource, entityClass);
                     } catch (SQLException e) {
@@ -120,7 +130,7 @@ public abstract class BaseDao<T> {
     }
 
     @SneakyThrows
-    public ConnectionSource getConnectionSource() {
+    public ConnectionSource createConnectionSource() {
         return DatabaseConnectionManager.getInstance().createConnectionSource();
     }
 
@@ -136,7 +146,7 @@ public abstract class BaseDao<T> {
         if (genericSuperclass instanceof java.lang.reflect.ParameterizedType) {
             // 获取泛型参数类型数组
             java.lang.reflect.Type[] actualTypeArguments = ((java.lang.reflect.ParameterizedType) genericSuperclass)
-                .getActualTypeArguments();
+                    .getActualTypeArguments();
             if (actualTypeArguments.length > 0) {
                 // 返回第一个泛型参数类型
                 return (Class<T>) actualTypeArguments[0];
