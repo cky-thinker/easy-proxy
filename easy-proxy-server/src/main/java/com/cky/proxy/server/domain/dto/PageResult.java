@@ -2,9 +2,6 @@ package com.cky.proxy.server.domain.dto;
 
 import java.util.List;
 
-import lombok.Data;
-
-@Data
 public class PageResult<T> {
 	private int page;
 	/**
@@ -29,4 +26,19 @@ public class PageResult<T> {
         this.total = total;
         this.list = data;
     }
+
+    public int getPage() { return page; }
+    public void setPage(int page) { this.page = page; }
+
+    public int getPageSize() { return pageSize; }
+    public void setPageSize(int pageSize) { this.pageSize = pageSize; }
+
+    public int getTotalPage() { return totalPage; }
+    public void setTotalPage(int totalPage) { this.totalPage = totalPage; }
+
+    public int getTotal() { return total; }
+    public void setTotal(int total) { this.total = total; }
+
+    public List<T> getList() { return list; }
+    public void setList(List<T> list) { this.list = list; }
 }

@@ -3,16 +3,15 @@ package com.cky.proxy.server.config;
 import java.sql.SQLException;
 
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 数据库连接管理器
  * 实现ConnectionSource的单例模式和连接池管理
  */
-@Slf4j
 public class DatabaseConnectionManager {
+    private static final Logger log = LoggerFactory.getLogger(DatabaseConnectionManager.class);
     private static volatile DatabaseConnectionManager instance;
 
     // 私有构造函数，防止外部实例化
@@ -37,8 +36,7 @@ public class DatabaseConnectionManager {
     /**
      * 初始化数据库连接源
      */
-    @SneakyThrows
-    public JdbcConnectionSource createConnectionSource() {
+    public JdbcConnectionSource createConnectionSource() throws SQLException {
         // 获取数据库配置
         DatabaseProperty db = ConfigProperty.getInstance().getDb();
         if (db == null) {
@@ -49,10 +47,11 @@ public class DatabaseConnectionManager {
         validateDatabaseConfig(db);
 
         // 创建新的连接源
-        return new JdbcConnectionSource(
+        JdbcConnectionSource source = new JdbcConnectionSource(
                 db.getUrl(),
                 db.getUsername(),
                 db.getPassword());
+        return source;
     }
 
     /**

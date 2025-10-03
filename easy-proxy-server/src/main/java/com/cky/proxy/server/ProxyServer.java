@@ -5,10 +5,12 @@ import com.cky.proxy.server.verticle.ProxyServerVerticle;
 import com.cky.proxy.server.verticle.WebManageVerticle;
 
 import io.vertx.core.Vertx;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ProxyServer {
+    private static final Logger log = LoggerFactory.getLogger(ProxyServer.class);
+
     public static void main(String[] args) {
         // 初始化数据库表和数据
         BeanContext initService = BeanContext.getInstance();

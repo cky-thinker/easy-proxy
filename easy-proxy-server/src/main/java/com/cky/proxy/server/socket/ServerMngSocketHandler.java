@@ -6,12 +6,13 @@ import com.cky.proxy.common.util.SocketUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-@Slf4j
 public class ServerMngSocketHandler implements Handler<NetSocket> {
+    private static final Logger log = LoggerFactory.getLogger(ServerMngSocketHandler.class);
     @Override
     public void handle(NetSocket sMngSocket) {
         handleRead(sMngSocket);

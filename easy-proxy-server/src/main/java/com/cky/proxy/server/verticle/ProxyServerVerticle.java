@@ -6,21 +6,31 @@ import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-@Slf4j
 public class ProxyServerVerticle extends AbstractVerticle {
-    private ProxyClientService proxyClientService = new ProxyClientService();
-    private ProxyClientRuleService proxyClientRuleService = new ProxyClientRuleService();
+    private static final Logger log = LoggerFactory.getLogger(ProxyServerVerticle.class);
+    private ProxyClientService proxyClientService;
+    private ProxyClientRuleService proxyClientRuleService;
 
     @Override
     public void start(Promise<Void> startPromise) {
+        // 初始化数据库与默认数据，确保 BeanContext 就绪
+        BeanContext initService = BeanContext.getInstance();
+        initService.initializeDatabase();
+
+        // 延后初始化依赖 BeanContext 的服务
+        proxyClientService = new ProxyClientService();
+        proxyClientRuleService = new ProxyClientRuleService();
+
         ServerProperty server = ConfigProperty.getInstance().getServer();
         Integer proxyPort = server.getProxyPort();
         log.info("Server starting {}", proxyPort);
@@ -30,6 +40,15 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 .onFailure(t -> log.error("Server start failed", t));
         // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
         flushServerProxySocket();
+
+        // 部署 Web 管理端 Verticle（提供 /health 与 /api/*）
+        vertx.deployVerticle(WebManageVerticle.class.getCanonicalName(), res -> {
+            if (res.succeeded()) {
+                log.info("WebManage start success!");
+            } else {
+                log.error("WebManage start fail!", res.cause());
+            }
+        });
     }
 
     private void flushServerProxySocket() {

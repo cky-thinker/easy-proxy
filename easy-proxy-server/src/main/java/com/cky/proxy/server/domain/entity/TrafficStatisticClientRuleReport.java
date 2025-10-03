@@ -2,14 +2,12 @@ package com.cky.proxy.server.domain.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import lombok.Data;
 
 import java.util.Date;
 
 /**
  * 流量统计总报告
  */
-@Data
 @DatabaseTable(tableName = "traffic_statistic_client_rule_report")
 public class TrafficStatisticClientRuleReport {
     /**
@@ -42,4 +40,22 @@ public class TrafficStatisticClientRuleReport {
      */
     @DatabaseField(columnName="update_time")
     private Date updateTime;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+
+    public Integer getProxyClientRuleId() { return proxyClientRuleId; }
+    public void setProxyClientRuleId(Integer proxyClientRuleId) { this.proxyClientRuleId = proxyClientRuleId; }
+
+    public Date getDate() { return date; }
+    public void setDate(Date date) { this.date = date; }
+
+    public Long getUpwardTrafficBytes() { return upwardTrafficBytes; }
+    public void setUpwardTrafficBytes(Long upwardTrafficBytes) { this.upwardTrafficBytes = upwardTrafficBytes; }
+
+    public Long getDownwardTrafficBytes() { return downwardTrafficBytes; }
+    public void setDownwardTrafficBytes(Long downwardTrafficBytes) { this.downwardTrafficBytes = downwardTrafficBytes; }
+
+    public Date getUpdateTime() { return updateTime; }
+    public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
 }

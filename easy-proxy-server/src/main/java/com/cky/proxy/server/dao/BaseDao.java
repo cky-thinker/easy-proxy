@@ -14,7 +14,6 @@ import com.j256.ormlite.support.ConnectionSource;
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
-import lombok.SneakyThrows;
 
 public abstract class BaseDao<T> {
     protected volatile Dao<T, Integer> dao = null;
@@ -30,7 +29,6 @@ public abstract class BaseDao<T> {
         return connectionSource;
     }
 
-    @SneakyThrows
     public void insert(T t) {
         try {
             getDao().create(t);
@@ -39,7 +37,6 @@ public abstract class BaseDao<T> {
         }
     }
 
-    @SneakyThrows
     public void updateById(T t) {
         try {
             getDao().update(t);
@@ -48,7 +45,6 @@ public abstract class BaseDao<T> {
         }
     }
 
-    @SneakyThrows
     public void deleteById(Integer id) {
         try {
             getDao().deleteById(id);
@@ -57,7 +53,6 @@ public abstract class BaseDao<T> {
         }
     }
 
-    @SneakyThrows
     public T selectById(Integer id) {
         try {
             return getDao().queryForId(id);
@@ -66,7 +61,6 @@ public abstract class BaseDao<T> {
         }
     }
 
-    @SneakyThrows
     public List<T> selectList(QueryConsumer<QueryBuilder<T, Integer>> consumer) {
         try {
             QueryBuilder<T, Integer> queryBuilder = getDao().queryBuilder();
@@ -77,7 +71,6 @@ public abstract class BaseDao<T> {
         }
     }
 
-    @SneakyThrows
     public PageResult<T> selectPage(Page page, QueryConsumer<Where<T, Integer>> consumer) {
         try {
             // 查询总数
@@ -109,7 +102,6 @@ public abstract class BaseDao<T> {
         }
     }
 
-    @SneakyThrows
     public Dao<T, Integer> getDao() {
         // 双重检查锁定模式，确保线程安全
         if (dao == null) {
@@ -129,9 +121,12 @@ public abstract class BaseDao<T> {
         return dao;
     }
 
-    @SneakyThrows
     public ConnectionSource createConnectionSource() {
-        return DatabaseConnectionManager.getInstance().createConnectionSource();
+        try {
+            return DatabaseConnectionManager.getInstance().createConnectionSource();
+        } catch (SQLException e) {
+            throw new RuntimeException("创建数据库连接失败", e);
+        }
     }
 
     /**

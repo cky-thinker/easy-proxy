@@ -2,7 +2,9 @@ package com.cky.proxy.server.verticle;
 
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.controller.ProxyClientController;
+import com.cky.proxy.server.controller.SysLogController;
 import com.cky.proxy.server.controller.UserController;
+import com.cky.proxy.server.controller.TrafficStatisticController;
 import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.util.VertxUtil;
 
@@ -15,10 +17,11 @@ import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class WebManageVerticle extends AbstractVerticle {
+    private static final Logger log = LoggerFactory.getLogger(WebManageVerticle.class);
 
     private JWTAuth jwtAuth;
 
@@ -89,6 +92,8 @@ public class WebManageVerticle extends AbstractVerticle {
         // 手动设置API路由
         new ProxyClientController(baseRouter);
         new UserController(baseRouter, vertx);
+        new SysLogController(baseRouter);
+        new TrafficStatisticController(baseRouter);
 
         // 启动HTTP服务器
         ConfigProperty configProperty = ConfigProperty.getInstance();

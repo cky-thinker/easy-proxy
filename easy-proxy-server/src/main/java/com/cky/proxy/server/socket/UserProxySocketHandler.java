@@ -8,14 +8,18 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
-@RequiredArgsConstructor
 public class UserProxySocketHandler implements Handler<NetSocket> {
+    private static final Logger log = LoggerFactory.getLogger(UserProxySocketHandler.class);
     private final ProxyClient proxyClientConfig;
     private final ProxyClientRule proxyRule;
+
+    public UserProxySocketHandler(ProxyClient proxyClientConfig, ProxyClientRule proxyRule) {
+        this.proxyClientConfig = proxyClientConfig;
+        this.proxyRule = proxyRule;
+    }
 
     @Override
     public void handle(NetSocket userProxySocket) {

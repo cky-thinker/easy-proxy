@@ -2,14 +2,12 @@ package com.cky.proxy.server.domain.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import lombok.Data;
 
 import java.util.Date;
 
 /**
  * 代理规则
  */
-@Data
 @DatabaseTable(tableName = "proxy_client_rule")
 public class ProxyClientRule {
     @DatabaseField(generatedId = true)
@@ -59,4 +57,34 @@ public class ProxyClientRule {
      */
     @DatabaseField(columnName="update_time")
     private Date updateTime;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+
+    public Integer getProxyClientId() { return proxyClientId; }
+    public void setProxyClientId(Integer proxyClientId) { this.proxyClientId = proxyClientId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public Integer getServerPort() { return serverPort; }
+    public void setServerPort(Integer serverPort) { this.serverPort = serverPort; }
+
+    public String getClientAddress() { return clientAddress; }
+    public void setClientAddress(String clientAddress) { this.clientAddress = clientAddress; }
+
+    public Boolean getEnableFlag() { return enableFlag; }
+    public void setEnableFlag(Boolean enableFlag) { this.enableFlag = enableFlag; }
+
+    public String getCreateBy() { return createBy; }
+    public void setCreateBy(String createBy) { this.createBy = createBy; }
+
+    public Date getCreateTime() { return createTime; }
+    public void setCreateTime(Date createTime) { this.createTime = createTime; }
+
+    public String getUpdateBy() { return updateBy; }
+    public void setUpdateBy(String updateBy) { this.updateBy = updateBy; }
+
+    public Date getUpdateTime() { return updateTime; }
+    public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
 }

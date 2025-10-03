@@ -7,20 +7,30 @@ import java.util.List;
 import com.cky.proxy.server.config.DatabaseConnectionManager;
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
+import com.cky.proxy.server.dao.SysLogDao;
+import com.cky.proxy.server.dao.TrafficStatisticClientReportDao;
+import com.cky.proxy.server.dao.TrafficStatisticClientRuleReportDao;
+import com.cky.proxy.server.dao.TrafficStatisticDayReportDao;
+import com.cky.proxy.server.dao.TrafficStatisticHourReportDao;
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.SysUser;
+import com.cky.proxy.server.domain.entity.SysLog;
+import com.cky.proxy.server.domain.entity.TrafficStatisticClientReport;
+import com.cky.proxy.server.domain.entity.TrafficStatisticClientRuleReport;
+import com.cky.proxy.server.domain.entity.TrafficStatisticDayReport;
+import com.cky.proxy.server.domain.entity.TrafficStatisticHourReport;
 import com.j256.ormlite.jdbc.db.H2DatabaseType;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTableConfig;
 import com.j256.ormlite.table.TableUtils;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class BeanContext {
+    private static final Logger log = LoggerFactory.getLogger(BeanContext.class);
 
     private static volatile BeanContext instance;
     private static final Object lock = new Object();
@@ -29,6 +39,11 @@ public class BeanContext {
     private UserDao userDao;
     private ProxyClientDao proxyClientDao;
     private ProxyClientRuleDao proxyClientRuleDao;
+    private SysLogDao sysLogDao;
+    private TrafficStatisticClientReportDao trafficStatisticClientReportDao;
+    private TrafficStatisticClientRuleReportDao trafficStatisticClientRuleReportDao;
+    private TrafficStatisticDayReportDao trafficStatisticDayReportDao;
+    private TrafficStatisticHourReportDao trafficStatisticHourReportDao;
 
     private BeanContext() {
     }
@@ -59,10 +74,29 @@ public class BeanContext {
         return instance.proxyClientRuleDao;
     }
 
+    public static SysLogDao getSysLogDao() {
+        return instance.sysLogDao;
+    }
+
+    public static TrafficStatisticClientReportDao getTrafficStatisticClientReportDao() {
+        return instance.trafficStatisticClientReportDao;
+    }
+
+    public static TrafficStatisticClientRuleReportDao getTrafficStatisticClientRuleReportDao() {
+        return instance.trafficStatisticClientRuleReportDao;
+    }
+
+    public static TrafficStatisticDayReportDao getTrafficStatisticDayReportDao() {
+        return instance.trafficStatisticDayReportDao;
+    }
+
+    public static TrafficStatisticHourReportDao getTrafficStatisticHourReportDao() {
+        return instance.trafficStatisticHourReportDao;
+    }
+
     /**
      * 初始化所有数据库表
      */
-    @SneakyThrows
     public void initializeDatabase() {
         try {
             // 初始化Dao
@@ -74,7 +108,7 @@ public class BeanContext {
             log.info("数据库初始化完成");
         } catch (SQLException e) {
             log.error("数据库初始化失败", e);
-            throw new SQLException("数据库初始化失败: " + e.getMessage(), e);
+            throw new RuntimeException("数据库初始化失败: " + e.getMessage(), e);
         }
     }
 
@@ -83,6 +117,11 @@ public class BeanContext {
         userDao = new UserDao();
         proxyClientDao = new ProxyClientDao();
         proxyClientRuleDao = new ProxyClientRuleDao();
+        sysLogDao = new SysLogDao();
+        trafficStatisticClientReportDao = new TrafficStatisticClientReportDao();
+        trafficStatisticClientRuleReportDao = new TrafficStatisticClientRuleReportDao();
+        trafficStatisticDayReportDao = new TrafficStatisticDayReportDao();
+        trafficStatisticHourReportDao = new TrafficStatisticHourReportDao();
     }
 
     /**
@@ -96,6 +135,13 @@ public class BeanContext {
             initializeTable(connectionSource, ProxyClient.class);
             // 初始化代理客户端规则表
             initializeTable(connectionSource, ProxyClientRule.class);
+            // 初始化系统日志表
+            initializeTable(connectionSource, SysLog.class);
+            // 初始化流量统计相关表
+            initializeTable(connectionSource, TrafficStatisticClientReport.class);
+            initializeTable(connectionSource, TrafficStatisticClientRuleReport.class);
+            initializeTable(connectionSource, TrafficStatisticDayReport.class);
+            initializeTable(connectionSource, TrafficStatisticHourReport.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

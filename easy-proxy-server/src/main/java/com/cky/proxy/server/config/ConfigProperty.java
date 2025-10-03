@@ -3,13 +3,9 @@ package com.cky.proxy.server.config;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.setting.yaml.YamlUtil;
 import com.cky.proxy.common.util.PathUtil;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.File;
 
-@Getter
-@Setter
 public class ConfigProperty {
     private static volatile ConfigProperty instance;
 
@@ -36,5 +32,21 @@ public class ConfigProperty {
             }
         }
         return instance;
+    }
+
+    public ServerProperty getServer() {
+        return server;
+    }
+
+    public void setServer(ServerProperty server) {
+        this.server = server;
+    }
+
+    public DatabaseProperty getDb() {
+        return db;
+    }
+
+    public void setDb(DatabaseProperty db) {
+        this.db = db;
     }
 }

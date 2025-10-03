@@ -1,9 +1,12 @@
 package com.cky.proxy.server.config;
 
-import lombok.Data;
-
-@Data
 public class ServerProperty {
     private int proxyPort;  
     private int webPort;
+
+    public int getProxyPort() { return proxyPort; }
+    public void setProxyPort(int proxyPort) { this.proxyPort = proxyPort; }
+
+    public int getWebPort() { return webPort; }
+    public void setWebPort(int webPort) { this.webPort = webPort; }
 }
