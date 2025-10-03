@@ -304,7 +304,7 @@ const currentClient = ref<ProxyClientConfig>({
 })
 
 // 分页与加载状态
-const currentPage = ref(1)
+const currentPage = ref(0)
 const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
