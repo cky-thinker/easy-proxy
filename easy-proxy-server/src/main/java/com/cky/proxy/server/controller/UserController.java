@@ -2,6 +2,9 @@ package com.cky.proxy.server.controller;
 
 import cn.hutool.core.util.StrUtil;
 
+import java.util.HashMap;
+
+import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
 import com.cky.proxy.server.domain.dto.Result;
@@ -29,6 +32,7 @@ public class UserController {
         router.get("/api/sys/captchaImage").handler(this::captchaImage);
         // 用户登录
         router.post("/api/sys/loginUser").handler(this::loginUser);
+        router.get("/api/sys/config").handler(this::getConfig);
     }
 
     private void loginUser(RoutingContext ctx) {
@@ -56,6 +60,17 @@ public class UserController {
             VertxUtil.response(ctx, Result.success(captchaImage, "获取验证码成功"));
         } catch (Exception e) {
             VertxUtil.response(ctx, Result.error("生成验证码失败: " + e.getMessage()));
+        }
+    }
+
+    private void getConfig(RoutingContext routingcontext1) {
+        try {
+            ConfigProperty configProperty = ConfigProperty.getInstance();
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("captchaImageEnable", configProperty.getServer().getCatureImageEnable());
+            VertxUtil.response(routingcontext1, Result.success(map, "获取配置成功"));
+        } catch (Exception e) {
+            VertxUtil.response(routingcontext1, Result.error("获取配置失败: " + e.getMessage()));
         }
     }
 }

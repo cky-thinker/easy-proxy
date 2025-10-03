@@ -3,6 +3,7 @@ package com.cky.proxy.server.service;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
@@ -43,31 +44,29 @@ public class UserService {
 
     public UserInfo login(LoginReq loginReq) {
         try {
-            // 验证参数
+            // 基础校验
             if (StrUtil.isBlank(loginReq.getUsername()) || StrUtil.isBlank(loginReq.getPassword())) {
                 throw new RuntimeException("用户名和密码不能为空");
             }
-
             // 验证验证码
-            if (StrUtil.isBlank(loginReq.getCaptchaId()) || StrUtil.isBlank(loginReq.getCaptchaCode())) {
-                throw new RuntimeException("验证码不能为空");
+            if (ConfigProperty.getInstance().getServer().getCatureImageEnable()) {
+                // 验证验证码
+                if (StrUtil.isBlank(loginReq.getCaptchaId()) || StrUtil.isBlank(loginReq.getCaptchaCode())) {
+                    throw new RuntimeException("验证码不能为空");
+                }
+                // 从缓存中获取验证码
+                String cachedCaptcha = captchaCache.get(loginReq.getCaptchaId());
+                if (cachedCaptcha == null) {
+                    throw new RuntimeException("验证码已过期");
+                }
+                // 验证码使用后立即删除
+                captchaCache.remove(loginReq.getCaptchaId());
+                // 验证码不匹配
+                if (!cachedCaptcha.equalsIgnoreCase(loginReq.getCaptchaCode())) {
+                    throw new RuntimeException("验证码错误");
+                }
             }
-
-            // 从缓存中获取验证码
-            String cachedCaptcha = captchaCache.get(loginReq.getCaptchaId());
-            if (cachedCaptcha == null) {
-                throw new RuntimeException("验证码已过期");
-            }
-
-            // 验证码使用后立即删除
-            captchaCache.remove(loginReq.getCaptchaId());
-
-            // 验证码不匹配
-            if (!cachedCaptcha.equalsIgnoreCase(loginReq.getCaptchaCode())) {
-                throw new RuntimeException("验证码错误");
-            }
-
-            // 查询用户
+            // 验证密码
             SysUser sysUser = null;
             try {
                 sysUser = userDao.selectList(queryBuilder -> {

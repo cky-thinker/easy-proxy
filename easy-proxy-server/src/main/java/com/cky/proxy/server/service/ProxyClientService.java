@@ -21,7 +21,7 @@ public class ProxyClientService {
     /**
      * 分页查询代理客户端
      */
-    public PageResult<ProxyClient> getProxyClientsPageable(Page hutoolPage, String name, Integer groupId) {
+    public PageResult<ProxyClient> getProxyClientsPageable(Page hutoolPage, String name) {
         return proxyClientDao.selectPage(
                 hutoolPage,
                 where -> {

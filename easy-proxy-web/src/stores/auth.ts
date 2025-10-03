@@ -2,12 +2,15 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { UserInfo, LoginRequest } from '@/api/types';
 import { loginUser, logoutUser, getCaptchaImage } from '@/api/auth';
+import { getServerConfig } from '@/api/config';
+import type { ServerConfig } from '@/api/types';
 
 export const useAuthStore = defineStore('auth', () => {
   // 状态
   const userInfo = ref<UserInfo | null>(null);
   const token = ref<string>('');
   const isLoading = ref(false);
+  const serverConfig = ref<ServerConfig | null>(null);
 
   // 计算属性
   const isLoggedIn = computed(() => !!token.value && !!userInfo.value);
@@ -21,6 +24,13 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = savedToken;
       userInfo.value = JSON.parse(savedUserInfo);
     }
+  };
+
+  // 获取服务端配置
+  const fetchServerConfig = async (): Promise<ServerConfig> => {
+    const cfg = await getServerConfig();
+    serverConfig.value = cfg;
+    return cfg;
   };
 
   // 登录
@@ -63,12 +73,14 @@ export const useAuthStore = defineStore('auth', () => {
     userInfo,
     token,
     isLoading,
+    serverConfig,
     
     // 计算属性
     isLoggedIn,
     
     // 方法
     initAuth,
+    fetchServerConfig,
     login,
     logout,
     fetchCaptcha,

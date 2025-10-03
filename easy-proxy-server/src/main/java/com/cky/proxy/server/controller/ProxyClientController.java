@@ -40,16 +40,10 @@ public class ProxyClientController {
     private void getProxyClientsPageable(RoutingContext ctx) {
         // 创建分页对象
         Page page = PageUtil.getPage(ctx);
-
         // 获取查询参数
         String name = ctx.request().getParam("name");
-        Integer groupId = ctx.request().getParam("groupId") != null
-                ? Integer.parseInt(ctx.request().getParam("groupId"))
-                : null;
-
         // 执行分页查询
-        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, name, groupId);
-
+        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, name);
         // 返回结果
         VertxUtil.success(ctx, result);
     }

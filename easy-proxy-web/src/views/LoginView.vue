@@ -34,17 +34,18 @@
               type="password"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              :class="{ 'rounded-b-md': !captchaEnabled }"
               placeholder="密码"
             />
           </div>
           
-          <div class="flex">
+          <div v-if="captchaEnabled" class="flex">
             <input
               id="captchaCode"
               v-model="loginForm.captchaCode"
               name="captchaCode"
               type="text"
-              required
+              :required="captchaEnabled"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-bl-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="验证码"
             />
@@ -93,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import type { LoginRequest, CaptchaImage } from '../api/types';
 
@@ -110,6 +111,7 @@ const loginForm = ref<LoginRequest>({
 const captchaImage = ref<CaptchaImage | null>(null);
 const errorMessage = ref('');
 const isLoading = ref(false);
+const captchaEnabled = computed(() => authStore.serverConfig?.captchaImageEnable === true);
 
 // 获取验证码
 const refreshCaptcha = async () => {
@@ -125,9 +127,11 @@ const refreshCaptcha = async () => {
 
 // 处理登录
 const handleLogin = async () => {
-  if (!captchaImage.value) {
-    errorMessage.value = '请先获取验证码';
-    return;
+  if (captchaEnabled.value) {
+    if (!captchaImage.value) {
+      errorMessage.value = '请先获取验证码';
+      return;
+    }
   }
 
   errorMessage.value = '';
@@ -150,15 +154,22 @@ const handleLogin = async () => {
       errorMessage.value = '登录失败，请检查用户名和密码';
     }
     
-    // 刷新验证码
-    await refreshCaptcha();
+    // 刷新验证码（仅当启用时）
+    if (captchaEnabled.value) {
+      await refreshCaptcha();
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
 // 组件挂载时获取验证码
-onMounted(() => {
-  refreshCaptcha();
+onMounted(async () => {
+  // 先获取服务端配置
+  await authStore.fetchServerConfig();
+  // 若开启验证码，则加载一次验证码
+  if (captchaEnabled.value) {
+    await refreshCaptcha();
+  }
 });
 </script>

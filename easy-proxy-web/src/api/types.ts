@@ -128,6 +128,11 @@ export interface ApiResponse<T = any> {
   data: T;
 }
 
+// 服务端配置接口
+export interface ServerConfig {
+  captchaImageEnable: boolean;
+}
+
 // 分页响应结构（与服务端 PageResult 对齐）
 export interface PageResult<T> {
   page: number;
