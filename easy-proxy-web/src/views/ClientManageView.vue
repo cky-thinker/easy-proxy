@@ -80,18 +80,20 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex flex-col space-y-1">
-                  <span :class="[
-                    'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                    client.status === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  ]">
-                    {{ client.status === 'online' ? '在线' : '离线' }}
-                  </span>
-                  <span :class="[
-                    'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                    client.enableFlag ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                  ]">
-                    {{ client.enableFlag ? '已启用' : '已禁用' }}
-                  </span>
+                  <div class="flex space-x-2">
+                    <span :class="[
+                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+                      client.status === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    ]">
+                      {{ client.status === 'online' ? '在线' : '离线' }}
+                    </span>
+                    <span :class="[
+                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+                      client.enableFlag ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                    ]">
+                      {{ client.enableFlag ? '已启用' : '已禁用' }}
+                    </span>
+                  </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
