@@ -7,7 +7,7 @@
         <p class="text-gray-600 mt-1">管理代理客户端配置和状态</p>
       </div>
       <button
-        @click="showAddModal = true"
+        @click="openAddModal"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,154 +140,125 @@
     </div>
 
     <!-- 新增/编辑客户端模态框 -->
-    <div v-if="showAddModal || showEditModal" class="fixed inset-0 bg-gray-800/30 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border border-gray-200 w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
-            {{ showAddModal ? '新增客户端' : '编辑客户端' }}
-          </h3>
-          <form @submit.prevent="saveClient">
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">客户端名称</label>
-              <input
-                v-model="currentClient.name"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="请输入客户端名称"
-              >
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Token</label>
-              <div class="flex items-center space-x-2">
-                <input
-                  v-model="currentClient.token"
-                  type="text"
-                  required
-                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="请输入Token"
-                >
-                <button
-                  type="button"
-                  @click="generateToken"
-                  class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer border border-gray-200"
-                  title="生成64位随机Token"
-                >
-                  生成
-                </button>
-              </div>
-            </div>
-            <div class="mb-4">
-              <label class="flex items-center">
-                <input
-                  v-model="currentClient.enableFlag"
-                  type="checkbox"
-                  class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                >
-                <span class="ml-2 text-sm text-gray-700">启用客户端</span>
-              </label>
-            </div>
-            <div class="flex justify-end space-x-3">
-              <button
-                type="button"
-                @click="closeModal"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
-              >
-                {{ showAddModal ? '新增' : '保存' }}
-              </button>
-            </div>
-          </form>
+    <Modal 
+      v-model="showClientModal" 
+      :title="showAddModal ? '新增客户端' : '编辑客户端'"
+      width="w-96"
+      @cancel="closeModal"
+      @confirm="saveClient"
+      :confirm-text="showAddModal ? '新增' : '保存'"
+    >
+      <form @submit.prevent="saveClient">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">客户端名称</label>
+          <input
+            v-model="currentClient.name"
+            type="text"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="请输入客户端名称"
+          >
         </div>
-      </div>
-    </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Token</label>
+          <div class="flex items-center space-x-2">
+            <input
+              v-model="currentClient.token"
+              type="text"
+              required
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="请输入Token"
+            >
+            <button
+              type="button"
+              @click="generateToken"
+              class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer border border-gray-200"
+              title="生成64位随机Token"
+            >
+              生成
+            </button>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="flex items-center">
+            <input
+              v-model="currentClient.enableFlag"
+              type="checkbox"
+              class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            >
+            <span class="ml-2 text-sm text-gray-700">启用客户端</span>
+          </label>
+        </div>
+      </form>
+    </Modal>
 
     <!-- 代理规则模态框 -->
-    <div v-if="showRulesModalFlag" class="fixed inset-0 bg-gray-800/30 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border border-gray-200 w-2/3 max-w-4xl shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-medium text-gray-900">
-              {{ selectedClient?.name }} - 代理规则管理
-            </h3>
-            <button
-              @click="addProxyRule"
-              class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm cursor-pointer"
-            >
-              新增规则
-            </button>
-          </div>
-          <div class="space-y-3">
-            <div v-for="(rule, index) in selectedClient?.proxyRules" :key="index" class="border border-gray-200 rounded-lg p-4">
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
-                  <input
-                    v-model="rule.name"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    placeholder="规则名称"
-                  >
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
-                  <input
-                    v-model="rule.serverPort"
-                    type="number"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    placeholder="8080"
-                  >
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
-                  <input
-                    v-model="rule.clientAddress"
-                    type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    placeholder="localhost:3000"
-                  >
-                </div>
-                <div class="flex items-end space-x-2">
-                  <label class="flex items-center">
-                    <input
-                      v-model="rule.enableFlag"
-                      type="checkbox"
-                      class="rounded border-gray-300 text-indigo-600"
-                    >
-                    <span class="ml-1 text-sm text-gray-700">启用</span>
-                  </label>
-                  <button
-                    @click="removeProxyRule(index)"
-                    class="text-red-600 hover:text-red-900 text-sm cursor-pointer"
-                  >
-                    删除
-                  </button>
-                </div>
-              </div>
+    <Modal 
+      v-model="showRulesModalFlag" 
+      :title="selectedClient?.name + ' - 代理规则管理'"
+      width="w-2/3 max-w-4xl"
+      @cancel="closeRulesModal"
+      @confirm="saveProxyRules"
+      confirm-text="保存规则"
+    >
+      <div class="flex justify-end mb-4">
+        <button
+          @click="addProxyRule"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm cursor-pointer"
+        >
+          新增规则
+        </button>
+      </div>
+      <div class="space-y-3">
+        <div v-for="(rule, index) in selectedClient?.proxyRules" :key="index" class="border border-gray-200 rounded-lg p-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
+              <input
+                v-model="rule.name"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="规则名称"
+              >
             </div>
-          </div>
-          <div class="flex justify-end space-x-3 mt-6">
-            <button
-              @click="closeRulesModal"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
-            >
-              关闭
-            </button>
-            <button
-              @click="saveProxyRules"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
-            >
-              保存规则
-            </button>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
+              <input
+                v-model="rule.serverPort"
+                type="number"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="8080"
+              >
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
+              <input
+                v-model="rule.clientAddress"
+                type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="localhost:3000"
+              >
+            </div>
+            <div class="flex items-end space-x-2">
+              <label class="flex items-center">
+                <input
+                  v-model="rule.enableFlag"
+                  type="checkbox"
+                  class="rounded border-gray-300 text-indigo-600"
+                >
+                <span class="ml-1 text-sm text-gray-700">启用</span>
+              </label>
+              <button
+                @click="removeProxyRule(index)"
+                class="text-red-600 hover:text-red-900 text-sm cursor-pointer"
+              >
+                删除
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   </div>
   <!-- 悬浮轻提示（Toast） -->
   <Toast 
@@ -307,6 +278,7 @@ import {
   toggleClientStatus as toggleClientStatusApi
 } from '../api/clients'
 import Toast, { type ToastType } from '../components/Toast.vue'
+import Modal from '../components/Modal.vue'
 
 // 响应式数据
 const clients = ref<ProxyClientConfig[]>([])
@@ -315,6 +287,7 @@ const statusFilter = ref('')
 const enableFilter = ref('')
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showClientModal = ref(false)
 const showRulesModalFlag = ref(false)
 const selectedClient = ref<ProxyClientConfig | null>(null)
 const currentClient = ref<ProxyClientConfig>({
@@ -354,10 +327,6 @@ const formatBytes = (bytes: number): string => {
 }
 
 // 客户端操作
-const editClient = (client: ProxyClientConfig) => {
-  currentClient.value = { ...client }
-  showEditModal.value = true
-}
 
 const deleteClientAction = async (client: ProxyClientConfig) => {
   if (confirm(`确定要删除客户端 "${client.name}" 吗？`)) {
@@ -381,6 +350,27 @@ const toggleStatus = async (client: ProxyClientConfig) => {
     console.error('更新客户端状态失败:', error)
     showToast('操作失败', 'error')
   }
+}
+
+// 打开新增客户端模态框
+const openAddModal = () => {
+  showAddModal.value = true
+  showEditModal.value = false
+  showClientModal.value = true
+  currentClient.value = {
+    name: '',
+    token: '',
+    enableFlag: true,
+    proxyRules: []
+  }
+}
+
+// 打开编辑客户端模态框
+function editClient(client: ProxyClientConfig) {
+  showAddModal.value = false
+  showEditModal.value = true
+  showClientModal.value = true
+  currentClient.value = { ...client }
 }
 
 const saveClient = async () => {
@@ -411,6 +401,7 @@ const saveClient = async () => {
 const closeModal = () => {
   showAddModal.value = false
   showEditModal.value = false
+  showClientModal.value = false
   currentClient.value = {
     name: '',
     token: '',
