@@ -75,15 +75,18 @@ public abstract class BaseDao<T> {
         try {
             // 查询总数
             QueryBuilder<T, Integer> countQuery = getDao().queryBuilder();
-            Where<T, Integer> countWhere = countQuery.where();
-            consumer.accept(countWhere);
+            Where<T, Integer> where = countQuery.where();
+            consumer.accept(where);
+            if ("empty where clause".equals(where.toString())) {
+                where = null;
+            }
+            countQuery.setWhere(where);
             int totle = (int) countQuery.countOf();
             int totlePage = (int) (totle % page.getPageSize() == 0 ? totle / page.getPageSize()
                     : totle / page.getPageSize() + 1);
             // 查询列表
             QueryBuilder<T, Integer> queryBuilder = getDao().queryBuilder();
-            Where<T, Integer> where = queryBuilder.where();
-            consumer.accept(where);
+            queryBuilder.setWhere(where);
             if (page.getOrders() != null) {
                 for (Order order : page.getOrders()) {
                     if (order.getDirection() == Direction.ASC) {
