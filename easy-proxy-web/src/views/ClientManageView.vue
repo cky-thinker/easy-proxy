@@ -287,6 +287,20 @@
       </div>
     </div>
   </div>
+  <!-- 悬浮轻提示（Toast） -->
+  <div v-if="toast.visible" class="fixed top-4 left-1/2 -translate-x-1/2 z-50">
+    <div
+      :class="[
+        'shadow-lg rounded-md px-4 py-3 flex items-center space-x-3',
+        toast.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
+        toast.type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
+        'bg-blue-50 border border-blue-200 text-blue-800'
+      ]"
+    >
+      <span class="text-sm">{{ toast.message }}</span>
+      <button @click="closeToast" aria-label="关闭" class="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">×</button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -354,10 +368,10 @@ const deleteClientAction = async (client: ProxyClientConfig) => {
     try {
       await deleteClientApi((client as any).id as number)
       await loadClients()
-      alert('删除成功')
+      showToast('删除成功', 'success')
     } catch (error) {
       console.error('删除客户端失败:', error)
-      alert('删除失败')
+      showToast('删除失败', 'error')
     }
   }
 }
@@ -365,11 +379,11 @@ const deleteClientAction = async (client: ProxyClientConfig) => {
 const toggleStatus = async (client: ProxyClientConfig) => {
   try {
     await toggleClientStatusApi((client as any).id as number, !client.enableFlag)
-    alert(`客户端已${!client.enableFlag ? '启用' : '禁用'}`)
+    showToast(`客户端已${!client.enableFlag ? '启用' : '禁用'}`, 'success')
     await loadClients()
   } catch (error) {
     console.error('更新客户端状态失败:', error)
-    alert('操作失败')
+    showToast('操作失败', 'error')
   }
 }
 
@@ -381,20 +395,20 @@ const saveClient = async () => {
         token: currentClient.value.token,
         enableFlag: currentClient.value.enableFlag
       })
-      alert('新增成功')
+      showToast('新增成功', 'success')
     } else {
       await updateClient((currentClient.value as any).id as number, {
         name: currentClient.value.name,
         token: currentClient.value.token,
         enableFlag: currentClient.value.enableFlag
       })
-      alert('保存成功')
+      showToast('保存成功', 'success')
     }
     closeModal()
     await loadClients()
   } catch (error) {
     console.error('保存客户端失败:', error)
-    alert('保存失败')
+    showToast('保存失败', 'error')
   }
 }
 
@@ -464,11 +478,11 @@ const saveProxyRules = async () => {
         }
       }
     }
-    alert('保存成功')
+    showToast('保存成功', 'success')
     closeRulesModal()
   } catch (error) {
     console.error('保存代理规则失败:', error)
-    alert('保存失败')
+    showToast('保存失败', 'error')
   }
 }
 
@@ -502,5 +516,26 @@ const generateToken = () => {
   currentClient.value.token = Array.from(bytes)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('')
+}
+
+// 轻提示（Toast）
+type ToastType = 'success' | 'error' | 'info'
+const toast = ref<{ visible: boolean; message: string; type: ToastType }>({
+  visible: false,
+  message: '',
+  type: 'info'
+})
+const showToast = (message: string, type: ToastType = 'info') => {
+  toast.value.visible = true
+  toast.value.message = message
+  toast.value.type = type
+  // 2.5秒后自动关闭
+  window.clearTimeout((toast as any)._timer)
+  ;(toast as any)._timer = window.setTimeout(() => {
+    toast.value.visible = false
+  }, 2500)
+}
+const closeToast = () => {
+  toast.value.visible = false
 }
 </script>
