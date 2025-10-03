@@ -1,5 +1,16 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
+    <!-- Toast 通知组件 -->
+    <div class="fixed top-4 right-4 z-50">
+      <div v-if="toast.show" :class="['px-4 py-3 rounded-lg shadow-md transition-all duration-300', 
+        toast.type === 'success' ? 'bg-green-500' : 
+        toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500']">
+        <div class="flex items-center text-white">
+          <span>{{ toast.message }}</span>
+        </div>
+      </div>
+    </div>
+    
     <!-- 页面标题和操作按钮 -->
     <div class="flex justify-between items-center mb-6">
       <div>
@@ -7,7 +18,7 @@
         <p class="text-gray-600 mt-1">管理系统用户账号和权限</p>
       </div>
       <button
-        @click="showAddModal = true"
+        @click="() => { showAddModal = true; showClientModal = true; }"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,134 +148,120 @@
     </div>
 
     <!-- 新增/编辑账号模态框 -->
-    <div v-if="showAddModal || showEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
-            {{ showAddModal ? '新增账号' : '编辑账号' }}
-          </h3>
-          <form @submit.prevent="saveAccount">
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
-              <input
-                v-model="currentAccount.username"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="请输入用户名"
-              >
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
-              <input
-                v-model="currentAccount.email"
-                type="email"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="请输入邮箱"
-              >
-            </div>
-            <div class="mb-4" v-if="showAddModal">
-              <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
-              <input
-                v-model="currentAccount.password"
-                type="password"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="请输入密码"
-              >
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
-              <select
-                v-model="currentAccount.role"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="user">普通用户</option>
-                <option value="admin">管理员</option>
-                <option value="viewer">只读用户</option>
-              </select>
-            </div>
-            <div class="mb-4">
-              <label class="flex items-center">
-                <input
-                  v-model="currentAccount.status"
-                  type="checkbox"
-                  true-value="active"
-                  false-value="inactive"
-                  class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                >
-                <span class="ml-2 text-sm text-gray-700">激活账号</span>
-              </label>
-            </div>
-            <div class="flex justify-end space-x-3">
-              <button
-                type="button"
-                @click="closeModal"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-              >
-                {{ showAddModal ? '新增' : '保存' }}
-              </button>
-            </div>
-          </form>
+    <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @close="closeModal">
+      <form @submit.prevent="saveAccount">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
+          <input
+            v-model="currentAccount.username"
+            type="text"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="请输入用户名"
+          >
         </div>
-      </div>
-    </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
+          <input
+            v-model="currentAccount.email"
+            type="email"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="请输入邮箱"
+          >
+        </div>
+        <div class="mb-4" v-if="showAddModal">
+          <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
+          <input
+            v-model="currentAccount.password"
+            type="password"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="请输入密码"
+          >
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
+          <select
+            v-model="currentAccount.role"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="user">普通用户</option>
+            <option value="admin">管理员</option>
+            <option value="viewer">只读用户</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="flex items-center">
+            <input
+              v-model="currentAccount.status"
+              type="checkbox"
+              true-value="active"
+              false-value="inactive"
+              class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            >
+            <span class="ml-2 text-sm text-gray-700">激活账号</span>
+          </label>
+        </div>
+        <div class="flex justify-end space-x-3">
+          <button
+            type="button"
+            @click="closeModal"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+          >
+            取消
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+          >
+            {{ showAddModal ? '新增' : '保存' }}
+          </button>
+        </div>
+      </form>
+    </Modal>
 
     <!-- 权限管理模态框 -->
-    <div v-if="showPermissionsModalFlag" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-2/3 max-w-2xl shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">
-            {{ selectedAccount?.username }} - 权限管理
-          </h3>
-          <div class="space-y-4">
-            <div v-for="(permission, key) in permissions" :key="key" class="border border-gray-200 rounded-lg p-4">
-              <div class="flex items-center justify-between mb-2">
-                <h4 class="text-md font-medium text-gray-900">{{ permission.name }}</h4>
-                <label class="flex items-center">
-                  <input
-                    v-model="selectedAccount!.permissions[key]"
-                    type="checkbox"
-                    class="rounded border-gray-300 text-indigo-600"
-                  >
-                  <span class="ml-2 text-sm text-gray-700">启用</span>
-                </label>
-              </div>
-              <p class="text-sm text-gray-600">{{ permission.description }}</p>
-              <div class="mt-2">
-                <div class="flex flex-wrap gap-2">
-                  <span v-for="action in permission.actions" :key="action" class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                    {{ action }}
-                  </span>
-                </div>
-              </div>
-            </div>
+    <Modal v-model="showPermissionsModalFlag" :title="`${selectedAccount?.username} - 权限管理`" :width="'2/3'">
+      <div class="space-y-4">
+        <div v-for="(permission, key) in permissions" :key="key" class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-md font-medium text-gray-900">{{ permission.name }}</h4>
+            <label class="flex items-center">
+              <input
+                v-model="selectedAccount!.permissions[key]"
+                type="checkbox"
+                class="rounded border-gray-300 text-indigo-600"
+              >
+              <span class="ml-2 text-sm text-gray-700">启用</span>
+            </label>
           </div>
-          <div class="flex justify-end space-x-3 mt-6">
-            <button
-              @click="closePermissionsModal"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-            >
-              关闭
-            </button>
-            <button
-              @click="savePermissions"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-            >
-              保存权限
-            </button>
+          <p class="text-sm text-gray-600">{{ permission.description }}</p>
+          <div class="mt-2">
+            <div class="flex flex-wrap gap-2">
+              <span v-for="action in permission.actions" :key="action" class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                {{ action }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <div class="flex justify-end space-x-3 mt-6">
+        <button
+          @click="closePermissionsModal"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+        >
+          关闭
+        </button>
+        <button
+          @click="savePermissions"
+          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+        >
+          保存权限
+        </button>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -278,6 +275,8 @@ import {
   toggleAccountStatus as apiToggleAccountStatus
 } from '../api/accounts'
 import type { Account, Permission, CreateAccountRequest, UpdateAccountRequest } from '../api/types'
+import Modal from '../components/Modal.vue'
+import Toast from '../components/Toast.vue'
 
 // 响应式数据
 const accounts = ref<Account[]>([])
@@ -286,6 +285,7 @@ const roleFilter = ref('')
 const statusFilter = ref('')
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showClientModal = ref(false)
 const showPermissionsModalFlag = ref(false)
 const selectedAccount = ref<Account | null>(null)
 const currentAccount = ref<Account>({
@@ -298,6 +298,25 @@ const currentAccount = ref<Account>({
   createdAt: '',
   permissions: {}
 })
+
+// Toast 提示
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'info' as 'success' | 'error' | 'info'
+})
+
+// 显示 Toast 提示
+const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  toast.value = {
+    show: true,
+    message,
+    type
+  }
+  setTimeout(() => {
+    toast.value.show = false
+  }, 3000)
+}
 
 // 权限配置
 const permissions = ref<Record<string, Permission>>({
@@ -365,6 +384,7 @@ const getRoleText = (role: string): string => {
 const editAccount = (account: Account) => {
   currentAccount.value = { ...account }
   showEditModal.value = true
+  showClientModal.value = true
 }
 
 const deleteAccount = async (account: Account) => {
@@ -373,10 +393,10 @@ const deleteAccount = async (account: Account) => {
       await apiDeleteAccount(account.id)
       const index = accounts.value.findIndex(a => a.id === account.id)
       if (index > -1) accounts.value.splice(index, 1)
-      alert('删除成功')
+      showToast('删除成功', 'success')
     } catch (error) {
       console.error('删除账号失败:', error)
-      alert('删除失败')
+      showToast('删除失败', 'error')
     }
   }
 }
@@ -389,10 +409,10 @@ const toggleAccountStatus = async (account: Account) => {
     const mapped = mapSysUserToAccount(updated as any)
     const index = accounts.value.findIndex(a => a.id === mapped.id)
     if (index > -1) accounts.value[index] = mapped
-    alert(`账号已${mapped.status === 'active' ? '激活' : '禁用'}`)
+    showToast(`账号已${mapped.status === 'active' ? '激活' : '禁用'}`, 'success')
   } catch (error) {
     console.error('更新账号状态失败:', error)
-    alert('操作失败')
+    showToast('操作失败', 'error')
   }
 }
 
@@ -410,7 +430,7 @@ const saveAccount = async () => {
       const created = await apiCreateAccount(payload)
       const mapped = mapSysUserToAccount(created as any)
       accounts.value.push(mapped)
-      alert('新增成功')
+      showToast('新增成功', 'success')
     } else {
       // 编辑账号
       const payload: UpdateAccountRequest = {
@@ -424,18 +444,19 @@ const saveAccount = async () => {
       const mapped = mapSysUserToAccount(updated as any)
       const index = accounts.value.findIndex(a => a.id === mapped.id)
       if (index > -1) accounts.value[index] = mapped
-      alert('保存成功')
+      showToast('保存成功', 'success')
     }
     closeModal()
   } catch (error) {
     console.error('保存账号失败:', error)
-    alert('保存失败')
+    showToast('保存失败', 'error')
   }
 }
 
 const closeModal = () => {
   showAddModal.value = false
   showEditModal.value = false
+  showClientModal.value = false
   currentAccount.value = {
     id: 0,
     username: '',
@@ -465,11 +486,11 @@ const savePermissions = async () => {
         accounts.value[index].permissions = selectedAccount.value.permissions
       }
     }
-    alert('权限保存成功')
+    showToast('权限保存成功', 'success')
     closePermissionsModal()
   } catch (error) {
     console.error('保存权限失败:', error)
-    alert('保存失败')
+    showToast('保存失败', 'error')
   }
 }
 
