@@ -1,5 +1,7 @@
 // 代理规则接口
 export interface ProxyRule {
+  id?: number;
+  proxyClientId?: number;
   name?: string;
   serverPort?: number;
   clientAddress?: string;
@@ -8,6 +10,7 @@ export interface ProxyRule {
 
 // 代理客户端配置接口
 export interface ProxyClientConfig {
+  id?: number;
   name: string;
   token: string;
   status?: 'online' | 'offline';
@@ -123,4 +126,13 @@ export interface ApiResponse<T = any> {
   code: number;
   msg: string;
   data: T;
+}
+
+// 分页响应结构（与服务端 PageResult 对齐）
+export interface PageResult<T> {
+  page: number;
+  pageSize: number;
+  totalPage: number;
+  total: number;
+  list: T[];
 }

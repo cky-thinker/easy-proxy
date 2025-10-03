@@ -117,13 +117,13 @@
                     编辑
                   </button>
                   <button
-                    @click="toggleClientStatus(client)"
+                    @click="toggleStatus(client)"
                     :class="client.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
                   >
                     {{ client.enableFlag ? '禁用' : '启用' }}
                   </button>
                   <button
-                    @click="deleteClient(client)"
+                    @click="deleteClientAction(client)"
                     class="text-red-600 hover:text-red-900"
                   >
                     删除
@@ -281,6 +281,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { ProxyClientConfig, ProxyRule } from '../api/types'
+import { 
+  getClients, createClient, updateClient, deleteClient as deleteClientApi,
+  getClientRules, addClientRule, updateClientRule, deleteClientRule,
+  toggleClientStatus as toggleClientStatusApi
+} from '../api/clients'
 
 // 响应式数据
 const clients = ref<ProxyClientConfig[]>([])
@@ -297,6 +302,12 @@ const currentClient = ref<ProxyClientConfig>({
   enableFlag: true,
   proxyRules: []
 })
+
+// 分页与加载状态
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const loading = ref(false)
 
 // 计算属性
 const filteredClients = computed(() => {
@@ -327,14 +338,11 @@ const editClient = (client: ProxyClientConfig) => {
   showEditModal.value = true
 }
 
-const deleteClient = async (client: ProxyClientConfig) => {
+const deleteClientAction = async (client: ProxyClientConfig) => {
   if (confirm(`确定要删除客户端 "${client.name}" 吗？`)) {
     try {
-      // 这里应该调用删除API
-      const index = clients.value.findIndex(c => c.token === client.token)
-      if (index > -1) {
-        clients.value.splice(index, 1)
-      }
+      await deleteClientApi((client as any).id as number)
+      await loadClients()
       alert('删除成功')
     } catch (error) {
       console.error('删除客户端失败:', error)
@@ -343,15 +351,13 @@ const deleteClient = async (client: ProxyClientConfig) => {
   }
 }
 
-const toggleClientStatus = async (client: ProxyClientConfig) => {
+const toggleStatus = async (client: ProxyClientConfig) => {
   try {
-    const originalStatus = client.enableFlag
-    client.enableFlag = !client.enableFlag
-    // 这里应该调用更新API
-    alert(`客户端已${client.enableFlag ? '启用' : '禁用'}`)
+    await toggleClientStatusApi((client as any).id as number, !client.enableFlag)
+    alert(`客户端已${!client.enableFlag ? '启用' : '禁用'}`)
+    await loadClients()
   } catch (error) {
     console.error('更新客户端状态失败:', error)
-    client.enableFlag = !client.enableFlag // 回滚
     alert('操作失败')
   }
 }
@@ -359,24 +365,22 @@ const toggleClientStatus = async (client: ProxyClientConfig) => {
 const saveClient = async () => {
   try {
     if (showAddModal.value) {
-      // 新增客户端
-      const newClient = {
-        ...currentClient.value,
-        status: 'offline' as const,
-        usedTraffic: 0,
-        proxyRules: []
-      }
-      clients.value.push(newClient)
+      await createClient({
+        name: currentClient.value.name,
+        token: currentClient.value.token,
+        enableFlag: currentClient.value.enableFlag
+      })
       alert('新增成功')
     } else {
-      // 编辑客户端
-      const index = clients.value.findIndex(c => c.token === currentClient.value.token)
-      if (index > -1) {
-        clients.value[index] = { ...currentClient.value }
-      }
+      await updateClient((currentClient.value as any).id as number, {
+        name: currentClient.value.name,
+        token: currentClient.value.token,
+        enableFlag: currentClient.value.enableFlag
+      })
       alert('保存成功')
     }
     closeModal()
+    await loadClients()
   } catch (error) {
     console.error('保存客户端失败:', error)
     alert('保存失败')
@@ -395,12 +399,15 @@ const closeModal = () => {
 }
 
 // 代理规则操作
-const showRulesModal = (client: ProxyClientConfig) => {
+const showRulesModal = async (client: ProxyClientConfig) => {
   selectedClient.value = { ...client }
-  if (!selectedClient.value.proxyRules) {
-    selectedClient.value.proxyRules = []
-  }
   showRulesModalFlag.value = true
+  try {
+    const rules = await getClientRules((client as any).id as number)
+    selectedClient.value.proxyRules = (rules || []).filter(r => (r as any).proxyClientId === (client as any).id)
+  } catch (error) {
+    console.error('加载代理规则失败:', error)
+  }
 }
 
 const addProxyRule = () => {
@@ -417,18 +424,33 @@ const addProxyRule = () => {
   }
 }
 
-const removeProxyRule = (index: number) => {
+const removeProxyRule = async (index: number) => {
   if (selectedClient.value?.proxyRules) {
-    selectedClient.value.proxyRules.splice(index, 1)
+    const rule = selectedClient.value.proxyRules[index]
+    try {
+      if ((rule as any).id) {
+        await deleteClientRule((selectedClient.value as any).id as number, (rule as any).id as number)
+      }
+      selectedClient.value.proxyRules.splice(index, 1)
+    } catch (error) {
+      console.error('删除规则失败:', error)
+      alert('删除失败')
+    }
   }
 }
 
 const saveProxyRules = async () => {
   try {
     if (selectedClient.value) {
-      const index = clients.value.findIndex(c => c.token === selectedClient.value!.token)
-      if (index > -1) {
-        clients.value[index].proxyRules = selectedClient.value.proxyRules
+      const clientId = (selectedClient.value as any).id as number
+      for (const rule of selectedClient.value.proxyRules || []) {
+        if (!(rule as any).id) {
+          const created = await addClientRule(clientId, rule as any)
+          Object.assign(rule, created)
+        } else {
+          const updated = await updateClientRule(clientId, (rule as any).id as number, rule as any)
+          Object.assign(rule, updated)
+        }
       }
     }
     alert('保存成功')
@@ -447,40 +469,14 @@ const closeRulesModal = () => {
 // 加载数据
 const loadClients = async () => {
   try {
-    // 模拟数据
-    clients.value = [
-      {
-        name: '客户端-001',
-        token: 'abc123def456ghi789jkl012mno345pqr678stu901vwx234yz',
-        status: 'online',
-        usedTraffic: 1024 * 1024 * 500,
-        enableFlag: true,
-        proxyRules: [
-          { name: 'Web服务', serverPort: 8080, clientAddress: 'localhost:3000', enableFlag: true },
-          { name: 'API服务', serverPort: 8081, clientAddress: 'localhost:3001', enableFlag: true }
-        ]
-      },
-      {
-        name: '客户端-002',
-        token: 'def456ghi789jkl012mno345pqr678stu901vwx234yz567abc',
-        status: 'offline',
-        usedTraffic: 1024 * 1024 * 320,
-        enableFlag: false,
-        proxyRules: [
-          { name: 'SSH隧道', serverPort: 2222, clientAddress: 'localhost:22', enableFlag: false }
-        ]
-      },
-      {
-        name: '客户端-003',
-        token: 'ghi789jkl012mno345pqr678stu901vwx234yz567abc123def',
-        status: 'online',
-        usedTraffic: 1024 * 1024 * 280,
-        enableFlag: true,
-        proxyRules: []
-      }
-    ]
+    loading.value = true
+    const result = await getClients(currentPage.value, pageSize.value, searchQuery.value || undefined)
+    clients.value = result.list || []
+    total.value = result.total || 0
   } catch (error) {
     console.error('加载客户端列表失败:', error)
+  } finally {
+    loading.value = false
   }
 }
 

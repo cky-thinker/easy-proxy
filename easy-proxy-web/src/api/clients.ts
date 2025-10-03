@@ -2,7 +2,8 @@ import apiClient from './client'
 import type { 
   ProxyClientConfig, 
   ProxyRule,
-  ApiResponse 
+  ApiResponse,
+  PageResult
 } from './types'
 
 // 扩展客户端配置接口
@@ -19,80 +20,85 @@ export interface ExtendedProxyClientConfig extends ProxyClientConfig {
 }
 
 // 获取客户端列表
-export const getClients = async (page: number = 1, limit: number = 10): Promise<{ clients: ExtendedProxyClientConfig[], total: number }> => {
-  const response = await apiClient.get<ApiResponse<{ clients: ExtendedProxyClientConfig[], total: number }>>(`/api/clients?page=${page}&limit=${limit}`)
+export const getClients = async (page: number = 1, pageSize: number = 10, name?: string): Promise<PageResult<ExtendedProxyClientConfig>> => {
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
+  if (name) params.append('name', name)
+  const response = await apiClient.get<ApiResponse<PageResult<ExtendedProxyClientConfig>>>(`/api/proxyClient?${params.toString()}`)
   return response.data.data
 }
 
 // 获取单个客户端详情
 export const getClient = async (id: number): Promise<ExtendedProxyClientConfig> => {
-  const response = await apiClient.get<ApiResponse<ExtendedProxyClientConfig>>(`/api/clients/${id}`)
+  const response = await apiClient.get<ApiResponse<ExtendedProxyClientConfig>>(`/api/proxyClient/${id}`)
   return response.data.data
 }
 
 // 创建客户端
-export const createClient = async (clientData: Omit<ExtendedProxyClientConfig, 'id' | 'status' | 'lastSeen' | 'traffic' | 'connections'>): Promise<ExtendedProxyClientConfig> => {
-  const response = await apiClient.post<ApiResponse<ExtendedProxyClientConfig>>('/api/clients', clientData)
+export const createClient = async (clientData: Pick<ExtendedProxyClientConfig, 'name' | 'token' | 'enableFlag'>): Promise<ExtendedProxyClientConfig> => {
+  const response = await apiClient.post<ApiResponse<ExtendedProxyClientConfig>>('/api/proxyClient', clientData)
   return response.data.data
 }
 
 // 更新客户端
 export const updateClient = async (id: number, clientData: Partial<ExtendedProxyClientConfig>): Promise<ExtendedProxyClientConfig> => {
-  const response = await apiClient.put<ApiResponse<ExtendedProxyClientConfig>>(`/api/clients/${id}`, clientData)
+  const response = await apiClient.put<ApiResponse<ExtendedProxyClientConfig>>(`/api/proxyClient/${id}`, { id, ...clientData })
   return response.data.data
 }
 
 // 删除客户端
 export const deleteClient = async (id: number): Promise<void> => {
-  await apiClient.delete(`/api/clients/${id}`)
+  await apiClient.delete(`/api/proxyClient/${id}`)
 }
 
 // 批量删除客户端
-export const deleteClients = async (ids: number[]): Promise<void> => {
-  await apiClient.post('/api/clients/batch-delete', { ids })
+// 后端暂未提供批量删除端点，保留占位以便未来扩展
+export const deleteClients = async (_ids: number[]): Promise<void> => {
+  console.warn('Batch delete not implemented on server')
 }
 
 // 切换客户端状态
+// 后端未提供单独切换状态端点，使用更新接口
 export const toggleClientStatus = async (id: number, enableFlag: boolean): Promise<ExtendedProxyClientConfig> => {
-  const response = await apiClient.patch<ApiResponse<ExtendedProxyClientConfig>>(`/api/clients/${id}/status`, { enableFlag })
-  return response.data.data
+  return updateClient(id, { enableFlag })
 }
 
 // 获取客户端代理规则
-export const getClientRules = async (clientId: number): Promise<ProxyRule[]> => {
-  const response = await apiClient.get<ApiResponse<ProxyRule[]>>(`/api/clients/${clientId}/rules`)
+// 规则查询使用 /api/proxyClientRule，支持按名称过滤；当前服务端不支持按客户端ID过滤
+export const getClientRules = async (clientId?: number, name?: string): Promise<ProxyRule[]> => {
+  const params = new URLSearchParams()
+  if (name) params.append('name', name)
+  // 暂时忽略 clientId 过滤，待服务端支持后传递
+  const response = await apiClient.get<ApiResponse<ProxyRule[]>>(`/api/proxyClientRule${params.toString() ? '?' + params.toString() : ''}`)
   return response.data.data
 }
 
 // 添加代理规则
 export const addClientRule = async (clientId: number, rule: Omit<ProxyRule, 'id'>): Promise<ProxyRule> => {
-  const response = await apiClient.post<ApiResponse<ProxyRule>>(`/api/clients/${clientId}/rules`, rule)
+  const payload = { ...rule, proxyClientId: clientId }
+  const response = await apiClient.post<ApiResponse<ProxyRule>>('/api/proxyClientRule', payload)
   return response.data.data
 }
 
 // 更新代理规则
-export const updateClientRule = async (clientId: number, ruleId: number, rule: Partial<ProxyRule>): Promise<ProxyRule> => {
-  const response = await apiClient.put<ApiResponse<ProxyRule>>(`/api/clients/${clientId}/rules/${ruleId}`, rule)
+export const updateClientRule = async (_clientId: number, ruleId: number, rule: Partial<ProxyRule>): Promise<ProxyRule> => {
+  const payload = { id: ruleId, ...rule }
+  const response = await apiClient.put<ApiResponse<ProxyRule>>('/api/proxyClientRule', payload)
   return response.data.data
 }
 
 // 删除代理规则
-export const deleteClientRule = async (clientId: number, ruleId: number): Promise<void> => {
-  await apiClient.delete(`/api/clients/${clientId}/rules/${ruleId}`)
+export const deleteClientRule = async (_clientId: number, ruleId: number): Promise<void> => {
+  await apiClient.delete(`/api/proxyClientRule/${ruleId}`)
 }
 
 // 搜索客户端
-export const searchClients = async (query: string, filters?: { status?: string, type?: string }): Promise<ExtendedProxyClientConfig[]> => {
-  const params = new URLSearchParams({ q: query })
-  if (filters?.status) params.append('status', filters.status)
-  if (filters?.type) params.append('type', filters.type)
-  
-  const response = await apiClient.get<ApiResponse<ExtendedProxyClientConfig[]>>(`/api/clients/search?${params.toString()}`)
-  return response.data.data
+export const searchClients = async (name: string, page: number = 1, pageSize: number = 10): Promise<PageResult<ExtendedProxyClientConfig>> => {
+  return getClients(page, pageSize, name)
 }
 
 // 获取客户端统计信息
-export const getClientStats = async (id: number, period: 'day' | 'week' | 'month' = 'day'): Promise<{ traffic: any[], connections: any[] }> => {
-  const response = await apiClient.get<ApiResponse<{ traffic: any[], connections: any[] }>>(`/api/clients/${id}/stats?period=${period}`)
-  return response.data.data
+// 统计端点存在于 /api/traffic/...，此处保留占位以供仪表盘使用具体统计API
+export const getClientStats = async (_id: number, _period: 'day' | 'week' | 'month' = 'day'): Promise<{ traffic: any[], connections: any[] }> => {
+  console.warn('Use TrafficStatisticController endpoints instead: /api/traffic/*')
+  return { traffic: [], connections: [] }
 }
