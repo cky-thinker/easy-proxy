@@ -3,34 +3,35 @@
     <div class="px-4">
       <div class="flex justify-between h-16">
         <div class="flex items-center">
-          <!-- Logo -->
-          <router-link to="/" class="flex-shrink-0 flex items-center">
+          <!-- Logo + Title -->
+          <router-link to="/" class="flex-shrink-0 flex items-center space-x-2">
+            <img src="/favicon.ico" alt="logo" class="w-6 h-6" />
             <h1 class="text-xl font-bold text-gray-800">Easy Proxy</h1>
           </router-link>
 
           <!-- Navigation Links -->
-          <div class="hidden md:ml-6 md:flex md:space-x-8">
+          <div class="hidden md:ml-6 md:flex md:space-x-2">
             <router-link
               v-if="authStore.isLoggedIn"
               to="/"
-              class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-              active-class="text-indigo-600 border-b-2 border-indigo-600"
+              class="text-black hover:bg-[var(--color-blue-500)]/20 px-3 py-2 text-sm font-medium transition-colors"
+              active-class="bg-[var(--color-blue-500)] text-white"
             >
               总览
             </router-link>
             <router-link
               v-if="authStore.isLoggedIn"
               to="/clients"
-              class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-              active-class="text-indigo-600 border-b-2 border-indigo-600"
+              class="text-black hover:bg-[var(--color-blue-500)]/20 px-3 py-2 text-sm font-medium transition-colors"
+              active-class="bg-[var(--color-blue-500)] text-white"
             >
               客户端管理
             </router-link>
             <router-link
               v-if="authStore.isLoggedIn"
               to="/accounts"
-              class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-              active-class="text-indigo-600 border-b-2 border-indigo-600"
+              class="text-black hover:bg-[var(--color-blue-500)]/20 px-3 py-2 text-sm font-medium transition-colors"
+              active-class="bg-[var(--color-blue-500)] text-white"
             >
               账号管理
             </router-link>
@@ -40,8 +41,8 @@
         <!-- User Menu -->
         <div class="flex items-center space-x-4">
           <div v-if="authStore.isLoggedIn" class="flex items-center space-x-4">
-            <!-- User Info -->
-            <div class="flex items-center space-x-2">
+            <!-- User Info + Dropdown -->
+            <div class="relative flex items-center space-x-2">
               <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
                 <span class="text-white text-sm font-medium">
                   {{ userInitial }}
@@ -50,15 +51,16 @@
               <span class="text-gray-700 text-sm font-medium">
                 {{ authStore.userInfo?.username }}
               </span>
+              <button @click="toggleUserMenu" class="p-1 text-gray-600 hover:text-gray-800" aria-label="用户菜单">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div v-if="showUserMenu" class="absolute right-0 top-full mt-2 w-36 bg-white border border-gray-200 shadow-lg">
+                <button @click="goToManage" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[var(--color-blue-500)]/20">管理</button>
+                <button @click="handleLogout" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100">登出</button>
+              </div>
             </div>
-
-            <!-- Logout Button -->
-            <button
-              @click="handleLogout"
-              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-            >
-              登出
-            </button>
           </div>
 
           <!-- Login Button -->
@@ -76,10 +78,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 
 const authStore = useAuthStore();
+const router = useRouter();
+const showUserMenu = ref(false);
 
 // 计算用户名首字母
 const userInitial = computed(() => {
@@ -95,5 +100,14 @@ const handleLogout = async () => {
   } catch (error) {
     console.error('登出失败:', error);
   }
+};
+
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value;
+};
+
+const goToManage = () => {
+  router.push('/accounts');
+  showUserMenu.value = false;
 };
 </script>
