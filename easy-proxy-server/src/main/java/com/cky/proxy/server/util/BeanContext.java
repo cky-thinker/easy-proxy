@@ -25,6 +25,7 @@ import com.j256.ormlite.jdbc.db.H2DatabaseType;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTableConfig;
 import com.j256.ormlite.table.TableUtils;
+import com.oracle.graal.vector.nodes.consumer.ad;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,6 +200,9 @@ public class BeanContext {
                 SysUser adminSysUser = new SysUser();
                 adminSysUser.setUsername("admin");
                 adminSysUser.setPassword("admin123"); // 注意：实际项目中应该使用加密密码
+                adminSysUser.setMobile("13800000000");
+                adminSysUser.setRole("admin");
+                adminSysUser.setEnableFlag(true);
                 adminSysUser.setCreateTime(new Date());
 
                 userDao.insert(adminSysUser);

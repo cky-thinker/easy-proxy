@@ -4,12 +4,13 @@ import type {
   CreateAccountRequest, 
   UpdateAccountRequest,
   Permission,
-  ApiResponse 
+  ApiResponse,
+  PageResult 
 } from './types'
 
-// 获取账号列表
-export const getAccounts = async (page: number = 1, limit: number = 10): Promise<{ accounts: Account[], total: number }> => {
-  const response = await apiClient.get<ApiResponse<{ accounts: Account[], total: number }>>(`/api/accounts?page=${page}&limit=${limit}`)
+// 获取账号列表（分页）
+export const getAccounts = async (page: number = 1, pageSize: number = 10): Promise<PageResult<Account>> => {
+  const response = await apiClient.get<ApiResponse<PageResult<Account>>>(`/api/accounts?page=${page}&pageSize=${pageSize}`)
   return response.data.data
 }
 
@@ -65,11 +66,10 @@ export const updateAccountPermissions = async (id: number, permissions: Record<s
 }
 
 // 搜索账号
-export const searchAccounts = async (query: string, filters?: { role?: string, status?: string }): Promise<Account[]> => {
-  const params = new URLSearchParams({ q: query })
+export const searchAccounts = async (query: string, filters?: { role?: string, status?: string }, page: number = 1, pageSize: number = 10): Promise<PageResult<Account>> => {
+  const params = new URLSearchParams({ q: query, page: String(page), pageSize: String(pageSize) })
   if (filters?.role) params.append('role', filters.role)
   if (filters?.status) params.append('status', filters.status)
-  
-  const response = await apiClient.get<ApiResponse<Account[]>>(`/api/accounts/search?${params.toString()}`)
+  const response = await apiClient.get<ApiResponse<PageResult<Account>>>(`/api/accounts/search?${params.toString()}`)
   return response.data.data
 }

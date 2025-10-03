@@ -37,7 +37,7 @@
           <select v-model="roleFilter" class="border border-gray-300 rounded-lg px-3 py-2">
             <option value="">全部角色</option>
             <option value="admin">管理员</option>
-            <option value="sysUser">普通用户</option>
+            <option value="user">普通用户</option>
             <option value="viewer">只读用户</option>
           </select>
           <select v-model="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2">
@@ -181,7 +181,7 @@
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="sysUser">普通用户</option>
+                <option value="user">普通用户</option>
                 <option value="admin">管理员</option>
                 <option value="viewer">只读用户</option>
               </select>
@@ -270,26 +270,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-
-// 账号接口定义
-interface Account {
-  id: number
-  username: string
-  email: string
-  password?: string
-  role: 'admin' | 'sysUser' | 'viewer'
-  status: 'active' | 'inactive'
-  lastLogin?: string
-  createdAt: string
-  permissions: Record<string, boolean>
-}
-
-// 权限定义
-interface Permission {
-  name: string
-  description: string
-  actions: string[]
-}
+import { 
+  getAccounts, 
+  createAccount as apiCreateAccount, 
+  updateAccount as apiUpdateAccount, 
+  deleteAccount as apiDeleteAccount, 
+  toggleAccountStatus as apiToggleAccountStatus
+} from '../api/accounts'
+import type { Account, Permission, CreateAccountRequest, UpdateAccountRequest } from '../api/types'
 
 // 响应式数据
 const accounts = ref<Account[]>([])
@@ -305,7 +293,7 @@ const currentAccount = ref<Account>({
   username: '',
   email: '',
   password: '',
-  role: 'sysUser',
+  role: 'user',
   status: 'active',
   createdAt: '',
   permissions: {}
@@ -358,7 +346,7 @@ const filteredAccounts = computed(() => {
 const getRoleColor = (role: string): string => {
   const colors = {
     admin: 'bg-red-100 text-red-800',
-    sysUser: 'bg-blue-100 text-blue-800',
+    user: 'bg-blue-100 text-blue-800',
     viewer: 'bg-gray-100 text-gray-800'
   }
   return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800'
@@ -367,7 +355,7 @@ const getRoleColor = (role: string): string => {
 const getRoleText = (role: string): string => {
   const texts = {
     admin: '管理员',
-    sysUser: '普通用户',
+    user: '普通用户',
     viewer: '只读用户'
   }
   return texts[role as keyof typeof texts] || '未知角色'
@@ -382,10 +370,9 @@ const editAccount = (account: Account) => {
 const deleteAccount = async (account: Account) => {
   if (confirm(`确定要删除账号 "${account.username}" 吗？`)) {
     try {
+      await apiDeleteAccount(account.id)
       const index = accounts.value.findIndex(a => a.id === account.id)
-      if (index > -1) {
-        accounts.value.splice(index, 1)
-      }
+      if (index > -1) accounts.value.splice(index, 1)
       alert('删除成功')
     } catch (error) {
       console.error('删除账号失败:', error)
@@ -396,11 +383,15 @@ const deleteAccount = async (account: Account) => {
 
 const toggleAccountStatus = async (account: Account) => {
   try {
-    account.status = account.status === 'active' ? 'inactive' : 'active'
-    alert(`账号已${account.status === 'active' ? '激活' : '禁用'}`)
+    const newStatus = account.status === 'active' ? 'inactive' : 'active'
+    const updated = await apiToggleAccountStatus(account.id, newStatus)
+    // 后端返回的字段映射
+    const mapped = mapSysUserToAccount(updated as any)
+    const index = accounts.value.findIndex(a => a.id === mapped.id)
+    if (index > -1) accounts.value[index] = mapped
+    alert(`账号已${mapped.status === 'active' ? '激活' : '禁用'}`)
   } catch (error) {
     console.error('更新账号状态失败:', error)
-    account.status = account.status === 'active' ? 'inactive' : 'active' // 回滚
     alert('操作失败')
   }
 }
@@ -409,23 +400,30 @@ const saveAccount = async () => {
   try {
     if (showAddModal.value) {
       // 新增账号
-      const newAccount: Account = {
-        ...currentAccount.value,
-        id: Date.now(),
-        createdAt: new Date().toLocaleDateString(),
-        permissions: Object.keys(permissions.value).reduce((acc, key) => {
-          acc[key] = currentAccount.value.role === 'admin'
-          return acc
-        }, {} as Record<string, boolean>)
+      const payload: CreateAccountRequest = {
+        username: currentAccount.value.username,
+        email: currentAccount.value.email,
+        password: currentAccount.value.password || '',
+        role: currentAccount.value.role,
+        status: currentAccount.value.status
       }
-      accounts.value.push(newAccount)
+      const created = await apiCreateAccount(payload)
+      const mapped = mapSysUserToAccount(created as any)
+      accounts.value.push(mapped)
       alert('新增成功')
     } else {
       // 编辑账号
-      const index = accounts.value.findIndex(a => a.id === currentAccount.value.id)
-      if (index > -1) {
-        accounts.value[index] = { ...currentAccount.value }
+      const payload: UpdateAccountRequest = {
+        id: currentAccount.value.id,
+        username: currentAccount.value.username,
+        email: currentAccount.value.email,
+        role: currentAccount.value.role,
+        status: currentAccount.value.status
       }
+      const updated = await apiUpdateAccount(payload)
+      const mapped = mapSysUserToAccount(updated as any)
+      const index = accounts.value.findIndex(a => a.id === mapped.id)
+      if (index > -1) accounts.value[index] = mapped
       alert('保存成功')
     }
     closeModal()
@@ -443,7 +441,7 @@ const closeModal = () => {
     username: '',
     email: '',
     password: '',
-    role: 'sysUser',
+    role: 'user',
     status: 'active',
     createdAt: '',
     permissions: {}
@@ -481,59 +479,32 @@ const closePermissionsModal = () => {
 }
 
 // 加载数据
+const formatDateTime = (value?: string | number | Date): string => {
+  if (!value) return ''
+  try {
+    const d = new Date(value)
+    if (isNaN(d.getTime())) return ''
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+  } catch { return '' }
+}
+
+const mapSysUserToAccount = (raw: any): Account => {
+  return {
+    id: raw.id,
+    username: raw.username,
+    email: raw.email,
+    role: (raw.role === 'admin' ? 'admin' : raw.role === 'viewer' ? 'viewer' : 'user'),
+    status: raw.enableFlag ? 'active' : 'inactive',
+    lastLogin: formatDateTime(raw.loginTime),
+    createdAt: formatDateTime(raw.createTime) || '',
+    permissions: {}
+  }
+}
+
 const loadAccounts = async () => {
   try {
-    // 模拟数据
-    accounts.value = [
-      {
-        id: 1,
-        username: 'admin',
-        email: 'admin@example.com',
-        role: 'admin',
-        status: 'active',
-        lastLogin: '2024-01-15 10:30:00',
-        createdAt: '2024-01-01',
-        permissions: {
-          dashboard: true,
-          clients: true,
-          accounts: true,
-          logs: true,
-          settings: true
-        }
-      },
-      {
-        id: 2,
-        username: 'user1',
-        email: 'user1@example.com',
-        role: 'sysUser',
-        status: 'active',
-        lastLogin: '2024-01-14 15:20:00',
-        createdAt: '2024-01-05',
-        permissions: {
-          dashboard: true,
-          clients: true,
-          accounts: false,
-          logs: false,
-          settings: false
-        }
-      },
-      {
-        id: 3,
-        username: 'viewer1',
-        email: 'viewer1@example.com',
-        role: 'viewer',
-        status: 'inactive',
-        lastLogin: undefined,
-        createdAt: '2024-01-10',
-        permissions: {
-          dashboard: true,
-          clients: false,
-          accounts: false,
-          logs: false,
-          settings: false
-        }
-      }
-    ]
+    const pageData = await getAccounts(0, 10)
+    accounts.value = (pageData.list || []).map(item => mapSysUserToAccount(item as any))
   } catch (error) {
     console.error('加载账号列表失败:', error)
   }

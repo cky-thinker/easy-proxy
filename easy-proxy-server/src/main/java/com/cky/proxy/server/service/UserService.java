@@ -1,5 +1,7 @@
 package com.cky.proxy.server.service;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -7,6 +9,7 @@ import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
+import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.dto.UserInfo;
 import com.cky.proxy.server.domain.entity.SysUser;
 import com.cky.proxy.server.util.BeanContext;
@@ -16,6 +19,7 @@ import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.db.Page;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;
@@ -128,5 +132,78 @@ public class UserService {
         captchaImage.setCaptchaId(captchaId);
         captchaImage.setImg("data:image/png;base64," + captcha.getImageBase64());
         return captchaImage;
+    }
+
+    // ===== 账户管理方法 =====
+
+    /**
+     * 分页查询账户
+     */
+    public PageResult<SysUser> getAccountsPageable(Page page, String q, String role, String status) {
+        return userDao.selectPage(page, where -> {
+            boolean hasWhere = false;
+            if (q != null && !q.isEmpty()) {
+                // 模糊匹配用户名或邮箱
+                where.like("username", "%" + q + "%").or().like("email", "%" + q + "%");
+                hasWhere = true;
+            }
+            if (role != null && !role.isEmpty()) {
+                if (hasWhere) where.and();
+                where.eq("role", role);
+                hasWhere = true;
+            }
+            if (status != null && !status.isEmpty()) {
+                boolean enableFlag = "active".equalsIgnoreCase(status);
+                if (hasWhere) where.and();
+                where.eq("enable_flag", enableFlag);
+            }
+        });
+    }
+
+    public SysUser getAccountById(Integer id) {
+        return userDao.selectById(id);
+    }
+
+    public SysUser createAccount(SysUser user) {
+        user.setCreateTime(new Date());
+        if (user.getEnableFlag() == null) user.setEnableFlag(Boolean.TRUE);
+        userDao.insert(user);
+        return user;
+    }
+
+    public SysUser updateAccount(SysUser user) {
+        user.setUpdateTime(new Date());
+        userDao.updateById(user);
+        return userDao.selectById(user.getId());
+    }
+
+    public boolean deleteAccount(Integer id) {
+        userDao.deleteById(id);
+        return true;
+    }
+
+    public void batchDeleteAccounts(List<Integer> ids) {
+        if (ids == null) return;
+        for (Integer id : ids) {
+            userDao.deleteById(id);
+        }
+    }
+
+    public SysUser resetPassword(Integer id, String newPassword) {
+        SysUser user = userDao.selectById(id);
+        if (user == null) throw new RuntimeException("账号不存在");
+        user.setPassword(newPassword);
+        user.setUpdateTime(new Date());
+        userDao.updateById(user);
+        return user;
+    }
+
+    public SysUser updateStatus(Integer id, String status) {
+        SysUser user = userDao.selectById(id);
+        if (user == null) throw new RuntimeException("账号不存在");
+        user.setEnableFlag("active".equalsIgnoreCase(status));
+        user.setUpdateTime(new Date());
+        userDao.updateById(user);
+        return user;
     }
 }
