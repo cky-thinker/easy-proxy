@@ -8,7 +8,7 @@
       </div>
       <button
         @click="showAddModal = true"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 cursor-pointer"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -103,7 +103,7 @@
                 </div>
                 <button
                   @click="showRulesModal(client)"
-                  class="text-indigo-600 hover:text-indigo-900 text-sm"
+                  class="text-indigo-600 hover:text-indigo-900 text-sm cursor-pointer"
                 >
                   查看详情
                 </button>
@@ -112,19 +112,20 @@
                 <div class="flex space-x-2">
                   <button
                     @click="editClient(client)"
-                    class="text-indigo-600 hover:text-indigo-900"
+                    class="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                   >
                     编辑
                   </button>
                   <button
                     @click="toggleStatus(client)"
+                    class="cursor-pointer"
                     :class="client.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
                   >
                     {{ client.enableFlag ? '禁用' : '启用' }}
                   </button>
                   <button
                     @click="deleteClientAction(client)"
-                    class="text-red-600 hover:text-red-900"
+                    class="text-red-600 hover:text-red-900 cursor-pointer"
                   >
                     删除
                   </button>
@@ -137,8 +138,8 @@
     </div>
 
     <!-- 新增/编辑客户端模态框 -->
-    <div v-if="showAddModal || showEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div v-if="showAddModal || showEditModal" class="fixed inset-0 bg-gray-800/30 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border border-gray-200 w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
           <h3 class="text-lg font-medium text-gray-900 mb-4">
             {{ showAddModal ? '新增客户端' : '编辑客户端' }}
@@ -178,13 +179,13 @@
               <button
                 type="button"
                 @click="closeModal"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
               >
                 取消
               </button>
               <button
                 type="submit"
-                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
               >
                 {{ showAddModal ? '新增' : '保存' }}
               </button>
@@ -195,8 +196,8 @@
     </div>
 
     <!-- 代理规则模态框 -->
-    <div v-if="showRulesModalFlag" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-2/3 max-w-4xl shadow-lg rounded-md bg-white">
+    <div v-if="showRulesModalFlag" class="fixed inset-0 bg-gray-800/30 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border border-gray-200 w-2/3 max-w-4xl shadow-lg rounded-md bg-white">
         <div class="mt-3">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-medium text-gray-900">
@@ -204,7 +205,7 @@
             </h3>
             <button
               @click="addProxyRule"
-              class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm cursor-pointer"
             >
               新增规则
             </button>
@@ -250,7 +251,7 @@
                   </label>
                   <button
                     @click="removeProxyRule(index)"
-                    class="text-red-600 hover:text-red-900 text-sm"
+                    class="text-red-600 hover:text-red-900 text-sm cursor-pointer"
                   >
                     删除
                   </button>
@@ -261,13 +262,13 @@
           <div class="flex justify-end space-x-3 mt-6">
             <button
               @click="closeRulesModal"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
             >
               关闭
             </button>
             <button
               @click="saveProxyRules"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
             >
               保存规则
             </button>
