@@ -12,16 +12,6 @@ public class User {
     @DatabaseField(generatedId = true)
     public Integer id;
     /**
-     * 是否管理员
-     */
-    @DatabaseField(columnName = "is_admin")
-    public Boolean isAdmin;
-    /**
-     * 头像
-     */
-    @DatabaseField
-    public String avatar;
-    /**
      * 账号
      */
     @DatabaseField(unique = true)
@@ -41,6 +31,21 @@ public class User {
      */
     @DatabaseField
     public String password;
+    /**
+     * 角色 admin 管理员 user 普通用户
+     */
+    @DatabaseField
+    public String role;
+    /**
+     * 启用标记
+     */
+    @DatabaseField(columnName="enable_flag")
+    private Boolean enableFlag;
+    /**
+     * 上次登录时间
+     */
+    @DatabaseField(columnName = "login_time")
+    private Date loginTime;
     /**
      * 创建人
      */
