@@ -157,13 +157,23 @@
             </div>
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-2">Token</label>
-              <input
-                v-model="currentClient.token"
-                type="text"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="请输入Token"
-              >
+              <div class="flex items-center space-x-2">
+                <input
+                  v-model="currentClient.token"
+                  type="text"
+                  required
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="请输入Token"
+                >
+                <button
+                  type="button"
+                  @click="generateToken"
+                  class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer border border-gray-200"
+                  title="生成64位随机Token"
+                >
+                  生成
+                </button>
+              </div>
             </div>
             <div class="mb-4">
               <label class="flex items-center">
@@ -484,4 +494,13 @@ const loadClients = async () => {
 onMounted(() => {
   loadClients()
 })
+
+// 生成64位随机字符串（使用32字节的十六进制表示）
+const generateToken = () => {
+  const bytes = new Uint8Array(32)
+  crypto.getRandomValues(bytes)
+  currentClient.value.token = Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+}
 </script>
