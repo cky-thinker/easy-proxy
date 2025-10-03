@@ -1,0 +1,45 @@
+package com.cky.proxy.server.domain.entity;
+
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import lombok.Data;
+
+import java.util.Date;
+
+/**
+ * 流量统计总报告
+ */
+@Data
+@DatabaseTable(tableName = "traffic_statistic_client_report")
+public class TrafficStatisticClientReport {
+    /**
+     * 主键
+     */
+    @DatabaseField(generatedId = true)
+    private Integer id;
+     /**
+     * 代理客户端ID
+     */
+    @DatabaseField(columnName = "proxy_client_id")
+    private Integer proxyClientId;
+    /**
+     * 日期
+     */
+    @DatabaseField(columnName = "date")
+    private Date date;
+    /**
+     * 上行流量
+     */
+    @DatabaseField(columnName = "upward_traffic_bytes")
+    private Long upwardTrafficBytes;
+    /**
+     * 下行流量
+     */
+    @DatabaseField(columnName = "downward_traffic_bytes")
+    private Long downwardTrafficBytes;
+    /**
+     * 更新时间
+     */
+    @DatabaseField(columnName="update_time")
+    private Date updateTime;
+}

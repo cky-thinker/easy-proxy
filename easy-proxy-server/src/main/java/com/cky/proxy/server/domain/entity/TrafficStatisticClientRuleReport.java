@@ -10,8 +10,8 @@ import java.util.Date;
  * 流量统计总报告
  */
 @Data
-@DatabaseTable(tableName = "traffic_statistic_total_report")
-public class TrafficStatisticTotalReport {
+@DatabaseTable(tableName = "traffic_statistic_client_rule_report")
+public class TrafficStatisticClientRuleReport {
     /**
      * 主键
      */
