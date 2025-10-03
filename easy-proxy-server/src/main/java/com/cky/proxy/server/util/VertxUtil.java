@@ -44,7 +44,7 @@ public class VertxUtil {
         Result<Object> result = Result.error(message);
         result.code = statusCode;
         ctx.response()
-                .setStatusCode(200)
+                .setStatusCode(statusCode)
                 .putHeader("content-type", "application/json")
                 .end(JsonUtil.toJson(result));
     }

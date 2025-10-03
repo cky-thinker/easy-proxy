@@ -31,7 +31,16 @@ apiClient.interceptors.response.use(
     // 统一处理错误
     if (error.response) {
       // 服务器返回错误状态码
-      console.error('API错误:', error.response.data);
+      if (error.response.status === 401) {
+        // 未认证：清除token并跳转登录页
+        try {
+          localStorage.removeItem('token');
+        } catch {}
+        // 使用硬跳转确保应用状态重置
+        window.location.href = '/login';
+      } else {
+        console.error('API错误:', error.response.data);
+      }
     } else if (error.request) {
       // 请求发送但没有收到响应
       console.error('网络错误: 没有收到响应');

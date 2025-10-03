@@ -19,6 +19,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.cky.proxy.server.util.JsonUtil;
 
 public class WebManageVerticle extends AbstractVerticle {
     private static final Logger log = LoggerFactory.getLogger(WebManageVerticle.class);
@@ -68,6 +69,17 @@ public class WebManageVerticle extends AbstractVerticle {
             Throwable failure = ctx.failure();
             String errorMessage = failure != null ? failure.getMessage() : "Unknown error";
 
+            // 未认证请求返回 401
+            if (statusCode == 401) {
+                Result<Object> result = Result.error("Unauthorized");
+                result.code = 401;
+                ctx.response()
+                        .setStatusCode(401)
+                        .putHeader("content-type", "application/json")
+                        .end(JsonUtil.toJson(result));
+                return;
+            }
+
             log.error("web服务异常：" + errorMessage, failure);
             VertxUtil.response(ctx, Result.error(errorMessage));
         });
@@ -79,7 +91,7 @@ public class WebManageVerticle extends AbstractVerticle {
         baseRouter.route("/api/*").handler(ctx -> {
             // 排除不需要认证的路径
             String path = ctx.request().path();
-            if (path.equals("/api/sys/captchaImage") || path.equals("/api/sys/loginUser") ||
+            if (path.equals("/api/sys/captchaImage") || path.equals("/api/sys/loginUser")|| path.equals("/api/sys/config") ||
                     path.equals("/api") || path.equals("/health")) {
                 ctx.next();
                 return;
