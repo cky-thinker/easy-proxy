@@ -1,12 +1,11 @@
 package com.cky.proxy.server.config;
 
+import java.sql.SQLException;
+
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.support.ConnectionSource;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
-import java.sql.SQLException;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 数据库连接管理器
@@ -15,9 +14,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Slf4j
 public class DatabaseConnectionManager {
     private static volatile DatabaseConnectionManager instance;
-    private volatile ConnectionSource connectionSource;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private volatile boolean initialized = false;
 
     // 私有构造函数，防止外部实例化
     private DatabaseConnectionManager() {
@@ -54,10 +50,9 @@ public class DatabaseConnectionManager {
 
         // 创建新的连接源
         return new JdbcConnectionSource(
-            db.getUrl(),
-            db.getUsername(),
-            db.getPassword()
-        );
+                db.getUrl(),
+                db.getUsername(),
+                db.getPassword());
     }
 
     /**
@@ -65,13 +60,13 @@ public class DatabaseConnectionManager {
      */
     private void validateDatabaseConfig(DatabaseProperty db) throws SQLException {
         if (db.getUrl() == null || db.getUrl().trim().isEmpty()) {
-            throw new SQLException("数据库URL不能为空");
+            throw new RuntimeException("数据库URL不能为空");
         }
         if (db.getUsername() == null || db.getUsername().trim().isEmpty()) {
-            throw new SQLException("数据库用户名不能为空");
+            throw new RuntimeException("数据库用户名不能为空");
         }
         if (db.getPassword() == null) {
-            throw new SQLException("数据库密码不能为空");
+            throw new RuntimeException("数据库密码不能为空");
         }
     }
 }

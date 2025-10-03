@@ -14,11 +14,11 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
-public class SysUserController {
+public class UserController {
     private final Router router;
     private final UserService authService;
 
-    public SysUserController(Router router, Vertx vertx) {
+    public UserController(Router router, Vertx vertx) {
         this.router = router;
         this.authService = new UserService(vertx);
         initRoutes();

@@ -2,7 +2,7 @@ package com.cky.proxy.server.verticle;
 
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.controller.ProxyClientController;
-import com.cky.proxy.server.controller.SysUserController;
+import com.cky.proxy.server.controller.UserController;
 import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.util.VertxUtil;
 
@@ -88,7 +88,7 @@ public class WebManageVerticle extends AbstractVerticle {
 
         // 手动设置API路由
         new ProxyClientController(baseRouter);
-        new SysUserController(baseRouter, vertx);
+        new UserController(baseRouter, vertx);
 
         // 启动HTTP服务器
         ConfigProperty configProperty = ConfigProperty.getInstance();

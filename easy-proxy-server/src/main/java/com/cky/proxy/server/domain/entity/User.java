@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+
 import lombok.Data;
 
 @Data
@@ -11,6 +12,11 @@ import lombok.Data;
 public class User {
     @DatabaseField(generatedId = true)
     public Integer id;
+    /**
+     * 是否管理员
+     */
+    @DatabaseField
+    public Boolean isAdmin;
     /**
      * 头像
      */
@@ -39,21 +45,21 @@ public class User {
     /**
      * 创建人
      */
-    @DatabaseField(columnName="create_by")
+    @DatabaseField(columnName = "create_by")
     private String createBy;
     /**
      * 创建时间
      */
-    @DatabaseField(columnName="create_time")
+    @DatabaseField(columnName = "create_time")
     private Date createTime;
     /**
      * 更新人
      */
-    @DatabaseField(columnName="update_by")
+    @DatabaseField(columnName = "update_by")
     private String updateBy;
     /**
      * 更新时间
      */
-    @DatabaseField(columnName="update_time")
+    @DatabaseField(columnName = "update_time")
     private Date updateTime;
 }

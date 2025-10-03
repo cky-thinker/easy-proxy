@@ -1,6 +1,13 @@
-package com.cky.proxy.server.dao;
+package com.cky.proxy.server.util;
+
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 
 import com.cky.proxy.server.config.DatabaseConnectionManager;
+import com.cky.proxy.server.dao.ProxyClientDao;
+import com.cky.proxy.server.dao.ProxyClientRuleDao;
+import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.User;
@@ -8,21 +15,14 @@ import com.j256.ormlite.jdbc.db.H2DatabaseType;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTableConfig;
 import com.j256.ormlite.table.TableUtils;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-
-/**
- * 数据库初始化服务
- * 负责在应用启动时检查和创建所有必要的数据库表
- */
 @Slf4j
-public class DaoManager {
+public class BeanContext {
 
-    private static volatile DaoManager instance;
+    private static volatile BeanContext instance;
     private static final Object lock = new Object();
 
     // DAO实例
@@ -30,17 +30,17 @@ public class DaoManager {
     private ProxyClientDao proxyClientDao;
     private ProxyClientRuleDao proxyClientRuleDao;
 
-    private DaoManager() {
+    private BeanContext() {
     }
 
     /**
      * 获取数据库初始化服务实例
      */
-    public static DaoManager getInstance() {
+    public static BeanContext getInstance() {
         if (instance == null) {
             synchronized (lock) {
                 if (instance == null) {
-                    instance = new DaoManager();
+                    instance = new BeanContext();
                 }
             }
         }
@@ -105,7 +105,7 @@ public class DaoManager {
      * 初始化单个表
      */
     private void initializeTable(ConnectionSource connectionSource, Class<?> entityClass)
-        throws SQLException {
+            throws SQLException {
         String tableName = DatabaseTableConfig.extractTableName(new H2DatabaseType(), entityClass);
         try {
             int tableExists = TableUtils.createTableIfNotExists(connectionSource, entityClass);

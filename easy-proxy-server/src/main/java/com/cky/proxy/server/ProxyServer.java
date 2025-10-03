@@ -1,8 +1,9 @@
 package com.cky.proxy.server;
 
-import com.cky.proxy.server.dao.DaoManager;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.verticle.ProxyServerVerticle;
 import com.cky.proxy.server.verticle.WebManageVerticle;
+
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProxyServer {
     public static void main(String[] args) {
         // 初始化数据库表和数据
-        DaoManager initService = DaoManager.getInstance();
+        BeanContext initService = BeanContext.getInstance();
         initService.initializeDatabase();
 
         Vertx vertx = Vertx.vertx();
@@ -26,7 +27,7 @@ public class ProxyServer {
             }
         });
         log.info("WebManage start...");
-        vertx.deployVerticle(new WebManageVerticle(), res -> {
+        vertx.deployVerticle(WebManageVerticle.class.getCanonicalName(), res -> {
             if (res.succeeded()) {
                 log.info("WebManage start success!");
             } else {

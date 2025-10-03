@@ -1,15 +1,16 @@
 package com.cky.proxy.server.service;
 
-import com.cky.proxy.server.dao.DaoManager;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
+import com.cky.proxy.server.util.BeanContext;
+
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
 import java.util.List;
 
 public class ProxyClientRuleService {
-    private final ProxyClientRuleDao proxyClientRuleDao = DaoManager.getProxyClientRuleDao();
+    private final ProxyClientRuleDao proxyClientRuleDao = BeanContext.getProxyClientRuleDao();
 
     public List<ProxyClientRule> getProxyClientRules(Integer proxyClientId) {
         return proxyClientRuleDao.selectList(qb -> {

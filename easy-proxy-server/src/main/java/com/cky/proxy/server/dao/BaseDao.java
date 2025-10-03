@@ -22,7 +22,7 @@ public abstract class BaseDao<T> {
     @SneakyThrows
     public void insert(T t) {
         try {
-            getDaoTemplate().create(t);
+            getDao().create(t);
         } catch (SQLException e) {
             throw new RuntimeException("插入数据失败", e);
         }
@@ -31,7 +31,7 @@ public abstract class BaseDao<T> {
     @SneakyThrows
     public void updateById(T t) {
         try {
-            getDaoTemplate().update(t);
+            getDao().update(t);
         } catch (SQLException e) {
             throw new RuntimeException("更新数据失败", e);
         }
@@ -40,7 +40,7 @@ public abstract class BaseDao<T> {
     @SneakyThrows
     public void deleteById(Integer id) {
         try {
-            getDaoTemplate().deleteById(id);
+            getDao().deleteById(id);
         } catch (SQLException e) {
             throw new RuntimeException("删除数据失败, ID: " + id, e);
         }
@@ -49,7 +49,7 @@ public abstract class BaseDao<T> {
     @SneakyThrows
     public T selectById(Integer id) {
         try {
-            return getDaoTemplate().queryForId(id);
+            return getDao().queryForId(id);
         } catch (SQLException e) {
             throw new RuntimeException("查询数据失败, ID: " + id, e);
         }
@@ -58,7 +58,7 @@ public abstract class BaseDao<T> {
     @SneakyThrows
     public List<T> selectList(QueryConsumer<QueryBuilder<T, Integer>> consumer) {
         try {
-            QueryBuilder<T, Integer> queryBuilder = getDaoTemplate().queryBuilder();
+            QueryBuilder<T, Integer> queryBuilder = getDao().queryBuilder();
             consumer.accept(queryBuilder);
             return queryBuilder.query();
         } catch (SQLException e) {
@@ -70,14 +70,14 @@ public abstract class BaseDao<T> {
     public PageResult<T> selectPage(Page page, QueryConsumer<Where<T, Integer>> consumer) {
         try {
             // 查询总数
-            QueryBuilder<T, Integer> countQuery = getDaoTemplate().queryBuilder();
+            QueryBuilder<T, Integer> countQuery = getDao().queryBuilder();
             Where<T, Integer> countWhere = countQuery.where();
             consumer.accept(countWhere);
             int totle = (int) countQuery.countOf();
             int totlePage = (int) (totle % page.getPageSize() == 0 ? totle / page.getPageSize()
                 : totle / page.getPageSize() + 1);
             // 查询列表
-            QueryBuilder<T, Integer> queryBuilder = getDaoTemplate().queryBuilder();
+            QueryBuilder<T, Integer> queryBuilder = getDao().queryBuilder();
             Where<T, Integer> where = queryBuilder.where();
             consumer.accept(where);
             if (page.getOrders() != null) {
@@ -99,7 +99,7 @@ public abstract class BaseDao<T> {
     }
 
     @SneakyThrows
-    public Dao<T, Integer> getDaoTemplate() {
+    public Dao<T, Integer> getDao() {
         // 双重检查锁定模式，确保线程安全
         if (dao == null) {
             synchronized (daoLock) {
