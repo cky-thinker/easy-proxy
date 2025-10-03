@@ -288,19 +288,12 @@
     </div>
   </div>
   <!-- 悬浮轻提示（Toast） -->
-  <div v-if="toast.visible" class="fixed top-4 left-1/2 -translate-x-1/2 z-50">
-    <div
-      :class="[
-        'shadow-lg rounded-md px-4 py-3 flex items-center space-x-3',
-        toast.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
-        toast.type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
-        'bg-blue-50 border border-blue-200 text-blue-800'
-      ]"
-    >
-      <span class="text-sm">{{ toast.message }}</span>
-      <button @click="closeToast" aria-label="关闭" class="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">×</button>
-    </div>
-  </div>
+  <Toast 
+    :show="toastVisible" 
+    :message="toastMessage" 
+    :type="toastType" 
+    @update:show="toastVisible = $event" 
+  />
 </template>
 
 <script setup lang="ts">
@@ -311,6 +304,7 @@ import {
   getClientRules, addClientRule, updateClientRule, deleteClientRule,
   toggleClientStatus as toggleClientStatusApi
 } from '../api/clients'
+import Toast, { type ToastType } from '../components/Toast.vue'
 
 // 响应式数据
 const clients = ref<ProxyClientConfig[]>([])
@@ -519,23 +513,13 @@ const generateToken = () => {
 }
 
 // 轻提示（Toast）
-type ToastType = 'success' | 'error' | 'info'
-const toast = ref<{ visible: boolean; message: string; type: ToastType }>({
-  visible: false,
-  message: '',
-  type: 'info'
-})
+const toastVisible = ref(true)
+const toastMessage = ref('测试')
+const toastType = ref<ToastType>('info')
+
 const showToast = (message: string, type: ToastType = 'info') => {
-  toast.value.visible = true
-  toast.value.message = message
-  toast.value.type = type
-  // 2.5秒后自动关闭
-  window.clearTimeout((toast as any)._timer)
-  ;(toast as any)._timer = window.setTimeout(() => {
-    toast.value.visible = false
-  }, 2500)
-}
-const closeToast = () => {
-  toast.value.visible = false
+  toastMessage.value = message
+  toastType.value = type
+  toastVisible.value = true
 }
 </script>
