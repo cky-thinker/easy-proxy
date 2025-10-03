@@ -18,7 +18,7 @@ onMounted(() => {
         <NavBar />
 
         <!-- 主体内容区 -->
-        <div class="flex-1">
+        <div class="flex-1 relative z-10">
             <!-- 内容区域 -->
             <main class="min-h-[calc(100vh-64px)]">
                 <RouterView />

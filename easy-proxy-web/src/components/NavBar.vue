@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-white shadow-lg">
+  <nav class="bg-white shadow-lg relative z-20">
     <div class="px-4">
       <div class="flex justify-between h-16">
         <div class="flex items-center">
@@ -14,7 +14,7 @@
             <router-link
               v-if="authStore.isLoggedIn"
               to="/"
-              class="text-black hover:bg-[var(--color-blue-500)]/20 px-3 py-2 text-sm font-medium transition-colors h-full flex items-center"
+              class="text-black hover:bg-[var(--color-blue-500)] hover:text-white min-w-[100px] px-3 py-2 text-base font-medium transition-colors h-full flex items-center justify-center"
               active-class="bg-[var(--color-blue-600)] text-white"
             >
               总览
@@ -22,7 +22,7 @@
             <router-link
               v-if="authStore.isLoggedIn"
               to="/clients"
-              class="text-black hover:bg-[var(--color-blue-500)]/20 px-3 py-2 text-sm font-medium transition-colors h-full flex items-center"
+              class="text-black hover:bg-[var(--color-blue-500)] hover:text-white min-w-[100px] px-3 py-2 text-base font-medium transition-colors h-full flex items-center justify-center"
               active-class="bg-[var(--color-blue-600)] text-white"
             >
               客户端管理
@@ -30,7 +30,7 @@
             <router-link
               v-if="authStore.isLoggedIn"
               to="/accounts"
-              class="text-black hover:bg-[var(--color-blue-500)]/20 px-3 py-2 text-sm font-medium transition-colors h-full flex items-center"
+              class="text-black hover:bg-[var(--color-blue-500)] hover:text-white min-w-[100px] px-3 py-2 text-base font-medium transition-colors h-full flex items-center justify-center"
               active-class="bg-[var(--color-blue-600)] text-white"
             >
               账号管理
