@@ -7,7 +7,7 @@ import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
 import com.cky.proxy.server.domain.dto.UserInfo;
-import com.cky.proxy.server.domain.entity.User;
+import com.cky.proxy.server.domain.entity.SysUser;
 import com.cky.proxy.server.util.BeanContext;
 
 import cn.hutool.captcha.CaptchaUtil;
@@ -68,9 +68,9 @@ public class UserService {
             }
 
             // 查询用户
-            User user = null;
+            SysUser sysUser = null;
             try {
-                user = userDao.selectList(queryBuilder -> {
+                sysUser = userDao.selectList(queryBuilder -> {
                     queryBuilder.where().eq("username", loginReq.getUsername());
                 }).stream().findFirst().orElse(null);
             } catch (Exception e) {
@@ -78,7 +78,7 @@ public class UserService {
             }
 
             // 用户不存在或密码错误
-            if (user == null || !loginReq.getPassword().equals(user.getPassword())) {
+            if (sysUser == null || !loginReq.getPassword().equals(sysUser.getPassword())) {
                 throw new RuntimeException("用户名或密码错误");
             }
 
@@ -88,14 +88,14 @@ public class UserService {
                     .setIssuer("easy-proxy");
 
             String token = jwtAuth.generateToken(
-                    new JsonObject().put("userId", user.getId()).put("username", user.getUsername()),
+                    new JsonObject().put("userId", sysUser.getId()).put("username", sysUser.getUsername()),
                     options);
 
             // 构建用户信息响应
             UserInfo userInfo = new UserInfo();
-            userInfo.setUserId(user.getId());
-            userInfo.setUsername(user.getUsername());
-            userInfo.setAvatar(user.getAvatar());
+            userInfo.setUserId(sysUser.getId());
+            userInfo.setUsername(sysUser.getUsername());
+            userInfo.setAvatar(sysUser.getAvatar());
             userInfo.setToken(token);
             return userInfo;
         } catch (Exception e) {

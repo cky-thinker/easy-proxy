@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 代理客户端规则
+ * 代理规则
  */
 @Data
 @DatabaseTable(tableName = "proxy_client_rule")
@@ -47,12 +47,12 @@ public class ProxyClientRule {
     /**
      * 创建时间
      */
-    @DatabaseField(columnName="create_time")    
+    @DatabaseField(columnName="create_time")
     private Date createTime;
     /**
      * 更新人
      */
-    @DatabaseField(columnName="update_by")  
+    @DatabaseField(columnName="update_by")
     private String updateBy;
     /**
      * 更新时间

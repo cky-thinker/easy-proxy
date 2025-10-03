@@ -10,7 +10,7 @@ import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
-import com.cky.proxy.server.domain.entity.User;
+import com.cky.proxy.server.domain.entity.SysUser;
 import com.j256.ormlite.jdbc.db.H2DatabaseType;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTableConfig;
@@ -91,7 +91,7 @@ public class BeanContext {
     private void initializeAllTables() {
         try (ConnectionSource connectionSource = DatabaseConnectionManager.getInstance().createConnectionSource()) {
             // 初始化用户表
-            initializeTable(connectionSource, User.class);
+            initializeTable(connectionSource, SysUser.class);
             // 初始化代理客户端表
             initializeTable(connectionSource, ProxyClient.class);
             // 初始化代理客户端规则表
@@ -144,18 +144,18 @@ public class BeanContext {
     private void initializeDefaultAdminUser() throws SQLException {
         try {
             // 检查是否已存在管理员用户
-            List<User> existingUsers = userDao.selectList(qb -> {
+            List<SysUser> existingSysUsers = userDao.selectList(qb -> {
                 qb.where().eq("username", "admin");
             });
 
-            if (existingUsers.isEmpty()) {
+            if (existingSysUsers.isEmpty()) {
                 // 创建默认管理员用户
-                User adminUser = new User();
-                adminUser.setUsername("admin");
-                adminUser.setPassword("admin123"); // 注意：实际项目中应该使用加密密码
-                adminUser.setCreateTime(new Date());
+                SysUser adminSysUser = new SysUser();
+                adminSysUser.setUsername("admin");
+                adminSysUser.setPassword("admin123"); // 注意：实际项目中应该使用加密密码
+                adminSysUser.setCreateTime(new Date());
 
-                userDao.insert(adminUser);
+                userDao.insert(adminSysUser);
                 log.info("默认管理员用户创建成功 (用户名: admin, 密码: admin123)");
                 log.info("默认管理员用户创建成功");
             } else {

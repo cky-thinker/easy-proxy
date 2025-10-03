@@ -6,9 +6,12 @@ import lombok.Data;
 
 import java.util.Date;
 
+/**
+ * 系统账号
+ */
 @Data
-@DatabaseTable(tableName = "user")
-public class User {
+@DatabaseTable(tableName = "sys_user")
+public class SysUser {
     @DatabaseField(generatedId = true)
     public Integer id;
     /**

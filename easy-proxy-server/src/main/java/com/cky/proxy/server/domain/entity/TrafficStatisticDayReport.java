@@ -28,10 +28,15 @@ public class TrafficStatisticDayReport {
     @DatabaseField(columnName = "date")
     private Date date;
     /**
-     * 已使用流量（单位byte）
+     * 上行流量
      */
-    @DatabaseField(columnName = "using_bytes")
-    private Long bytes;
+    @DatabaseField(columnName = "upward_traffic_bytes")
+    private Long upwardTrafficBytes;
+    /**
+     * 下行流量
+     */
+    @DatabaseField(columnName = "downward_traffic_bytes")
+    private Long downwardTrafficBytes;
     /**
      * 更新时间
      */

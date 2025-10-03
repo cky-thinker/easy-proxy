@@ -37,7 +37,7 @@
           <select v-model="roleFilter" class="border border-gray-300 rounded-lg px-3 py-2">
             <option value="">全部角色</option>
             <option value="admin">管理员</option>
-            <option value="user">普通用户</option>
+            <option value="sysUser">普通用户</option>
             <option value="viewer">只读用户</option>
           </select>
           <select v-model="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2">
@@ -181,7 +181,7 @@
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="user">普通用户</option>
+                <option value="sysUser">普通用户</option>
                 <option value="admin">管理员</option>
                 <option value="viewer">只读用户</option>
               </select>
@@ -277,7 +277,7 @@ interface Account {
   username: string
   email: string
   password?: string
-  role: 'admin' | 'user' | 'viewer'
+  role: 'admin' | 'sysUser' | 'viewer'
   status: 'active' | 'inactive'
   lastLogin?: string
   createdAt: string
@@ -305,7 +305,7 @@ const currentAccount = ref<Account>({
   username: '',
   email: '',
   password: '',
-  role: 'user',
+  role: 'sysUser',
   status: 'active',
   createdAt: '',
   permissions: {}
@@ -343,13 +343,13 @@ const permissions = ref<Record<string, Permission>>({
 // 计算属性
 const filteredAccounts = computed(() => {
   return accounts.value.filter(account => {
-    const matchesSearch = !searchQuery.value || 
+    const matchesSearch = !searchQuery.value ||
       account.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       account.email.toLowerCase().includes(searchQuery.value.toLowerCase())
-    
+
     const matchesRole = !roleFilter.value || account.role === roleFilter.value
     const matchesStatus = !statusFilter.value || account.status === statusFilter.value
-    
+
     return matchesSearch && matchesRole && matchesStatus
   })
 })
@@ -358,7 +358,7 @@ const filteredAccounts = computed(() => {
 const getRoleColor = (role: string): string => {
   const colors = {
     admin: 'bg-red-100 text-red-800',
-    user: 'bg-blue-100 text-blue-800',
+    sysUser: 'bg-blue-100 text-blue-800',
     viewer: 'bg-gray-100 text-gray-800'
   }
   return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800'
@@ -367,7 +367,7 @@ const getRoleColor = (role: string): string => {
 const getRoleText = (role: string): string => {
   const texts = {
     admin: '管理员',
-    user: '普通用户',
+    sysUser: '普通用户',
     viewer: '只读用户'
   }
   return texts[role as keyof typeof texts] || '未知角色'
@@ -443,7 +443,7 @@ const closeModal = () => {
     username: '',
     email: '',
     password: '',
-    role: 'user',
+    role: 'sysUser',
     status: 'active',
     createdAt: '',
     permissions: {}
@@ -505,7 +505,7 @@ const loadAccounts = async () => {
         id: 2,
         username: 'user1',
         email: 'user1@example.com',
-        role: 'user',
+        role: 'sysUser',
         status: 'active',
         lastLogin: '2024-01-14 15:20:00',
         createdAt: '2024-01-05',

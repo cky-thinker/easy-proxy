@@ -1,14 +1,13 @@
 package com.cky.proxy.server.domain.entity;
 
-import java.util.Date;
-
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-
 import lombok.Data;
 
+import java.util.Date;
+
 /**
- * 代理客户端配置
+ * 代理客户端
  */
 @Data
 @DatabaseTable(tableName = "proxy_client")
