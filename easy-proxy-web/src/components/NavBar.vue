@@ -1,13 +1,13 @@
 <template>
   <nav class="bg-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4">
+    <div class="px-4">
       <div class="flex justify-between h-16">
         <div class="flex items-center">
           <!-- Logo -->
           <router-link to="/" class="flex-shrink-0 flex items-center">
             <h1 class="text-xl font-bold text-gray-800">Easy Proxy</h1>
           </router-link>
-          
+
           <!-- Navigation Links -->
           <div class="hidden md:ml-6 md:flex md:space-x-8">
             <router-link
@@ -36,7 +36,7 @@
             </router-link>
           </div>
         </div>
-        
+
         <!-- User Menu -->
         <div class="flex items-center space-x-4">
           <div v-if="authStore.isLoggedIn" class="flex items-center space-x-4">
@@ -51,7 +51,7 @@
                 {{ authStore.userInfo?.username }}
               </span>
             </div>
-            
+
             <!-- Logout Button -->
             <button
               @click="handleLogout"
@@ -60,7 +60,7 @@
               登出
             </button>
           </div>
-          
+
           <!-- Login Button -->
           <router-link
             v-else

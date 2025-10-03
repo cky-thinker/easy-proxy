@@ -2,7 +2,6 @@ import axios from 'axios';
 
 // 创建axios实例
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8888', // 从OpenAPI文档中获取的服务器URL
   headers: {
     'Content-Type': 'application/json',
   },
