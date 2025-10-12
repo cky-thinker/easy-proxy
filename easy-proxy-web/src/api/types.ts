@@ -8,6 +8,17 @@ export interface ProxyRule {
   enableFlag?: boolean;
 }
 
+export interface PageQuery {
+  pageSize?: number;
+  page?: string;
+}
+
+export interface ProxyRuleQuery extends PageQuery{
+  proxyClientId?: number;
+  name?: string;
+  serverPort?: number;
+}
+
 // 代理客户端配置接口
 export interface ProxyClientConfig {
   id?: number;

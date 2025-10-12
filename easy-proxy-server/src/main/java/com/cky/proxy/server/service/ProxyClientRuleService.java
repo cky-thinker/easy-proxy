@@ -2,8 +2,10 @@ package com.cky.proxy.server.service;
 
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
+import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.util.BeanContext;
 
+import cn.hutool.db.Page;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Date;
@@ -35,6 +37,25 @@ public class ProxyClientRuleService {
                 clauses++; qb.where().eq("proxy_client_id", proxyClientId);
             }
             // 当没有任何条件时，返回全部，不需要额外处理
+        });
+    }
+
+    /**
+     * 分页查询代理客户端规则，支持按名称、服务端口、客户端ID筛选
+     */
+    public PageResult<ProxyClientRule> getProxyClientRulesPageable(Page page, String name, Integer serverPort, Integer proxyClientId) {
+        return proxyClientRuleDao.selectPage(page, where -> {
+            int clauses = 0;
+            if (name != null && !name.isEmpty()) {
+                clauses++; where.like("name", "%" + name + "%");
+            }
+            if (serverPort != null) {
+                clauses++; where.eq("server_port", serverPort);
+            }
+            if (proxyClientId != null) {
+                clauses++; where.eq("proxy_client_id", proxyClientId);
+            }
+            if (clauses == 0) { where.raw("1=1"); }
         });
     }
 

@@ -3,7 +3,8 @@ import type {
   ProxyClientConfig, 
   ProxyRule,
   ApiResponse,
-  PageResult
+  PageResult,
+  ProxyRuleQuery
 } from './types'
 
 // 扩展客户端配置接口
@@ -31,6 +32,12 @@ export const getClients = async (
   if (status) params.append('status', status)
   if (enableFlag !== undefined) params.append('enableFlag', String(enableFlag))
   const response = await apiClient.get<ApiResponse<PageResult<ExtendedProxyClientConfig>>>(`/api/proxyClient?${params.toString()}`)
+  return response.data.data
+}
+
+// 获取所有客户端（不分页，用于下拉列表）
+export const getAllClients = async (): Promise<ExtendedProxyClientConfig[]> => {
+  const response = await apiClient.get<ApiResponse<ExtendedProxyClientConfig[]>>('/api/proxyClient/all')
   return response.data.data
 }
 
@@ -71,15 +78,17 @@ export const toggleClientStatus = async (id: number, enableFlag: boolean): Promi
 
 // 获取客户端代理规则（支持按名称、端口、客户端ID过滤）
 export const getClientRules = async (
-  clientId?: number,
-  name?: string,
-  serverPort?: number
+  params: ProxyRuleQuery
 ): Promise<ProxyRule[]> => {
-  const params = new URLSearchParams()
-  if (name) params.append('q', name)
-  if (serverPort !== undefined) params.append('serverPort', String(serverPort))
-  if (clientId !== undefined) params.append('proxyClientId', String(clientId))
-  const response = await apiClient.get<ApiResponse<ProxyRule[]>>(`/api/proxyClientRule${params.toString() ? '?' + params.toString() : ''}`)
+  const response = await apiClient.get<ApiResponse<ProxyRule[]>>(`/api/proxyClientRule/all`, { params })
+  return response.data.data
+}
+
+// 获取代理规则分页
+export const getClientRulesPage = async (
+  params: ProxyRuleQuery
+): Promise<PageResult<ProxyRule>> => {
+  const response = await apiClient.get<ApiResponse<PageResult<ProxyRule>>>(`/api/proxyClientRule`, { params })
   return response.data.data
 }
 

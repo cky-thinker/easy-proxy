@@ -53,6 +53,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">转发地址</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户端</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">启用状态</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -74,15 +75,29 @@
                   <TagEnableFlag :value="rule.enableFlag" />
                 </div>
               </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex space-x-2">
+                  <button @click="openEditRuleModal(rule)" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">编辑</button>
+                </div>
+              </td>
             </tr>
             <tr v-if="!loading && rules.length === 0">
-              <td colspan="5" class="px-6 py-6 text-center text-gray-500">暂无符合条件的规则</td>
+              <td colspan="6" class="px-6 py-6 text-center text-gray-500">暂无符合条件的规则</td>
             </tr>
           </tbody>
         </table>
         <div v-if="loading" class="p-4 text-center text-gray-500">加载中...</div>
       </div>
-  </div>
+      <!-- 分页组件 -->
+      <Pagination
+        :currentPage="currentPage"
+        :pageSize="pageSize"
+        :total="total"
+        :totalPage="totalPage"
+        :loading="loading"
+        @change="onPageChange"
+      />
+    </div>
   <!-- 新增规则模态框（合并到主模板） -->
   <Modal v-model="showAddRuleModal" title="新增规则" @confirm="saveRule" @close="closeAddRuleModal">
     <form @submit.prevent="saveRule">
@@ -115,17 +130,46 @@
       </div>
     </form>
   </Modal>
+  <!-- 编辑规则模态框 -->
+  <Modal v-model="showEditRuleModal" title="编辑规则" @confirm="saveEditRule" @close="closeEditRuleModal">
+    <form @submit.prevent="saveEditRule">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
+          <input v-model="editRule.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="规则名称">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
+          <input v-model.number="editRule.serverPort" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="8080">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">客户端</label>
+          <input :value="clientNameMap[editRule.proxyClientId || 0] || '-'" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100" disabled>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
+          <input v-model="editRule.clientAddress" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="localhost:3000">
+        </div>
+        <div class="md:col-span-2 flex items-center">
+          <label class="flex items-center">
+            <input v-model="editRule.enableFlag" type="checkbox" class="rounded border-gray-300 text-indigo-600">
+            <span class="ml-2 text-sm text-gray-700">启用</span>
+          </label>
+        </div>
+      </div>
+    </form>
+  </Modal>
 </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { getClientRules, addClientRule } from '@/api/clients'
-import { getClients } from '@/api/clients'
-import type { ProxyRule } from '@/api/types'
 import type { ExtendedProxyClientConfig } from '@/api/clients'
-import TagEnableFlag from '@/components/TagEnableFlag.vue'
+import { addClientRule, getAllClients, getClientRulesPage, updateClientRule } from '@/api/clients'
+import type { ProxyRule } from '@/api/types'
 import Modal from '@/components/Modal.vue'
+import Pagination from '@/components/Pagination.vue'
+import TagEnableFlag from '@/components/TagEnableFlag.vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 const rules = ref<ProxyRule[]>([])
 const clients = ref<ExtendedProxyClientConfig[]>([])
@@ -136,6 +180,11 @@ const clientNameMap = computed<Record<number, string>>(() => {
 })
 
 const loading = ref(false)
+// 分页状态
+const currentPage = ref(0)
+const pageSize = ref(10)
+const total = ref(0)
+const totalPage = ref(1)
 const portQuery = ref<number | undefined>(undefined)
 const clientFilter = ref<number | undefined>(undefined)
 const nameQuery = ref('')
@@ -183,12 +232,16 @@ const saveRule = async () => {
 const reload = async () => {
   loading.value = true
   try {
-    const list = await getClientRules(
-      clientFilter.value,
-      nameQuery.value || undefined,
-      portQuery.value
-    )
-    rules.value = list
+    const pageData = await getClientRulesPage({
+      page: currentPage.value.toString(),
+      pageSize: pageSize.value,
+      proxyClientId: clientFilter.value,
+      name: nameQuery.value || undefined,
+      serverPort: portQuery.value
+    })
+    rules.value = pageData.list || []
+    total.value = pageData.total || 0
+    totalPage.value = pageData.totalPage || 1
   } finally {
     loading.value = false
   }
@@ -198,16 +251,64 @@ const reload = async () => {
 const filteredRules = computed(() => rules.value)
 
 onMounted(async () => {
-  // 取客户端列表用于下拉选择
-  const clientPage = await getClients(1, 100)
-  clients.value = clientPage.list
+  // 取所有客户端用于下拉选择
+  clients.value = await getAllClients()
   await reload()
 })
 
 // 监听筛选变化，自动刷新
 watch([nameQuery, portQuery, clientFilter], async () => {
+  currentPage.value = 0
   await reload()
 })
+
+// 分页切换
+const onPageChange = async (page: number) => {
+  if (page < 0) return
+  currentPage.value = page
+  await reload()
+}
+
+// 编辑规则模态与方法
+const showEditRuleModal = ref(false)
+const editRule = ref<ProxyRule>({
+  id: undefined,
+  name: '',
+  serverPort: undefined,
+  clientAddress: '',
+  enableFlag: true,
+  proxyClientId: undefined
+})
+
+const openEditRuleModal = (rule: ProxyRule) => {
+  editRule.value = {
+    id: rule.id,
+    name: rule.name,
+    serverPort: rule.serverPort,
+    clientAddress: rule.clientAddress,
+    enableFlag: rule.enableFlag,
+    proxyClientId: rule.proxyClientId
+  }
+  showEditRuleModal.value = true
+}
+
+const closeEditRuleModal = () => {
+  showEditRuleModal.value = false
+}
+
+const saveEditRule = async () => {
+  const { id, name, serverPort, clientAddress, enableFlag, proxyClientId } = editRule.value
+  if (!id) { alert('规则ID缺失'); return }
+  if (!name || !clientAddress || !serverPort || serverPort <= 0) { alert('请完整填写规则信息'); return }
+  try {
+    await updateClientRule(proxyClientId || 0, id, { name, serverPort, clientAddress, enableFlag })
+    showEditRuleModal.value = false
+    await reload()
+  } catch (e) {
+    console.error('更新规则失败', e)
+    alert('更新失败，请稍后重试')
+  }
+}
 </script>
 
 <style scoped>

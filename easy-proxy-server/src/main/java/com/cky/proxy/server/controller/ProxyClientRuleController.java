@@ -4,9 +4,12 @@ package com.cky.proxy.server.controller;
 import java.util.List;
 
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
+import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.service.ProxyClientRuleService;
+import com.cky.proxy.server.util.PageUtil;
 import com.cky.proxy.server.util.VertxUtil;
 
+import cn.hutool.db.Page;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -23,7 +26,9 @@ public class ProxyClientRuleController {
 
     private void initRoutes() {
         // 查询转发规则
-        router.get("/api/proxyClientRule").handler(this::getAllProxyClientRules);
+        router.get("/api/proxyClientRule/all").handler(this::getAllProxyClientRules);
+        // 分页查询转发规则
+        router.get("/api/proxyClientRule").handler(this::getProxyClientRulesPageable);
         // 查询转发规则详情
         router.get("/api/proxyClientRule/:id").handler(this::getProxyClientRuleDetail);
         // 新增转发规则
@@ -62,6 +67,39 @@ public class ProxyClientRuleController {
             VertxUtil.success(ctx, rules);
         } catch (Exception e) {
             VertxUtil.error(ctx, 500, "Failed to get proxy client rules: " + e.getMessage());
+        }
+    }
+
+    private void getProxyClientRulesPageable(RoutingContext ctx) {
+        try {
+            // 创建分页对象
+            Page page = PageUtil.getPage(ctx);
+            // 获取查询参数
+            String q = ctx.request().getParam("q");
+            String serverPortStr = ctx.request().getParam("serverPort");
+            String proxyClientIdStr = ctx.request().getParam("proxyClientId");
+
+            Integer serverPort = null;
+            Integer proxyClientId = null;
+            try {
+                if (serverPortStr != null && !serverPortStr.isEmpty()) {
+                    serverPort = Integer.parseInt(serverPortStr);
+                }
+                if (proxyClientIdStr != null && !proxyClientIdStr.isEmpty()) {
+                    proxyClientId = Integer.parseInt(proxyClientIdStr);
+                }
+            } catch (NumberFormatException e) {
+                VertxUtil.error(ctx, 400, "Invalid number format for serverPort or proxyClientId");
+                return;
+            }
+
+            // 执行分页查询
+            PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, q, serverPort, proxyClientId);
+
+            // 返回结果
+            VertxUtil.success(ctx, result);
+        } catch (Exception e) {
+            VertxUtil.error(ctx, 500, "Failed to get proxy client rules pageable: " + e.getMessage());
         }
     }
     

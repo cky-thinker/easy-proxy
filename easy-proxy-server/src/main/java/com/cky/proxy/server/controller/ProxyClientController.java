@@ -1,6 +1,7 @@
 package com.cky.proxy.server.controller;
 
 import java.util.Date;
+import java.util.List;
 
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.domain.dto.PageResult;
@@ -27,6 +28,8 @@ public class ProxyClientController {
     private void initRoutes() {
         // 分页查询客户端
         router.get("/api/proxyClient").handler(this::getProxyClientsPageable);
+        // 查询所有客户端
+        router.get("/api/proxyClient/all").handler(this::getAllProxyClients);
         // 查询明细
         router.get("/api/proxyClient/:id").handler(this::getProxyClientDetail);
         // 添加客户端
@@ -35,6 +38,15 @@ public class ProxyClientController {
         router.put("/api/proxyClient/:id").handler(this::updateProxyClient);
         // 删除客户端
         router.delete("/api/proxyClient/:id").handler(this::deleteProxyClient);
+    }
+
+    private void getAllProxyClients(RoutingContext ctx) {
+        try {
+            List<ProxyClient> list = proxyClientService.getProxyClients();
+            VertxUtil.success(ctx, list);
+        } catch (Exception e) {
+            VertxUtil.error(ctx, 500, "Failed to get proxy clients: " + e.getMessage());
+        }
     }
 
     private void getProxyClientsPageable(RoutingContext ctx) {
