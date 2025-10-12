@@ -19,14 +19,25 @@ public class ProxyClientService {
     }
 
     /**
-     * 分页查询代理客户端
+     * 分页查询代理客户端，支持 name、status、enableFlag 条件
      */
-    public PageResult<ProxyClient> getProxyClientsPageable(Page hutoolPage, String name) {
+    public PageResult<ProxyClient> getProxyClientsPageable(Page hutoolPage, String name, String status, Boolean enableFlag) {
         return proxyClientDao.selectPage(
                 hutoolPage,
                 where -> {
+                    boolean hasWhere = false;
                     if (name != null && !name.isEmpty()) {
                         where.like("name", "%" + name + "%");
+                        hasWhere = true;
+                    }
+                    if (status != null && !status.isEmpty()) {
+                        if (hasWhere) where.and();
+                        where.eq("status", status);
+                        hasWhere = true;
+                    }
+                    if (enableFlag != null) {
+                        if (hasWhere) where.and();
+                        where.eq("enable_flag", enableFlag);
                     }
                 });
     }

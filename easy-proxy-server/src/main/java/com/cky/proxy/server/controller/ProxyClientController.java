@@ -41,9 +41,15 @@ public class ProxyClientController {
         // 创建分页对象
         Page page = PageUtil.getPage(ctx);
         // 获取查询参数
-        String name = ctx.request().getParam("name");
+        String q = ctx.request().getParam("q");
+        String status = ctx.request().getParam("status");
+        String enableFlagStr = ctx.request().getParam("enableFlag");
+        Boolean enableFlag = null;
+        if (enableFlagStr != null && !enableFlagStr.isEmpty()) {
+            enableFlag = Boolean.parseBoolean(enableFlagStr);
+        }
         // 执行分页查询
-        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, name);
+        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, q, status, enableFlag);
         // 返回结果
         VertxUtil.success(ctx, result);
     }
