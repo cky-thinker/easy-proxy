@@ -149,7 +149,7 @@ public class UserService {
     /**
      * 分页查询账户
      */
-    public PageResult<SysUser> getUsersPageable(Page page, String q, String role, String status) {
+    public PageResult<SysUser> getUsersPageable(Page page, String q, Boolean enableFlag) {
         return userDao.selectPage(page, where -> {
             boolean hasWhere = false;
             if (q != null && !q.isEmpty()) {
@@ -157,14 +157,7 @@ public class UserService {
                 where.like("username", "%" + q + "%").or().like("email", "%" + q + "%");
                 hasWhere = true;
             }
-            if (role != null && !role.isEmpty()) {
-                if (hasWhere)
-                    where.and();
-                where.eq("role", role);
-                hasWhere = true;
-            }
-            if (status != null && !status.isEmpty()) {
-                boolean enableFlag = "active".equalsIgnoreCase(status);
+            if (enableFlag != null) {
                 if (hasWhere)
                     where.and();
                 where.eq("enable_flag", enableFlag);

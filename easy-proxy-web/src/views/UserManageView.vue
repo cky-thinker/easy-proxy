@@ -41,14 +41,8 @@
           </div>
         </div>
         <div class="flex space-x-4">
-          <select v-model="roleFilter" class="border border-gray-300 rounded-lg px-3 py-2">
-            <option value="">全部角色</option>
-            <option value="admin">管理员</option>
-            <option value="user">普通用户</option>
-            <option value="viewer">只读用户</option>
-          </select>
           <select v-model="enbaleFlagFilter" class="border border-gray-300 rounded-lg px-3 py-2">
-            <option value="">全部状态</option>
+            <option :value="undefined">全部状态</option>
             <option :value="true">激活</option>
             <option :value="false">禁用</option>
           </select>
@@ -197,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   getUsers as getUsersApi,
   createUser as createUserApi,
@@ -219,7 +213,6 @@ const total = ref(0)
 const totalPage = ref(1)
 const loading = ref(false)
 const searchQuery = ref('')
-const roleFilter = ref('')
 const enbaleFlagFilter = ref(undefined)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
@@ -285,20 +278,8 @@ const permissions = ref<Record<string, Permission>>({
   }
 })
 
-// 计算属性
-const filteredUsers = computed(() => {
-  const filtered = users.value.filter(user => {
-    const matchesSearch = !searchQuery.value ||
-      user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
-
-    const matchesRole = !roleFilter.value || user.role === roleFilter.value
-    const matchesStatus = !enbaleFlagFilter.value || user.enableFlag === enbaleFlagFilter.value
-
-    return matchesSearch && matchesRole && matchesStatus
-  })
-  return filtered
-})
+// 计算属性：展示直接使用服务端返回的列表
+const filteredUsers = computed(() => users.value)
 
 // 工具函数
 const getRoleColor = (role: string): string => {
@@ -365,7 +346,8 @@ const saveUser = async () => {
         enableFlag: currentUser.value.enableFlag
       }
       const created = await createUserApi(payload)
-      users.value.push(created)
+      // 新增后刷新列表而不是直接追加
+      await loadUsers()
       showToast('新增成功', 'success')
     } else {
       // 编辑账号
@@ -439,7 +421,17 @@ const closePermissionsModal = () => {
 const loadUsers = async () => {
   try {
     loading.value = true
-    const pageData = await getUsersApi(currentPage.value, pageSize.value)
+    const page = currentPage.value
+    const hasQueryFilter = !!searchQuery.value
+    const hasEnableFlagFilter = enbaleFlagFilter.value !== undefined
+
+    let pageData = await getUsersApi({
+      page: page,
+      pageSize: pageSize.value,
+      q: hasQueryFilter ? searchQuery.value : undefined,
+      enableFlag: hasEnableFlagFilter ? enbaleFlagFilter.value : undefined
+    })
+
     users.value = (pageData.list || [])
     total.value = pageData.total || 0
     totalPage.value = pageData.totalPage || 1
@@ -452,6 +444,12 @@ const loadUsers = async () => {
 
 onMounted(() => {
   loadUsers()
+})
+
+// 监听筛选条件变化，重置到第一页并调用服务端搜索
+watch([searchQuery,  enbaleFlagFilter], async () => {
+  currentPage.value = 0
+  await loadUsers()
 })
 
 // 分页处理

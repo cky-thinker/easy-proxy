@@ -9,8 +9,15 @@ import type {
 } from './types'
 
 // 获取账号列表（分页）
-export const getUsers = async (page: number = 1, pageSize: number = 10): Promise<PageResult<User>> => {
-  const response = await apiClient.get<ApiResponse<PageResult<User>>>(`/api/users?page=${page}&pageSize=${pageSize}`)
+export const getUsers = async (params: {
+  page?: number,
+  pageSize?: number,
+  q?: string,
+  enableFlag?: boolean
+}): Promise<PageResult<User>> => {
+  const response = await apiClient.get<ApiResponse<PageResult<User>>>(`/api/users`, {
+    params: params
+  })
   return response.data.data
 }
 

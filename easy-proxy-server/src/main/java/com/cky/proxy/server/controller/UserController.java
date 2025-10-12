@@ -15,6 +15,7 @@ import com.cky.proxy.server.util.PageUtil;
 import com.cky.proxy.server.util.VertxUtil;
 
 import cn.hutool.core.util.StrUtil;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -92,11 +93,12 @@ public class UserController {
 
     private void getUsersPageable(RoutingContext ctx) {
         try {
+            @Nullable
+            String enableFlag = ctx.request().getParam("enableFlag");
             PageResult<SysUser> pageResult = authService.getUsersPageable(
                     PageUtil.getPage(ctx),
                     ctx.request().getParam("q"),
-                    ctx.request().getParam("role"),
-                    ctx.request().getParam("status"));
+                    enableFlag != null ? Boolean.parseBoolean(enableFlag) : null);
 
             VertxUtil.success(ctx, pageResult);
         } catch (Exception e) {
