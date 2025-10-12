@@ -44,7 +44,7 @@ public class UserController {
         router.delete("/api/users/:id").handler(this::deleteUser);
         router.post("/api/users/batch-delete").handler(this::batchDeleteUsers);
         router.post("/api/users/:id/reset-password").handler(this::resetPassword);
-        router.patch("/api/users/:id/status").handler(this::updateStatus);
+        router.patch("/api/users/:id/enableFlag").handler(this::updateEnableFlag);
         router.get("/api/permissions").handler(this::getPermissions);
         router.get("/api/users/search").handler(this::searchUsers);
     }
@@ -242,7 +242,7 @@ public class UserController {
         }
     }
 
-    private void updateStatus(RoutingContext ctx) {
+    private void updateEnableFlag(RoutingContext ctx) {
         try {
             String idParam = ctx.request().getParam("id");
             if (StrUtil.isEmpty(idParam)) {
@@ -251,12 +251,12 @@ public class UserController {
             }
             Integer id = Integer.parseInt(idParam);
             io.vertx.core.json.JsonObject body = ctx.body().asJsonObject();
-            String status = body == null ? null : body.getString("status");
-            if (StrUtil.isEmpty(status)) {
-                VertxUtil.error(ctx, 400, "请求体缺少 status");
+            Boolean enableFlag = body == null ? null : body.getBoolean("enableFlag");
+            if (enableFlag == null) {
+                VertxUtil.error(ctx, 400, "请求体缺少 enableFlag");
                 return;
             }
-            SysUser user = authService.updateStatus(id, status);
+            SysUser user = authService.updateEnableFlag(id, enableFlag);
             VertxUtil.success(ctx, user);
         } catch (NumberFormatException e) {
             VertxUtil.error(ctx, 400, "id 格式错误");

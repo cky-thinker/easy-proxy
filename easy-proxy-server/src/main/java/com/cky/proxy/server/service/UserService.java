@@ -203,11 +203,11 @@ public class UserService {
         return user;
     }
 
-    public SysUser updateStatus(Integer id, String status) {
+    public SysUser updateEnableFlag(Integer id, Boolean enableFlag) {
         SysUser user = userDao.selectById(id);
         if (user == null)
             throw new RuntimeException("账号不存在");
-        user.setEnableFlag("active".equalsIgnoreCase(status));
+        user.setEnableFlag(enableFlag);
         user.setUpdateTime(new Date());
         userDao.updateById(user);
         return user;

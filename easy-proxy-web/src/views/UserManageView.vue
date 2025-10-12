@@ -242,6 +242,7 @@ import {
 } from '../api/user'
 import type { User, Permission, CreateUserRequest, UpdateUserRequest } from '../api/types'
 import Modal from '../components/Modal.vue'
+import TagEnableFlag from '../components/TagEnableFlag.vue'
 
 // 响应式数据
 const users = ref<User[]>([])
