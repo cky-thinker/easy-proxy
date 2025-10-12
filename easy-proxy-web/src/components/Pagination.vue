@@ -1,17 +1,19 @@
 <template>
-  <div class="flex items-center space-x-2" v-if="total > 0 && totalPage > 1">
-    <template v-for="item in displayItems" :key="itemKey(item)">
-      <button
-        v-if="item.type === 'page'"
-        class="px-3 py-1 rounded border text-sm"
-        :class="item.value - 1 === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'"
-        :disabled="loading"
-        @click="$emit('change', item.value - 1)"
-      >{{ item.value }}</button>
-      <span v-else class="px-2 text-gray-500">...</span>
-    </template>
+  <div class="w-full mt-4 flex items-center justify-end">
+    <div class="flex items-center space-x-2" v-if="total > 0 && totalPage > 1">
+      <template v-for="item in displayItems" :key="itemKey(item)">
+        <button
+          v-if="item.type === 'page'"
+          class="px-3 py-1 rounded border text-sm"
+          :class="item.value - 1 === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'"
+          :disabled="loading"
+          @click="$emit('change', item.value - 1)"
+        >{{ item.value }}</button>
+        <span v-else class="px-2 text-gray-500">...</span>
+      </template>
+    </div>
+    <div v-else class="text-sm text-gray-500">暂无数据</div>
   </div>
-  <div v-else class="text-sm text-gray-500">暂无数据</div>
 </template>
 
 <script setup lang="ts">
