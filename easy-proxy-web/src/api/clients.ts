@@ -69,12 +69,16 @@ export const toggleClientStatus = async (id: number, enableFlag: boolean): Promi
   return updateClient(id, { enableFlag })
 }
 
-// 获取客户端代理规则
-// 规则查询使用 /api/proxyClientRule，支持按名称过滤；当前服务端不支持按客户端ID过滤
-export const getClientRules = async (clientId?: number, name?: string): Promise<ProxyRule[]> => {
+// 获取客户端代理规则（支持按名称、端口、客户端ID过滤）
+export const getClientRules = async (
+  clientId?: number,
+  name?: string,
+  serverPort?: number
+): Promise<ProxyRule[]> => {
   const params = new URLSearchParams()
-  if (name) params.append('name', name)
-  // 暂时忽略 clientId 过滤，待服务端支持后传递
+  if (name) params.append('q', name)
+  if (serverPort !== undefined) params.append('serverPort', String(serverPort))
+  if (clientId !== undefined) params.append('proxyClientId', String(clientId))
   const response = await apiClient.get<ApiResponse<ProxyRule[]>>(`/api/proxyClientRule${params.toString() ? '?' + params.toString() : ''}`)
   return response.data.data
 }

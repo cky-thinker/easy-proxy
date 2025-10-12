@@ -19,7 +19,12 @@
             <router-link v-if="authStore.isLoggedIn" to="/clients"
               class="text-black hover:bg-[var(--color-blue-500)] hover:text-white min-w-[100px] px-3 py-2 text-base font-medium transition-colors h-full flex items-center justify-center"
               active-class="bg-[var(--color-blue-600)] text-white">
-              转发管理
+              客户端管理
+            </router-link>
+            <router-link v-if="authStore.isLoggedIn" to="/clientRules"
+              class="text-black hover:bg-[var(--color-blue-500)] hover:text-white min-w-[100px] px-3 py-2 text-base font-medium transition-colors h-full flex items-center justify-center"
+              active-class="bg-[var(--color-blue-600)] text-white">
+              规则管理
             </router-link>
             <router-link v-if="authStore.isLoggedIn" to="/accounts"
               class="text-black hover:bg-[var(--color-blue-500)] hover:text-white min-w-[100px] px-3 py-2 text-base font-medium transition-colors h-full flex items-center justify-center"

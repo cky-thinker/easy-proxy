@@ -19,13 +19,22 @@ public class ProxyClientRuleService {
     }
 
     /**
-     * 查询所有代理客户端规则
+     * 查询所有代理客户端规则，支持按名称、服务端口、客户端ID筛选
      */
-    public List<ProxyClientRule> getAllProxyClientRules(String name) {
+    public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId) {
         return proxyClientRuleDao.selectList(qb -> {
+            int clauses = 0;
+            qb.where();
             if (name != null && !name.isEmpty()) {
-                qb.where().like("name", "%" + name + "%");
+                clauses++; qb.where().like("name", "%" + name + "%");
             }
+            if (serverPort != null) {
+                clauses++; qb.where().eq("server_port", serverPort);
+            }
+            if (proxyClientId != null) {
+                clauses++; qb.where().eq("proxy_client_id", proxyClientId);
+            }
+            // 当没有任何条件时，返回全部，不需要额外处理
         });
     }
 

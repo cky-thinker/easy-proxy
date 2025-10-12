@@ -37,10 +37,26 @@ public class ProxyClientRuleController {
     private void getAllProxyClientRules(RoutingContext ctx) {
         try {
             // 获取查询参数
-            String name = ctx.request().getParam("name");
+            String q = ctx.request().getParam("q");
+            String serverPortStr = ctx.request().getParam("serverPort");
+            String proxyClientIdStr = ctx.request().getParam("proxyClientId");
+
+            Integer serverPort = null;
+            Integer proxyClientId = null;
+            try {
+                if (serverPortStr != null && !serverPortStr.isEmpty()) {
+                    serverPort = Integer.parseInt(serverPortStr);
+                }
+                if (proxyClientIdStr != null && !proxyClientIdStr.isEmpty()) {
+                    proxyClientId = Integer.parseInt(proxyClientIdStr);
+                }
+            } catch (NumberFormatException e) {
+                VertxUtil.error(ctx, 400, "Invalid number format for serverPort or proxyClientId");
+                return;
+            }
             
             // 执行查询
-            List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(name);
+            List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(q, serverPort, proxyClientId);
             
             // 返回结果
             VertxUtil.success(ctx, rules);
