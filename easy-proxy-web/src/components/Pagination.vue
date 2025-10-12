@@ -12,7 +12,6 @@
         <span v-else class="px-2 text-gray-500">...</span>
       </template>
     </div>
-    <div v-else class="text-sm text-gray-500">暂无数据</div>
   </div>
 </template>
 

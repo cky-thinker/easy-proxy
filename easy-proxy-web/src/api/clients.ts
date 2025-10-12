@@ -18,10 +18,18 @@ export interface ExtendedProxyClientConfig extends ProxyClientConfig {
   connections: number
 }
 
-// 获取客户端列表
-export const getClients = async (page: number = 1, pageSize: number = 10, name?: string): Promise<PageResult<ExtendedProxyClientConfig>> => {
+// 获取客户端列表（支持服务端分页与筛选）
+export const getClients = async (
+  page: number = 1,
+  pageSize: number = 10,
+  q?: string,
+  status?: 'online' | 'offline',
+  enableFlag?: boolean
+): Promise<PageResult<ExtendedProxyClientConfig>> => {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
-  if (name) params.append('name', name)
+  if (q) params.append('q', q)
+  if (status) params.append('status', status)
+  if (enableFlag !== undefined) params.append('enableFlag', String(enableFlag))
   const response = await apiClient.get<ApiResponse<PageResult<ExtendedProxyClientConfig>>>(`/api/proxyClient?${params.toString()}`)
   return response.data.data
 }

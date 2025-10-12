@@ -136,6 +136,9 @@
       </div>
     </div>
 
+    <!-- 分页组件 -->
+    <Pagination :currentPage="currentPage" :pageSize="pageSize" :total="total" :totalPage="totalPage" :loading="loading" @change="onPageChange" />
+
     <!-- 新增/编辑客户端模态框 -->
     <Modal 
       v-model="showClientModal" 
@@ -267,7 +270,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import TagStatus from '../components/TagStatus.vue'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
 import type { ProxyClientConfig, ProxyRule } from '../api/types'
@@ -278,6 +281,7 @@ import {
 } from '../api/clients'
 import Toast, { type ToastType } from '../components/Toast.vue'
 import Modal from '../components/Modal.vue'
+import Pagination from '../components/Pagination.vue'
 
 // 响应式数据
 const clients = ref<ProxyClientConfig[]>([])
@@ -300,21 +304,12 @@ const currentClient = ref<ProxyClientConfig>({
 const currentPage = ref(0)
 const pageSize = ref(10)
 const total = ref(0)
+const totalPage = ref(1)
 const loading = ref(false)
 
 // 计算属性
-const filteredClients = computed(() => {
-  return clients.value.filter((client: ProxyClientConfig) => {
-    const matchesSearch = !searchQuery.value || 
-      client.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      client.token.toLowerCase().includes(searchQuery.value.toLowerCase())
-    
-    const matchesStatus = !statusFilter.value || client.status === statusFilter.value
-    const matchesEnable = !enableFilter.value || (client?.enableFlag?.toString() === enableFilter.value)
-    
-    return matchesSearch && matchesStatus && matchesEnable
-  })
-})
+// 使用服务端过滤与分页，前端直接展示返回的列表
+const filteredClients = computed(() => clients.value)
 
 // 工具函数
 const formatBytes = (bytes: number): string => {
@@ -481,9 +476,20 @@ const closeRulesModal = () => {
 const loadClients = async () => {
   try {
     loading.value = true
-    const result = await getClients(currentPage.value, pageSize.value, searchQuery.value || undefined)
+    const hasQuery = !!searchQuery.value
+    const hasStatus = !!statusFilter.value
+    const hasEnable = enableFilter.value !== ''
+
+    const result = await getClients(
+      currentPage.value,
+      pageSize.value,
+      hasQuery ? searchQuery.value : undefined,
+      hasStatus ? (statusFilter.value as 'online' | 'offline') : undefined,
+      hasEnable ? enableFilter.value === 'true' : undefined
+    )
     clients.value = result.list || []
     total.value = result.total || 0
+    totalPage.value = result.totalPage || 1
   } catch (error) {
     console.error('加载客户端列表失败:', error)
   } finally {
@@ -494,6 +500,19 @@ const loadClients = async () => {
 onMounted(() => {
   loadClients()
 })
+
+// 监听筛选变化，重置到第一页并重新加载
+watch([searchQuery, statusFilter, enableFilter], async () => {
+  currentPage.value = 0
+  await loadClients()
+})
+
+// 分页切换
+const onPageChange = async (page: number) => {
+  if (page < 0) return
+  currentPage.value = page
+  await loadClients()
+}
 
 // 生成64位随机字符串（使用32字节的十六进制表示）
 const generateToken = () => {
