@@ -142,6 +142,16 @@
       </div>
     </div>
 
+    <!-- 分页组件：总条数位于页码按钮左侧 -->
+    
+    <Pagination
+        :currentPage="currentPage"
+        :pageSize="pageSize"
+        :total="total"
+        :loading="loading"
+        @change="onPageChange"
+      />
+
     <!-- 新增/编辑账号模态框 -->
     <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @confirm="saveUser" @close="closeModal">
       <form @submit.prevent="saveUser">
@@ -187,18 +197,6 @@
             <option value="viewer">只读用户</option>
           </select>
         </div>
-        <div class="mb-4">
-          <label class="flex items-center">
-            <input
-              v-model="currentUser.enableFlag"
-              type="checkbox"
-              true-value="active"
-              false-value="inactive"
-              class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-            >
-            <span class="ml-2 text-sm text-gray-700">激活账号</span>
-          </label>
-        </div>
       </form>
     </Modal>
 
@@ -243,9 +241,15 @@ import {
 import type { User, Permission, CreateUserRequest, UpdateUserRequest } from '../api/types'
 import Modal from '../components/Modal.vue'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
+import Pagination from '../components/Pagination.vue'
 
 // 响应式数据
 const users = ref<User[]>([])
+// 分页与加载状态
+const currentPage = ref(0)
+const pageSize = ref(10)
+const total = ref(0)
+const loading = ref(false)
 const searchQuery = ref('')
 const roleFilter = ref('')
 const enbaleFlagFilter = ref(undefined)
@@ -315,7 +319,7 @@ const permissions = ref<Record<string, Permission>>({
 
 // 计算属性
 const filteredUsers = computed(() => {
-  return users.value.filter(user => {
+  const filtered = users.value.filter(user => {
     const matchesSearch = !searchQuery.value ||
       user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -325,6 +329,7 @@ const filteredUsers = computed(() => {
 
     return matchesSearch && matchesRole && matchesStatus
   })
+  return filtered
 })
 
 // 工具函数
@@ -465,14 +470,27 @@ const closePermissionsModal = () => {
 
 const loadUsers = async () => {
   try {
-    const pageData = await getUsersApi(0, 10)
+    loading.value = true
+    const pageData = await getUsersApi(currentPage.value, pageSize.value)
     users.value = (pageData.list || [])
+    total.value = pageData.total || 0
   } catch (error) {
     console.error('加载账号列表失败:', error)
+  } finally {
+    loading.value = false
   }
 }
 
 onMounted(() => {
   loadUsers()
 })
+
+// 分页处理
+const onPageChange = async (page: number) => {
+  if (page < 0) return
+  currentPage.value = page
+  await loadUsers()
+}
+
+// 页大小固定为 10，如后端需要可调整组件支持
 </script>
