@@ -2,25 +2,23 @@
   <div class="p-6 bg-gray-50 min-h-screen">
     <!-- Toast 通知组件 -->
     <div class="fixed top-4 right-4 z-50">
-      <div v-if="toast.show" :class="['px-4 py-3 rounded-lg shadow-md transition-all duration-300', 
-        toast.type === 'success' ? 'bg-green-500' : 
-        toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500']">
+      <div v-if="toast.show" :class="['px-4 py-3 rounded-lg shadow-md transition-all duration-300',
+        toast.type === 'success' ? 'bg-green-500' :
+          toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500']">
         <div class="flex items-center text-white">
           <span>{{ toast.message }}</span>
         </div>
       </div>
     </div>
-    
+
     <!-- 页面标题和操作按钮 -->
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">账号管理</h1>
         <p class="text-gray-600 mt-1">管理系统用户账号和权限</p>
       </div>
-      <button
-        @click="() => { showAddModal = true; showClientModal = true; }"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
-      >
+      <button @click="() => { showAddModal = true; showClientModal = true; }"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
         </svg>
@@ -33,14 +31,12 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div class="flex-1 max-w-md">
           <div class="relative">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="搜索用户名或邮箱..."
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            <input v-model="searchQuery" type="text" placeholder="搜索用户名或邮箱..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </div>
         </div>
@@ -110,10 +106,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                  <button
-                    @click="editUser(user)"
-                    class="text-indigo-600 hover:text-indigo-900"
-                  >
+                  <button @click="editUser(user)" class="text-indigo-600 hover:text-indigo-900">
                     编辑
                   </button>
                   <!-- <button
@@ -122,16 +115,11 @@
                   >
                     权限
                   </button> -->
-                  <button
-                    @click="toggleUserStatus(user)"
-                    :class="user.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
-                  >
+                  <button @click="toggleUserStatus(user)"
+                    :class="user.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'">
                     {{ user.enableFlag ? '禁用' : '激活' }}
                   </button>
-                  <button
-                    @click="deleteUser(user)"
-                    class="text-red-600 hover:text-red-900"
-                  >
+                  <button @click="deleteUser(user)" class="text-red-600 hover:text-red-900">
                     删除
                   </button>
                 </div>
@@ -143,55 +131,35 @@
     </div>
 
     <!-- 分页组件：总条数位于页码按钮左侧 -->
-    
-    <Pagination
-        :currentPage="currentPage"
-        :pageSize="pageSize"
-        :total="total"
-        :loading="loading"
-        @change="onPageChange"
-      />
 
+    <Pagination :currentPage="currentPage" :pageSize="pageSize" :total="total" :totalPage="totalPage"
+      :loading="loading" @change="onPageChange" />
+      
     <!-- 新增/编辑账号模态框 -->
     <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @confirm="saveUser" @close="closeModal">
       <form @submit.prevent="saveUser">
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
-          <input
-            v-model="currentUser.username"
-            type="text"
-            required
+          <input v-model="currentUser.username" type="text" required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="请输入用户名"
-          >
+            placeholder="请输入用户名">
         </div>
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
-          <input
-            v-model="currentUser.email"
-            type="email"
-            required
+          <input v-model="currentUser.email" type="email" required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="请输入邮箱"
-          >
+            placeholder="请输入邮箱">
         </div>
         <div class="mb-4" v-if="showAddModal">
           <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
-          <input
-            v-model="currentUser.password"
-            type="password"
-            required
+          <input v-model="currentUser.password" type="password" required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="请输入密码"
-          >
+            placeholder="请输入密码">
         </div>
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
-          <select
-            v-model="currentUser.role"
-            required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
+          <select v-model="currentUser.role" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="user">普通用户</option>
             <option value="admin">管理员</option>
             <option value="viewer">只读用户</option>
@@ -201,24 +169,23 @@
     </Modal>
 
     <!-- 权限管理模态框 -->
-    <Modal v-model="showPermissionsModalFlag" :title="`${selectedUser?.username} - 权限管理`"  @confirm="savePermissions" @close="closePermissionsModal" :width="'2/3'">
+    <Modal v-model="showPermissionsModalFlag" :title="`${selectedUser?.username} - 权限管理`" @confirm="savePermissions"
+      @close="closePermissionsModal" :width="'2/3'">
       <div class="space-y-4">
         <div v-for="(permission, key) in permissions" :key="key" class="border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between mb-2">
             <h4 class="text-md font-medium text-gray-900">{{ permission.name }}</h4>
             <label class="flex items-center">
-              <input
-                v-model="selectedUser!.permissions[key]"
-                type="checkbox"
-                class="rounded border-gray-300 text-indigo-600"
-              >
+              <input v-model="selectedUser!.permissions[key]" type="checkbox"
+                class="rounded border-gray-300 text-indigo-600">
               <span class="ml-2 text-sm text-gray-700">启用</span>
             </label>
           </div>
           <p class="text-sm text-gray-600">{{ permission.description }}</p>
           <div class="mt-2">
             <div class="flex flex-wrap gap-2">
-              <span v-for="action in permission.actions" :key="action" class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+              <span v-for="action in permission.actions" :key="action"
+                class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
                 {{ action }}
               </span>
             </div>
@@ -231,11 +198,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { 
-  getUsers as getUsersApi, 
-  createUser as createUserApi, 
-  updateUser as updateUserApi, 
-  deleteUser as deleteUserApi, 
+import {
+  getUsers as getUsersApi,
+  createUser as createUserApi,
+  updateUser as updateUserApi,
+  deleteUser as deleteUserApi,
   toggleUserEnableFlag as toggleUserEnableFlagApi
 } from '../api/user'
 import type { User, Permission, CreateUserRequest, UpdateUserRequest } from '../api/types'
@@ -249,6 +216,7 @@ const users = ref<User[]>([])
 const currentPage = ref(0)
 const pageSize = ref(10)
 const total = ref(0)
+const totalPage = ref(1)
 const loading = ref(false)
 const searchQuery = ref('')
 const roleFilter = ref('')
@@ -474,6 +442,7 @@ const loadUsers = async () => {
     const pageData = await getUsersApi(currentPage.value, pageSize.value)
     users.value = (pageData.list || [])
     total.value = pageData.total || 0
+    totalPage.value = pageData.totalPage || 1
   } catch (error) {
     console.error('加载账号列表失败:', error)
   } finally {
