@@ -29,7 +29,7 @@
     </div>
 
     <!-- 搜索和筛选 -->
-    <div class="bg-white rounded-lg shadow mb-6 p-4">
+    <div class="bg-white rounded-lg mb-6 p-4">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div class="flex-1 max-w-md">
           <div class="relative">
@@ -148,7 +148,7 @@
     </div>
 
     <!-- 新增/编辑账号模态框 -->
-    <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @close="closeModal">
+    <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @confirm="saveAccount" @close="closeModal">
       <form @submit.prevent="saveAccount">
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
@@ -204,26 +204,11 @@
             <span class="ml-2 text-sm text-gray-700">激活账号</span>
           </label>
         </div>
-        <div class="flex justify-end space-x-3">
-          <button
-            type="button"
-            @click="closeModal"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-          >
-            {{ showAddModal ? '新增' : '保存' }}
-          </button>
-        </div>
       </form>
     </Modal>
 
     <!-- 权限管理模态框 -->
-    <Modal v-model="showPermissionsModalFlag" :title="`${selectedAccount?.username} - 权限管理`" :width="'2/3'">
+    <Modal v-model="showPermissionsModalFlag" :title="`${selectedAccount?.username} - 权限管理`"  @confirm="savePermissions" @close="closePermissionsModal" :width="'2/3'">
       <div class="space-y-4">
         <div v-for="(permission, key) in permissions" :key="key" class="border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between mb-2">
@@ -246,20 +231,6 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="flex justify-end space-x-3 mt-6">
-        <button
-          @click="closePermissionsModal"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-        >
-          关闭
-        </button>
-        <button
-          @click="savePermissions"
-          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-        >
-          保存权限
-        </button>
       </div>
     </Modal>
   </div>

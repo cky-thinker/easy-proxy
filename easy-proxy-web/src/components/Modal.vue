@@ -1,30 +1,34 @@
 <template>
-  <div v-if="modelValue" class="fixed inset-0 bg-gray-800/30 overflow-y-auto h-full w-full z-50">
-    <div :class="['relative top-20 mx-auto p-5 border border-gray-200 shadow-lg rounded-md bg-white', width]">
-      <div class="mt-3">
-        <h3 v-if="title" class="text-lg font-medium text-gray-900 mb-4">
-          {{ title }}
-        </h3>
-        <slot></slot>
-        <div v-if="showFooter" class="flex justify-end space-x-3 mt-6">
-          <button
-            v-if="showCancelButton"
-            @click="cancel"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
-          >
-            {{ cancelText }}
-          </button>
-          <button
-            v-if="showConfirmButton"
-            @click="confirm"
-            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
-          >
-            {{ confirmText }}
-          </button>
+  <Transition name="modal-fade" appear>
+    <div v-if="modelValue" class="fixed inset-0 bg-gray-800/30 overflow-y-auto z-50">
+      <Transition name="modal-zoom" appear>
+        <div :class="['relative top-20 mx-auto p-5 border border-gray-200 shadow-lg rounded-md bg-white w-full max-w-lg', width]" role="dialog" aria-modal="true">
+          <div class="mt-3">
+            <h3 v-if="title" class="text-lg font-medium text-gray-900 mb-4">
+              {{ title }}
+            </h3>
+            <slot></slot>
+            <div v-if="showFooter" class="flex justify-end space-x-3 mt-6">
+              <button
+                v-if="showCancelButton"
+                @click="cancel"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
+              >
+                {{ cancelText }}
+              </button>
+              <button
+                v-if="showConfirmButton"
+                @click="confirm"
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
+              >
+                {{ confirmText }}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </Transition>
     </div>
-  </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -39,7 +43,7 @@ defineProps({
   },
   width: {
     type: String,
-    default: 'w-96'
+    default: 'w-full max-w-lg'
   },
   showFooter: {
     type: Boolean,
@@ -75,3 +79,22 @@ const confirm = () => {
   emit('update:modelValue', false)
 }
 </script>
+
+<style scoped>
+/* 背景淡入淡出 */
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-fade-enter-from, .modal-fade-leave-to {
+  opacity: 0;
+}
+
+/* 弹框缩放与位移 */
+.modal-zoom-enter-active, .modal-zoom-leave-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.modal-zoom-enter-from, .modal-zoom-leave-to {
+  transform: scale(0.98) translateY(6px);
+  opacity: 0;
+}
+</style>

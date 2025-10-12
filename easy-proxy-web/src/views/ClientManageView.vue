@@ -18,7 +18,7 @@
     </div>
 
     <!-- 搜索和筛选 -->
-    <div class="bg-white rounded-lg shadow mb-6 p-4">
+    <div class="bg-white rounded-lg mb-6 p-4">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div class="flex-1 max-w-md">
           <div class="relative">
@@ -506,8 +506,8 @@ const generateToken = () => {
 }
 
 // 轻提示（Toast）
-const toastVisible = ref(true)
-const toastMessage = ref('测试')
+const toastVisible = ref(false)
+const toastMessage = ref('')
 const toastType = ref<ToastType>('info')
 
 const showToast = (message: string, type: ToastType = 'info') => {
