@@ -94,6 +94,16 @@ public class UserService {
                     new JsonObject().put("userId", sysUser.getId()).put("username", sysUser.getUsername()),
                     options);
 
+            // 检查用户是否启用
+            if (!sysUser.getEnableFlag()) {
+                throw new RuntimeException("用户已被禁用");
+            }
+
+            // 更新上次登录时间
+            sysUser.setLoginTime(new Date());
+            sysUser.setUpdateTime(new Date());
+            userDao.updateById(sysUser);
+
             // 构建用户信息响应
             UserInfo userInfo = new UserInfo();
             userInfo.setUserId(sysUser.getId());
