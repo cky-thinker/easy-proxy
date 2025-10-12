@@ -116,12 +116,12 @@
                   >
                     编辑
                   </button>
-                  <button
+                  <!-- <button
                     @click="showPermissionsModal(user)"
                     class="text-blue-600 hover:text-blue-900"
                   >
                     权限
-                  </button>
+                  </button> -->
                   <button
                     @click="toggleUserStatus(user)"
                     :class="user.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
