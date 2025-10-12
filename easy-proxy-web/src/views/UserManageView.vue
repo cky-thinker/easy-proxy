@@ -75,61 +75,61 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="account in filteredAccounts" :key="account.id" class="hover:bg-gray-50">
+            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10">
                     <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                       <span class="text-indigo-600 font-medium text-sm">
-                        {{ account.username.charAt(0).toUpperCase() }}
+                        {{ user.username.charAt(0).toUpperCase() }}
                       </span>
                     </div>
                   </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">{{ account.username }}</div>
-                    <div class="text-sm text-gray-500">{{ account.email }}</div>
+                    <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+                    <div class="text-sm text-gray-500">{{ user.email }}</div>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="[
                   'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                  getRoleColor(account.role)
+                  getRoleColor(user.role)
                 ]">
-                  {{ getRoleText(account.role) }}
+                  {{ getRoleText(user.role) }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <TagEnableFlag :value="account.enableFlag" />
+                <TagEnableFlag :value="user.enableFlag" />
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ account.lastLogin || '从未登录' }}
+                {{ user.lastLogin || '从未登录' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ account.createdAt }}
+                {{ user.createdAt }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
                   <button
-                    @click="editAccount(account)"
+                    @click="editUser(user)"
                     class="text-indigo-600 hover:text-indigo-900"
                   >
                     编辑
                   </button>
                   <button
-                    @click="showPermissionsModal(account)"
+                    @click="showPermissionsModal(user)"
                     class="text-blue-600 hover:text-blue-900"
                   >
                     权限
                   </button>
                   <button
-                    @click="toggleAccountStatus(account)"
-                    :class="account.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
+                    @click="toggleUserStatus(user)"
+                    :class="user.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
                   >
-                    {{ account.enableFlag ? '禁用' : '激活' }}
+                    {{ user.enableFlag ? '禁用' : '激活' }}
                   </button>
                   <button
-                    @click="deleteAccount(account)"
+                    @click="deleteUser(user)"
                     class="text-red-600 hover:text-red-900"
                   >
                     删除
@@ -143,12 +143,12 @@
     </div>
 
     <!-- 新增/编辑账号模态框 -->
-    <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @confirm="saveAccount" @close="closeModal">
-      <form @submit.prevent="saveAccount">
+    <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @confirm="saveUser" @close="closeModal">
+      <form @submit.prevent="saveUser">
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
           <input
-            v-model="currentAccount.username"
+            v-model="currentUser.username"
             type="text"
             required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -158,7 +158,7 @@
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
           <input
-            v-model="currentAccount.email"
+            v-model="currentUser.email"
             type="email"
             required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -168,7 +168,7 @@
         <div class="mb-4" v-if="showAddModal">
           <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
           <input
-            v-model="currentAccount.password"
+            v-model="currentUser.password"
             type="password"
             required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -178,7 +178,7 @@
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
           <select
-            v-model="currentAccount.role"
+            v-model="currentUser.role"
             required
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
@@ -190,7 +190,7 @@
         <div class="mb-4">
           <label class="flex items-center">
             <input
-              v-model="currentAccount.enableFlag"
+              v-model="currentUser.enableFlag"
               type="checkbox"
               true-value="active"
               false-value="inactive"
@@ -203,14 +203,14 @@
     </Modal>
 
     <!-- 权限管理模态框 -->
-    <Modal v-model="showPermissionsModalFlag" :title="`${selectedAccount?.username} - 权限管理`"  @confirm="savePermissions" @close="closePermissionsModal" :width="'2/3'">
+    <Modal v-model="showPermissionsModalFlag" :title="`${selectedUser?.username} - 权限管理`"  @confirm="savePermissions" @close="closePermissionsModal" :width="'2/3'">
       <div class="space-y-4">
         <div v-for="(permission, key) in permissions" :key="key" class="border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between mb-2">
             <h4 class="text-md font-medium text-gray-900">{{ permission.name }}</h4>
             <label class="flex items-center">
               <input
-                v-model="selectedAccount!.permissions[key]"
+                v-model="selectedUser!.permissions[key]"
                 type="checkbox"
                 class="rounded border-gray-300 text-indigo-600"
               >
@@ -234,20 +234,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { 
-  getAccounts as getUsers, 
-  createAccount as apiCreateAccount, 
-  updateAccount as apiUpdateAccount, 
-  deleteAccount as apiDeleteAccount, 
-  toggleAccountEnableFlag as apiToggleAccountEnableFlag
+  getUsers as getUsersApi, 
+  createUser as createUserApi, 
+  updateUser as updateUserApi, 
+  deleteUser as deleteUserApi, 
+  toggleUserEnableFlag as toggleUserEnableFlagApi
 } from '../api/user'
 import type { User, Permission, CreateUserRequest, UpdateUserRequest } from '../api/types'
 import Modal from '../components/Modal.vue'
-import ConnectionStatusTag from '../components/TagStatus.vue'
-import Toast from '../components/Toast.vue'
-import { formatDateTime } from '../util/dateUtil'
 
 // 响应式数据
-const accounts = ref<User[]>([])
+const users = ref<User[]>([])
 const searchQuery = ref('')
 const roleFilter = ref('')
 const enbaleFlagFilter = ref(undefined)
@@ -255,8 +252,8 @@ const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showClientModal = ref(false)
 const showPermissionsModalFlag = ref(false)
-const selectedAccount = ref<User | null>(null)
-const currentAccount = ref<User>({
+const selectedUser = ref<User | null>(null)
+const currentUser = ref<User>({
   id: 0,
   username: '',
   email: '',
@@ -298,8 +295,8 @@ const permissions = ref<Record<string, Permission>>({
     description: '管理代理客户端和配置',
     actions: ['查看', '新增', '编辑', '删除', '启用/禁用']
   },
-  accounts: {
-    name: '账号管理',
+  users: {
+    name: '用户管理',
     description: '管理系统用户账号',
     actions: ['查看', '新增', '编辑', '删除', '权限管理']
   },
@@ -316,14 +313,14 @@ const permissions = ref<Record<string, Permission>>({
 })
 
 // 计算属性
-const filteredAccounts = computed(() => {
-  return accounts.value.filter(account => {
+const filteredUsers = computed(() => {
+  return users.value.filter(user => {
     const matchesSearch = !searchQuery.value ||
-      account.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      account.email.toLowerCase().includes(searchQuery.value.toLowerCase())
+      user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
 
-    const matchesRole = !roleFilter.value || account.role === roleFilter.value
-    const matchesStatus = !enbaleFlagFilter.value || account.enableFlag === enbaleFlagFilter.value
+    const matchesRole = !roleFilter.value || user.role === roleFilter.value
+    const matchesStatus = !enbaleFlagFilter.value || user.enableFlag === enbaleFlagFilter.value
 
     return matchesSearch && matchesRole && matchesStatus
   })
@@ -349,18 +346,18 @@ const getRoleText = (role: string): string => {
 }
 
 // 账号操作
-const editAccount = (account: User) => {
-  currentAccount.value = { ...account }
+const editUser = (user: User) => {
+  currentUser.value = { ...user }
   showEditModal.value = true
   showClientModal.value = true
 }
 
-const deleteAccount = async (account: User) => {
-  if (confirm(`确定要删除账号 "${account.username}" 吗？`)) {
+const deleteUser = async (user: User) => {
+  if (confirm(`确定要删除账号 "${user.username}" 吗？`)) {
     try {
-      await apiDeleteAccount(account.id)
-      const index = accounts.value.findIndex(a => a.id === account.id)
-      if (index > -1) accounts.value.splice(index, 1)
+      await deleteUserApi(user.id)
+      const index = users.value.findIndex(a => a.id === user.id)
+      if (index > -1) users.value.splice(index, 1)
       showToast('删除成功', 'success')
     } catch (error) {
       console.error('删除账号失败:', error)
@@ -369,12 +366,12 @@ const deleteAccount = async (account: User) => {
   }
 }
 
-const toggleAccountStatus = async (account: User) => {
+const toggleUserStatus = async (user: User) => {
   try {
-    const newStatus = !account.enableFlag
-    const updated = await apiToggleAccountEnableFlag(account.id, newStatus)
-    const index = accounts.value.findIndex(a => a.id === updated.id)
-    if (index > -1) accounts.value[index] = updated
+    const newStatus = !user.enableFlag
+    const updated = await toggleUserEnableFlagApi(user.id, newStatus)
+    const index = users.value.findIndex(a => a.id === updated.id)
+    if (index > -1) users.value[index] = updated
     showToast(`账号已${updated.enableFlag ? '激活' : '禁用'}`, 'success')
   } catch (error) {
     console.error('更新账号状态失败:', error)
@@ -382,32 +379,32 @@ const toggleAccountStatus = async (account: User) => {
   }
 }
 
-const saveAccount = async () => {
+const saveUser = async () => {
   try {
     if (showAddModal.value) {
       // 新增账号
       const payload: CreateUserRequest = {
-        username: currentAccount.value.username,
-        email: currentAccount.value.email,
-        password: currentAccount.value.password || '',
-        role: currentAccount.value.role,
-        enableFlag: currentAccount.value.enableFlag
+        username: currentUser.value.username,
+        email: currentUser.value.email,
+        password: currentUser.value.password || '',
+        role: currentUser.value.role,
+        enableFlag: currentUser.value.enableFlag
       }
-      const created = await apiCreateAccount(payload)
-      accounts.value.push(created)
+      const created = await createUserApi(payload)
+      users.value.push(created)
       showToast('新增成功', 'success')
     } else {
       // 编辑账号
       const payload: UpdateUserRequest = {
-        id: currentAccount.value.id,
-        username: currentAccount.value.username,
-        email: currentAccount.value.email,
-        role: currentAccount.value.role,
-        enableFlag: currentAccount.value.enableFlag
+        id: currentUser.value.id,
+        username: currentUser.value.username,
+        email: currentUser.value.email,
+        role: currentUser.value.role,
+        enableFlag: currentUser.value.enableFlag
       }
-      const updated = await apiUpdateAccount(payload)
-      const index = accounts.value.findIndex(a => a.id === updated.id)
-      if (index > -1) accounts.value[index] = updated
+      const updated = await updateUserApi(payload)
+      const index = users.value.findIndex(a => a.id === updated.id)
+      if (index > -1) users.value[index] = updated
       showToast('保存成功', 'success')
     }
     closeModal()
@@ -421,7 +418,7 @@ const closeModal = () => {
   showAddModal.value = false
   showEditModal.value = false
   showClientModal.value = false
-  currentAccount.value = {
+  currentUser.value = {
     id: 0,
     username: '',
     email: '',
@@ -434,20 +431,20 @@ const closeModal = () => {
 }
 
 // 权限管理
-const showPermissionsModal = (account: User) => {
-  selectedAccount.value = { ...account }
-  if (!selectedAccount.value.permissions) {
-    selectedAccount.value.permissions = {}
+const showPermissionsModal = (user: User) => {
+  selectedUser.value = { ...user }
+  if (!selectedUser.value.permissions) {
+    selectedUser.value.permissions = {}
   }
   showPermissionsModalFlag.value = true
 }
 
 const savePermissions = async () => {
   try {
-    if (selectedAccount.value) {
-      const index = accounts.value.findIndex(a => a.id === selectedAccount.value!.id)
+    if (selectedUser.value) {
+      const index = users.value.findIndex(a => a.id === selectedUser.value!.id)
       if (index > -1) {
-        accounts.value[index].permissions = selectedAccount.value.permissions
+        users.value[index].permissions = selectedUser.value.permissions
       }
     }
     showToast('权限保存成功', 'success')
@@ -460,15 +457,15 @@ const savePermissions = async () => {
 
 const closePermissionsModal = () => {
   showPermissionsModalFlag.value = false
-  selectedAccount.value = null
+  selectedUser.value = null
 }
 
 // 加载数据
 
 const loadUsers = async () => {
   try {
-    const pageData = await getUsers(0, 10)
-    accounts.value = (pageData.list || [])
+    const pageData = await getUsersApi(0, 10)
+    users.value = (pageData.list || [])
   } catch (error) {
     console.error('加载账号列表失败:', error)
   }

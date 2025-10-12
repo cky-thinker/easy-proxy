@@ -139,7 +139,7 @@ public class UserService {
     /**
      * 分页查询账户
      */
-    public PageResult<SysUser> getAccountsPageable(Page page, String q, String role, String status) {
+    public PageResult<SysUser> getUsersPageable(Page page, String q, String role, String status) {
         return userDao.selectPage(page, where -> {
             boolean hasWhere = false;
             if (q != null && !q.isEmpty()) {
@@ -148,42 +148,46 @@ public class UserService {
                 hasWhere = true;
             }
             if (role != null && !role.isEmpty()) {
-                if (hasWhere) where.and();
+                if (hasWhere)
+                    where.and();
                 where.eq("role", role);
                 hasWhere = true;
             }
             if (status != null && !status.isEmpty()) {
                 boolean enableFlag = "active".equalsIgnoreCase(status);
-                if (hasWhere) where.and();
+                if (hasWhere)
+                    where.and();
                 where.eq("enable_flag", enableFlag);
             }
         });
     }
 
-    public SysUser getAccountById(Integer id) {
+    public SysUser getUserById(Integer id) {
         return userDao.selectById(id);
     }
 
-    public SysUser createAccount(SysUser user) {
+    public SysUser createUser(SysUser user) {
         user.setCreateTime(new Date());
-        if (user.getEnableFlag() == null) user.setEnableFlag(Boolean.TRUE);
+        if (user.getEnableFlag() == null)
+            user.setEnableFlag(Boolean.TRUE);
         userDao.insert(user);
         return user;
     }
 
-    public SysUser updateAccount(SysUser user) {
+    public SysUser updateUser(SysUser user) {
         user.setUpdateTime(new Date());
         userDao.updateById(user);
         return userDao.selectById(user.getId());
     }
 
-    public boolean deleteAccount(Integer id) {
+    public boolean deleteUser(Integer id) {
         userDao.deleteById(id);
         return true;
     }
 
-    public void batchDeleteAccounts(List<Integer> ids) {
-        if (ids == null) return;
+    public void batchDeleteUsers(List<Integer> ids) {
+        if (ids == null)
+            return;
         for (Integer id : ids) {
             userDao.deleteById(id);
         }
@@ -191,7 +195,8 @@ public class UserService {
 
     public SysUser resetPassword(Integer id, String newPassword) {
         SysUser user = userDao.selectById(id);
-        if (user == null) throw new RuntimeException("账号不存在");
+        if (user == null)
+            throw new RuntimeException("账号不存在");
         user.setPassword(newPassword);
         user.setUpdateTime(new Date());
         userDao.updateById(user);
@@ -200,7 +205,8 @@ public class UserService {
 
     public SysUser updateStatus(Integer id, String status) {
         SysUser user = userDao.selectById(id);
-        if (user == null) throw new RuntimeException("账号不存在");
+        if (user == null)
+            throw new RuntimeException("账号不存在");
         user.setEnableFlag("active".equalsIgnoreCase(status));
         user.setUpdateTime(new Date());
         userDao.updateById(user);
