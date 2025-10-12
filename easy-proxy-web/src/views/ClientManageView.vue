@@ -305,13 +305,13 @@ const loading = ref(false)
 
 // 计算属性
 const filteredClients = computed(() => {
-  return clients.value.filter(client => {
+  return clients.value.filter((client: ProxyClientConfig) => {
     const matchesSearch = !searchQuery.value || 
       client.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       client.token.toLowerCase().includes(searchQuery.value.toLowerCase())
     
     const matchesStatus = !statusFilter.value || client.status === statusFilter.value
-    const matchesEnable = !enableFilter.value || client.enableFlag.toString() === enableFilter.value
+    const matchesEnable = !enableFilter.value || (client?.enableFlag?.toString() === enableFilter.value)
     
     return matchesSearch && matchesStatus && matchesEnable
   })

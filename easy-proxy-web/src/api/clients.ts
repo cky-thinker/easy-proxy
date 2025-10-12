@@ -16,7 +16,6 @@ export interface ExtendedProxyClientConfig extends ProxyClientConfig {
     download: number
   }
   connections: number
-  enableFlag: boolean
 }
 
 // 获取客户端列表

@@ -88,6 +88,7 @@ export interface Account {
   id: number;
   username: string;
   email: string;
+  password?: string;
   role: 'admin' | 'user' | 'viewer';
   status: 'active' | 'inactive';
   lastLogin?: string;
