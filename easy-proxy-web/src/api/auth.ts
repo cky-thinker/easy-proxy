@@ -1,4 +1,4 @@
-import apiClient from './client';
+import apiClient from '../util/client';
 import type { LoginRequest, CaptchaImage, UserInfo, ApiResponse } from './types';
 
 /**

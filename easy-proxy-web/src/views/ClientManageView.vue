@@ -55,7 +55,8 @@
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户端信息</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">连接状态</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">启用状态</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">流量使用</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">代理规则</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -81,18 +82,14 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex flex-col space-y-1">
                   <div class="flex space-x-2">
-                    <span :class="[
-                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                      client.status === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    ]">
-                      {{ client.status === 'online' ? '在线' : '离线' }}
-                    </span>
-                    <span :class="[
-                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                      client.enableFlag ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                    ]">
-                      {{ client.enableFlag ? '已启用' : '已禁用' }}
-                    </span>
+                    <TagStatus :value="client.status" />
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex flex-col space-y-1">
+                  <div class="flex space-x-2">
+                    <TagEnableFlag :value="client.enableFlag" />
                   </div>
                 </div>
               </td>
@@ -271,6 +268,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import TagStatus from '../components/TagStatus.vue'
+import TagEnableFlag from '../components/TagEnableFlag.vue'
 import type { ProxyClientConfig, ProxyRule } from '../api/types'
 import { 
   getClients, createClient, updateClient, deleteClient as deleteClientApi,

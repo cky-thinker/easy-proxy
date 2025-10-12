@@ -1,4 +1,4 @@
-import apiClient from './client'
+import apiClient from '../util/client'
 import type { ApiResponse, ServerConfig } from './types'
 
 // 获取服务端配置

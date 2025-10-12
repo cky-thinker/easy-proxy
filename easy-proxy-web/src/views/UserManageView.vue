@@ -51,10 +51,10 @@
             <option value="user">普通用户</option>
             <option value="viewer">只读用户</option>
           </select>
-          <select v-model="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2">
+          <select v-model="enbaleFlagFilter" class="border border-gray-300 rounded-lg px-3 py-2">
             <option value="">全部状态</option>
-            <option value="active">激活</option>
-            <option value="inactive">禁用</option>
+            <option :value="true">激活</option>
+            <option :value="false">禁用</option>
           </select>
         </div>
       </div>
@@ -68,7 +68,7 @@
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户信息</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">启用状态</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后登录</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -100,12 +100,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="[
-                  'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                  account.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                ]">
-                  {{ account.status === 'active' ? '激活' : '禁用' }}
-                </span>
+                <TagEnableFlag :value="account.enableFlag" />
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ account.lastLogin || '从未登录' }}
@@ -129,9 +124,9 @@
                   </button>
                   <button
                     @click="toggleAccountStatus(account)"
-                    :class="account.status === 'active' ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
+                    :class="account.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
                   >
-                    {{ account.status === 'active' ? '禁用' : '激活' }}
+                    {{ account.enableFlag ? '禁用' : '激活' }}
                   </button>
                   <button
                     @click="deleteAccount(account)"
@@ -195,7 +190,7 @@
         <div class="mb-4">
           <label class="flex items-center">
             <input
-              v-model="currentAccount.status"
+              v-model="currentAccount.enableFlag"
               type="checkbox"
               true-value="active"
               false-value="inactive"
@@ -239,33 +234,35 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { 
-  getAccounts, 
+  getAccounts as getUsers, 
   createAccount as apiCreateAccount, 
   updateAccount as apiUpdateAccount, 
   deleteAccount as apiDeleteAccount, 
-  toggleAccountStatus as apiToggleAccountStatus
-} from '../api/accounts'
-import type { Account, Permission, CreateAccountRequest, UpdateAccountRequest } from '../api/types'
+  toggleAccountEnableFlag as apiToggleAccountEnableFlag
+} from '../api/user'
+import type { User, Permission, CreateUserRequest, UpdateUserRequest } from '../api/types'
 import Modal from '../components/Modal.vue'
+import ConnectionStatusTag from '../components/TagStatus.vue'
 import Toast from '../components/Toast.vue'
+import { formatDateTime } from '../util/dateUtil'
 
 // 响应式数据
-const accounts = ref<Account[]>([])
+const accounts = ref<User[]>([])
 const searchQuery = ref('')
 const roleFilter = ref('')
-const statusFilter = ref('')
+const enbaleFlagFilter = ref(undefined)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showClientModal = ref(false)
 const showPermissionsModalFlag = ref(false)
-const selectedAccount = ref<Account | null>(null)
-const currentAccount = ref<Account>({
+const selectedAccount = ref<User | null>(null)
+const currentAccount = ref<User>({
   id: 0,
   username: '',
   email: '',
   password: '',
   role: 'user',
-  status: 'active',
+  enableFlag: true,
   createdAt: '',
   permissions: {}
 })
@@ -326,7 +323,7 @@ const filteredAccounts = computed(() => {
       account.email.toLowerCase().includes(searchQuery.value.toLowerCase())
 
     const matchesRole = !roleFilter.value || account.role === roleFilter.value
-    const matchesStatus = !statusFilter.value || account.status === statusFilter.value
+    const matchesStatus = !enbaleFlagFilter.value || account.enableFlag === enbaleFlagFilter.value
 
     return matchesSearch && matchesRole && matchesStatus
   })
@@ -352,13 +349,13 @@ const getRoleText = (role: string): string => {
 }
 
 // 账号操作
-const editAccount = (account: Account) => {
+const editAccount = (account: User) => {
   currentAccount.value = { ...account }
   showEditModal.value = true
   showClientModal.value = true
 }
 
-const deleteAccount = async (account: Account) => {
+const deleteAccount = async (account: User) => {
   if (confirm(`确定要删除账号 "${account.username}" 吗？`)) {
     try {
       await apiDeleteAccount(account.id)
@@ -372,15 +369,13 @@ const deleteAccount = async (account: Account) => {
   }
 }
 
-const toggleAccountStatus = async (account: Account) => {
+const toggleAccountStatus = async (account: User) => {
   try {
-    const newStatus = account.status === 'active' ? 'inactive' : 'active'
-    const updated = await apiToggleAccountStatus(account.id, newStatus)
-    // 后端返回的字段映射
-    const mapped = mapSysUserToAccount(updated as any)
-    const index = accounts.value.findIndex(a => a.id === mapped.id)
-    if (index > -1) accounts.value[index] = mapped
-    showToast(`账号已${mapped.status === 'active' ? '激活' : '禁用'}`, 'success')
+    const newStatus = !account.enableFlag
+    const updated = await apiToggleAccountEnableFlag(account.id, newStatus)
+    const index = accounts.value.findIndex(a => a.id === updated.id)
+    if (index > -1) accounts.value[index] = updated
+    showToast(`账号已${updated.enableFlag ? '激活' : '禁用'}`, 'success')
   } catch (error) {
     console.error('更新账号状态失败:', error)
     showToast('操作失败', 'error')
@@ -391,30 +386,28 @@ const saveAccount = async () => {
   try {
     if (showAddModal.value) {
       // 新增账号
-      const payload: CreateAccountRequest = {
+      const payload: CreateUserRequest = {
         username: currentAccount.value.username,
         email: currentAccount.value.email,
         password: currentAccount.value.password || '',
         role: currentAccount.value.role,
-        status: currentAccount.value.status
+        enableFlag: currentAccount.value.enableFlag
       }
       const created = await apiCreateAccount(payload)
-      const mapped = mapSysUserToAccount(created as any)
-      accounts.value.push(mapped)
+      accounts.value.push(created)
       showToast('新增成功', 'success')
     } else {
       // 编辑账号
-      const payload: UpdateAccountRequest = {
+      const payload: UpdateUserRequest = {
         id: currentAccount.value.id,
         username: currentAccount.value.username,
         email: currentAccount.value.email,
         role: currentAccount.value.role,
-        status: currentAccount.value.status
+        enableFlag: currentAccount.value.enableFlag
       }
       const updated = await apiUpdateAccount(payload)
-      const mapped = mapSysUserToAccount(updated as any)
-      const index = accounts.value.findIndex(a => a.id === mapped.id)
-      if (index > -1) accounts.value[index] = mapped
+      const index = accounts.value.findIndex(a => a.id === updated.id)
+      if (index > -1) accounts.value[index] = updated
       showToast('保存成功', 'success')
     }
     closeModal()
@@ -434,14 +427,14 @@ const closeModal = () => {
     email: '',
     password: '',
     role: 'user',
-    status: 'active',
+    enableFlag: true,
     createdAt: '',
     permissions: {}
   }
 }
 
 // 权限管理
-const showPermissionsModal = (account: Account) => {
+const showPermissionsModal = (account: User) => {
   selectedAccount.value = { ...account }
   if (!selectedAccount.value.permissions) {
     selectedAccount.value.permissions = {}
@@ -471,38 +464,17 @@ const closePermissionsModal = () => {
 }
 
 // 加载数据
-const formatDateTime = (value?: string | number | Date): string => {
-  if (!value) return ''
-  try {
-    const d = new Date(value)
-    if (isNaN(d.getTime())) return ''
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
-  } catch { return '' }
-}
 
-const mapSysUserToAccount = (raw: any): Account => {
-  return {
-    id: raw.id,
-    username: raw.username,
-    email: raw.email,
-    role: (raw.role === 'admin' ? 'admin' : raw.role === 'viewer' ? 'viewer' : 'user'),
-    status: raw.enableFlag ? 'active' : 'inactive',
-    lastLogin: formatDateTime(raw.loginTime),
-    createdAt: formatDateTime(raw.createTime) || '',
-    permissions: {}
-  }
-}
-
-const loadAccounts = async () => {
+const loadUsers = async () => {
   try {
-    const pageData = await getAccounts(0, 10)
-    accounts.value = (pageData.list || []).map(item => mapSysUserToAccount(item as any))
+    const pageData = await getUsers(0, 10)
+    accounts.value = (pageData.list || [])
   } catch (error) {
     console.error('加载账号列表失败:', error)
   }
 }
 
 onMounted(() => {
-  loadAccounts()
+  loadUsers()
 })
 </script>

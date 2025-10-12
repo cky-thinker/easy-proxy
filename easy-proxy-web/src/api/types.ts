@@ -84,13 +84,13 @@ export interface RecentActivity {
 }
 
 // 账号管理接口
-export interface Account {
+export interface User {
   id: number;
   username: string;
   email: string;
   password?: string;
   role: 'admin' | 'user' | 'viewer';
-  status: 'active' | 'inactive';
+  enableFlag?: boolean;
   lastLogin?: string;
   createdAt: string;
   permissions: Record<string, boolean>;
@@ -104,21 +104,21 @@ export interface Permission {
 }
 
 // 创建账号请求接口
-export interface CreateAccountRequest {
+export interface CreateUserRequest {
   username: string;
   email: string;
   password: string;
   role: 'admin' | 'user' | 'viewer';
-  status: 'active' | 'inactive';
+  enableFlag?: boolean;
 }
 
 // 更新账号请求接口
-export interface UpdateAccountRequest {
+export interface UpdateUserRequest {
   id: number;
   username?: string;
   email?: string;
   role?: 'admin' | 'user' | 'viewer';
-  status?: 'active' | 'inactive';
+  enableFlag?: boolean;
   permissions?: Record<string, boolean>;
 }
 
