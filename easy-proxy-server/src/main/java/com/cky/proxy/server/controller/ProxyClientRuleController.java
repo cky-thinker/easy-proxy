@@ -4,15 +4,13 @@ package com.cky.proxy.server.controller;
 import java.util.List;
 
 import com.cky.proxy.server.domain.dto.PageResult;
-import com.cky.proxy.server.domain.dto.ProxyClientReq;
+import com.cky.proxy.server.domain.dto.ProxyClientRuleReq;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
-import com.cky.proxy.server.util.JsonUtil;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 
 import cn.hutool.db.Page;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -43,11 +41,11 @@ public class ProxyClientRuleController {
 
     private void getAllProxyClientRules(RoutingContext ctx) {
         // 获取查询参数
-        ProxyClientReq proxyClientReq = RequestUtil.getParamsObj(ctx, ProxyClientReq.class);
+        ProxyClientRuleReq req = RequestUtil.getParamsObj(ctx, ProxyClientRuleReq.class);
 
         // 执行查询
-        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(proxyClientReq.getQ(),
-                proxyClientReq.getServerPort(), proxyClientReq.getProxyClientId());
+        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(req.getQ(), req.getServerPort(),
+                req.getProxyClientId());
 
         // 返回结果
         ResponseUtil.success(ctx, rules);
@@ -57,12 +55,12 @@ public class ProxyClientRuleController {
         // 创建分页对象
         Page page = RequestUtil.getPage(ctx);
         // 获取查询参数
-        ProxyClientReq proxyClientReq = RequestUtil.getParamsObj(ctx, ProxyClientReq.class);
+        ProxyClientRuleReq req = RequestUtil.getParamsObj(ctx, ProxyClientRuleReq.class);
 
         // 执行分页查询
-        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page,
-                proxyClientReq.getQ(), proxyClientReq.getServerPort(),
-                proxyClientReq.getProxyClientId());
+        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, req.getQ(),
+                req.getServerPort(),
+                req.getProxyClientId());
 
         // 返回结果
         ResponseUtil.success(ctx, result);

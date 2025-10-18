@@ -1,17 +1,16 @@
 package com.cky.proxy.server.util;
 
+import java.util.Set;
+
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
 import io.vertx.ext.web.RoutingContext;
-import lombok.extern.slf4j.Slf4j;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-
-import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RequestUtil {
@@ -54,7 +53,7 @@ public class RequestUtil {
         }
         Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
         if (!violations.isEmpty()) {
-            ConstraintViolationException ex = new ConstraintViolationException((Set) violations);
+            ConstraintViolationException ex = new ConstraintViolationException((Set<ConstraintViolation<T>>) violations);
             ctx.fail(400, ex);
             throw ex;
         }
@@ -72,7 +71,7 @@ public class RequestUtil {
         }
         Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
         if (!violations.isEmpty()) {
-            ConstraintViolationException ex = new ConstraintViolationException((Set) violations);
+            ConstraintViolationException ex = new ConstraintViolationException((Set<ConstraintViolation<T>>) violations);
             ctx.fail(400, ex);
             throw ex;
         }
