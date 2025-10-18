@@ -5,25 +5,34 @@ import com.j256.ormlite.table.DatabaseTable;
 
 import java.util.Date;
 
+import com.cky.proxy.server.consts.AddGroup;
+import com.cky.proxy.server.consts.UpdateGroup;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
 /**
  * 流量统计总报告
  */
+@Data
 @DatabaseTable(tableName = "traffic_statistic_client_rule_report")
 public class TrafficStatisticClientRuleReport {
     /**
      * 主键
      */
     @DatabaseField(generatedId = true)
+    @NotNull(groups = { UpdateGroup.class }, message = "ID不能为空")
     private Integer id;
      /**
      * 代理客户端规则ID
      */
     @DatabaseField(columnName = "proxy_client_rule_id")
+    @NotNull(groups = { AddGroup.class }, message = "代理客户端规则ID不能为空")
     private Integer proxyClientRuleId;
     /**
      * 日期
      */
     @DatabaseField(columnName = "date")
+    @NotNull(groups = { AddGroup.class }, message = "日期不能为空")
     private Date date;
     /**
      * 上行流量

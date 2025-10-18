@@ -5,17 +5,26 @@ import com.j256.ormlite.table.DatabaseTable;
 
 import java.util.Date;
 
+import com.cky.proxy.server.consts.AddGroup;
+import com.cky.proxy.server.consts.UpdateGroup;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
 /**
  * 系统账号
  */
+@Data
 @DatabaseTable(tableName = "sys_user")
 public class SysUser {
     @DatabaseField(generatedId = true)
+    @NotNull(groups = { UpdateGroup.class }, message = "ID不能为空")
     private Integer id;
     /**
      * 账号
      */
     @DatabaseField(unique = true)
+    @NotEmpty(groups = { AddGroup.class }, message = "账号不能为空")
     private String username;
     /**
      * 手机号
@@ -31,11 +40,13 @@ public class SysUser {
      * 密码
      */
     @DatabaseField
+    @NotEmpty(groups = { AddGroup.class }, message = "密码不能为空")
     private String password;
     /**
      * 角色 admin 管理员 user 普通用户
      */
     @DatabaseField
+    @NotEmpty(groups = { AddGroup.class }, message = "角色不能为空")
     private String role;
     /**
      * 头像地址
@@ -72,43 +83,4 @@ public class SysUser {
      */
     @DatabaseField(columnName = "update_time")
     private Date updateTime;
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-
-    public String getMobile() { return mobile; }
-    public void setMobile(String mobile) { this.mobile = mobile; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
-    public String getAvatar() { return avatar; }
-    public void setAvatar(String avatar) { this.avatar = avatar; }
-
-    public Boolean getEnableFlag() { return enableFlag; }
-    public void setEnableFlag(Boolean enableFlag) { this.enableFlag = enableFlag; }
-
-    public Date getLoginTime() { return loginTime; }
-    public void setLoginTime(Date loginTime) { this.loginTime = loginTime; }
-
-    public String getCreateBy() { return createBy; }
-    public void setCreateBy(String createBy) { this.createBy = createBy; }
-
-    public Date getCreateTime() { return createTime; }
-    public void setCreateTime(Date createTime) { this.createTime = createTime; }
-
-    public String getUpdateBy() { return updateBy; }
-    public void setUpdateBy(String updateBy) { this.updateBy = updateBy; }
-
-    public Date getUpdateTime() { return updateTime; }
-    public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
 }

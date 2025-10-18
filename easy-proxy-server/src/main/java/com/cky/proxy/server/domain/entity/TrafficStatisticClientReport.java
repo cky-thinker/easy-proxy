@@ -1,29 +1,38 @@
 package com.cky.proxy.server.domain.entity;
 
+import java.util.Date;
+
+import com.cky.proxy.server.consts.AddGroup;
+import com.cky.proxy.server.consts.UpdateGroup;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-import java.util.Date;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 /**
  * 流量统计总报告
  */
+@Data
 @DatabaseTable(tableName = "traffic_statistic_client_report")
 public class TrafficStatisticClientReport {
     /**
      * 主键
      */
     @DatabaseField(generatedId = true)
+    @NotNull(groups = { UpdateGroup.class }, message = "ID不能为空")
     private Integer id;
      /**
      * 代理客户端ID
      */
     @DatabaseField(columnName = "proxy_client_id")
+    @NotNull(groups = { AddGroup.class }, message = "代理客户端ID不能为空")
     private Integer proxyClientId;
     /**
      * 日期
      */
     @DatabaseField(columnName = "date")
+    @NotNull(groups = { AddGroup.class }, message = "日期不能为空")
     private Date date;
     /**
      * 上行流量
@@ -40,22 +49,4 @@ public class TrafficStatisticClientReport {
      */
     @DatabaseField(columnName="update_time")
     private Date updateTime;
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-
-    public Integer getProxyClientId() { return proxyClientId; }
-    public void setProxyClientId(Integer proxyClientId) { this.proxyClientId = proxyClientId; }
-
-    public Date getDate() { return date; }
-    public void setDate(Date date) { this.date = date; }
-
-    public Long getUpwardTrafficBytes() { return upwardTrafficBytes; }
-    public void setUpwardTrafficBytes(Long upwardTrafficBytes) { this.upwardTrafficBytes = upwardTrafficBytes; }
-
-    public Long getDownwardTrafficBytes() { return downwardTrafficBytes; }
-    public void setDownwardTrafficBytes(Long downwardTrafficBytes) { this.downwardTrafficBytes = downwardTrafficBytes; }
-
-    public Date getUpdateTime() { return updateTime; }
-    public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
 }
