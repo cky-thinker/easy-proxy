@@ -32,7 +32,7 @@ public class ProxyClientRuleController {
         router.get("/api/proxyClientRule/all").handler(this::getAllProxyClientRules);
         // 分页查询转发规则
         router.get("/api/proxyClientRule").handler(this::getProxyClientRulesPageable);
-        // 查询转发规则详情（使用请求参数 id）
+        // 查询转发规则详情
         router.get("/api/proxyClientRule/detail").handler(this::getProxyClientRuleDetail);
         // 新增转发规则
         router.post("/api/proxyClientRule").handler(this::addProxyClientRule);
