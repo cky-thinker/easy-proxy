@@ -1,44 +1,44 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
-    <!-- 页面标题和操作按钮 -->
+    <!-- 页面标题 -->
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">客户端管理</h1>
         <p class="text-gray-600 mt-1">管理代理客户端配置和状态</p>
       </div>
-      <el-button type="success" @click="openAddModal">
-        <el-icon class="mr-1">
-          <Plus />
-        </el-icon>
-        新增客户端
-      </el-button>
     </div>
 
-    <!-- 搜索和筛选 -->
+    <!-- 搜索与操作 -->
     <div class="bg-white rounded-lg mb-6 p-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <div class="flex-1 max-w-md">
-          <el-input v-model="searchQuery" placeholder="搜索客户端名称或Token..." clearable>
-            <template #prefix>
-              <el-icon>
-                <Search />
-              </el-icon>
-            </template>
+      <el-form :model="queryForm" inline label-position="left">
+        <el-form-item label="搜索">
+          <el-input v-model="queryForm.searchQuery" placeholder="名称或Token" clearable>
           </el-input>
-        </div>
-        <div class="flex items-center space-x-4 md:ml-4">
-          <el-select v-model="statusFilter" placeholder="全部状态" class="w-40">
-            <el-option label="全部状态" value="" />
+        </el-form-item>
+        <el-form-item label="在线状态">
+          <el-select v-model="queryForm.statusFilter" placeholder="全部" class="w-48">
+            <el-option label="全部" value="" />
             <el-option label="在线" value="online" />
             <el-option label="离线" value="offline" />
           </el-select>
-          <el-select v-model="enableFilter" placeholder="全部启用状态" class="w-40">
-            <el-option label="全部启用状态" value="" />
+        </el-form-item>
+        <el-form-item label="启用状态">
+          <el-select v-model="queryForm.enableFilter" placeholder="全部" class="w-48">
+            <el-option label="全部" value="" />
             <el-option label="启用" value="enabled" />
             <el-option label="禁用" value="disabled" />
           </el-select>
-        </div>
-      </div>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleQuery">查询</el-button>
+          <el-button type="success" @click="openAddModal">
+            <el-icon class="mr-1">
+              <Plus />
+            </el-icon>
+            新增
+          </el-button>
+        </el-form-item>
+      </el-form>
     </div>
 
     <!-- 客户端列表 -->
@@ -138,7 +138,7 @@
           <el-icon class="mr-1">
             <Plus />
           </el-icon>
-          新增规则
+          新增
         </el-button>
       </div>
       <div class="space-y-3">
@@ -179,7 +179,7 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, reactive } from 'vue'
 import {
   addClientRule,
   createClient,
@@ -200,9 +200,11 @@ import TagStatus from '../components/TagStatus.vue'
 
 // 响应式数据
 const clients = ref<ProxyClientConfig[]>([])
-const searchQuery = ref('')
-const statusFilter = ref('')
-const enableFilter = ref('')
+const queryForm = reactive({
+  searchQuery: '',
+  statusFilter: '',
+  enableFilter: ''
+})
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showClientModal = ref(false)
@@ -416,16 +418,25 @@ const closeRulesModal = () => {
 const loadClients = async () => {
   try {
     loading.value = true
-    const hasQuery = !!searchQuery.value
-    const hasStatus = !!statusFilter.value
-    const hasEnable = enableFilter.value !== ''
+    const hasQuery = !!queryForm.searchQuery
+    const hasStatus = !!queryForm.statusFilter
+    const hasEnable = queryForm.enableFilter !== ''
+
+    const enableVal =
+      hasEnable
+        ? queryForm.enableFilter === 'enabled'
+          ? true
+          : queryForm.enableFilter === 'disabled'
+          ? false
+          : undefined
+        : undefined
 
     const result = await getClients(
       currentPage.value,
       pageSize.value,
-      hasQuery ? searchQuery.value : undefined,
-      hasStatus ? (statusFilter.value as 'online' | 'offline') : undefined,
-      hasEnable ? enableFilter.value === 'true' : undefined
+      hasQuery ? queryForm.searchQuery : undefined,
+      hasStatus ? (queryForm.statusFilter as 'online' | 'offline') : undefined,
+      enableVal
     )
     clients.value = result.list || []
     total.value = result.total || 0
@@ -441,11 +452,20 @@ onMounted(() => {
   loadClients()
 })
 
-// 监听筛选变化，重置到第一页并重新加载
-watch([searchQuery, statusFilter, enableFilter], async () => {
+// 手动查询按钮
+const handleQuery = async () => {
   currentPage.value = 0
   await loadClients()
-})
+}
+
+// 监听筛选变化，重置到第一页并重新加载
+watch(
+  () => [queryForm.searchQuery, queryForm.statusFilter, queryForm.enableFilter],
+  async () => {
+    currentPage.value = 0
+    await loadClients()
+  }
+)
 
 // 分页切换
 const onPageChange = async (page: number) => {

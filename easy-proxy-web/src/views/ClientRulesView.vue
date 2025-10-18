@@ -28,7 +28,7 @@
           <el-button type="primary" @click="reload">查询</el-button>
           <el-button type="success" @click="openAddRuleModal">
             <el-icon class="mr-1"><Plus /></el-icon>
-            新增规则
+            新增
           </el-button>
         </div>
       </div>
