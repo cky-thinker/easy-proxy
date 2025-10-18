@@ -169,7 +169,7 @@ import {
   getClients,
   toggleClientStatus as toggleClientStatusApi,
   updateClient
-} from '../api/clients'
+} from '../api/proxyClient'
 import { addClientRule, deleteClientRule, getClientRules, updateClientRule } from '../api/proxyClientRule'
 import type { ProxyClientConfig } from '../api/types'
 import TagEnableFlag from '../components/TagEnableFlag.vue'

@@ -131,8 +131,8 @@
 </template>
 
 <script setup lang="ts">
-import type { ExtendedProxyClientConfig } from '@/api/clients'
-import { getAllClients } from '@/api/clients'
+import type { ExtendedProxyClientConfig } from '@/api/proxyClient'
+import { getAllClients } from '@/api/proxyClient'
 import { addClientRule, getClientRulesPage, updateClientRule } from '@/api/proxyClientRule'
 import type { ProxyRule } from '@/api/types'
 
