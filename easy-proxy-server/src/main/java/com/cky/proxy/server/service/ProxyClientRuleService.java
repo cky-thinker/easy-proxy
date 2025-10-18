@@ -1,15 +1,14 @@
 package com.cky.proxy.server.service;
 
+import java.util.Date;
+import java.util.List;
+
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
-import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.dto.PageResult;
+import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.util.BeanContext;
 
 import cn.hutool.db.Page;
-import io.vertx.core.json.JsonObject;
-
-import java.util.Date;
-import java.util.List;
 
 public class ProxyClientRuleService {
     private final ProxyClientRuleDao proxyClientRuleDao = BeanContext.getProxyClientRuleDao();
@@ -25,16 +24,14 @@ public class ProxyClientRuleService {
      */
     public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId) {
         return proxyClientRuleDao.selectList(qb -> {
-            int clauses = 0;
-            qb.where();
             if (name != null && !name.isEmpty()) {
-                clauses++; qb.where().like("name", "%" + name + "%");
+                qb.where().like("name", "%" + name + "%");
             }
             if (serverPort != null) {
-                clauses++; qb.where().eq("server_port", serverPort);
+                qb.where().eq("server_port", serverPort);
             }
             if (proxyClientId != null) {
-                clauses++; qb.where().eq("proxy_client_id", proxyClientId);
+                qb.where().eq("proxy_client_id", proxyClientId);
             }
             // 当没有任何条件时，返回全部，不需要额外处理
         });
@@ -43,19 +40,18 @@ public class ProxyClientRuleService {
     /**
      * 分页查询代理客户端规则，支持按名称、服务端口、客户端ID筛选
      */
-    public PageResult<ProxyClientRule> getProxyClientRulesPageable(Page page, String name, Integer serverPort, Integer proxyClientId) {
+    public PageResult<ProxyClientRule> getProxyClientRulesPageable(Page page, String name, Integer serverPort,
+            Integer proxyClientId) {
         return proxyClientRuleDao.selectPage(page, where -> {
-            int clauses = 0;
             if (name != null && !name.isEmpty()) {
-                clauses++; where.like("name", "%" + name + "%");
+                where.like("name", "%" + name + "%");
             }
             if (serverPort != null) {
-                clauses++; where.eq("server_port", serverPort);
+                where.eq("server_port", serverPort);
             }
             if (proxyClientId != null) {
-                clauses++; where.eq("proxy_client_id", proxyClientId);
+                where.eq("proxy_client_id", proxyClientId);
             }
-            if (clauses == 0) { where.raw("1=1"); }
         });
     }
 

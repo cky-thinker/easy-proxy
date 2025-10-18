@@ -3,8 +3,9 @@ package com.cky.proxy.server.controller;
 
 import java.util.List;
 
-import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.dto.PageResult;
+import com.cky.proxy.server.domain.dto.ProxyClientReq;
+import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.util.JsonUtil;
 import com.cky.proxy.server.util.RequestUtil;
@@ -42,26 +43,11 @@ public class ProxyClientRuleController {
 
     private void getAllProxyClientRules(RoutingContext ctx) {
         // 获取查询参数
-        String q = ctx.request().getParam("q");
-        String serverPortStr = ctx.request().getParam("serverPort");
-        String proxyClientIdStr = ctx.request().getParam("proxyClientId");
-
-        Integer serverPort = null;
-        Integer proxyClientId = null;
-        try {
-            if (serverPortStr != null && !serverPortStr.isEmpty()) {
-                serverPort = Integer.parseInt(serverPortStr);
-            }
-            if (proxyClientIdStr != null && !proxyClientIdStr.isEmpty()) {
-                proxyClientId = Integer.parseInt(proxyClientIdStr);
-            }
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "Invalid number format for serverPort or proxyClientId");
-            return;
-        }
+        ProxyClientReq proxyClientReq = RequestUtil.getParamsObj(ctx, ProxyClientReq.class);
 
         // 执行查询
-        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(q, serverPort, proxyClientId);
+        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(proxyClientReq.getQ(),
+                proxyClientReq.getServerPort(), proxyClientReq.getProxyClientId());
 
         // 返回结果
         ResponseUtil.success(ctx, rules);
@@ -71,27 +57,12 @@ public class ProxyClientRuleController {
         // 创建分页对象
         Page page = RequestUtil.getPage(ctx);
         // 获取查询参数
-        String q = ctx.request().getParam("q");
-        String serverPortStr = ctx.request().getParam("serverPort");
-        String proxyClientIdStr = ctx.request().getParam("proxyClientId");
-
-        Integer serverPort = null;
-        Integer proxyClientId = null;
-        try {
-            if (serverPortStr != null && !serverPortStr.isEmpty()) {
-                serverPort = Integer.parseInt(serverPortStr);
-            }
-            if (proxyClientIdStr != null && !proxyClientIdStr.isEmpty()) {
-                proxyClientId = Integer.parseInt(proxyClientIdStr);
-            }
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "Invalid number format for serverPort or proxyClientId");
-            return;
-        }
+        ProxyClientReq proxyClientReq = RequestUtil.getParamsObj(ctx, ProxyClientReq.class);
 
         // 执行分页查询
-        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, q, serverPort,
-                proxyClientId);
+        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page,
+                proxyClientReq.getQ(), proxyClientReq.getServerPort(),
+                proxyClientReq.getProxyClientId());
 
         // 返回结果
         ResponseUtil.success(ctx, result);
@@ -99,13 +70,12 @@ public class ProxyClientRuleController {
 
     private void getProxyClientRuleDetail(RoutingContext ctx) {
         // 获取ID参数
-        String idParam = ctx.request().getParam("id");
-        if (idParam == null || idParam.isEmpty()) {
+        Integer id = RequestUtil.getParamInt(ctx, "id");
+        if (id == null) {
             ResponseUtil.error(ctx, 400, "Missing required parameter: id");
             return;
         }
 
-        Integer id = Integer.parseInt(idParam);
         ProxyClientRule rule = proxyClientRuleService.getProxyClientRuleById(id);
 
         if (rule == null) {
@@ -118,14 +88,11 @@ public class ProxyClientRuleController {
     }
 
     private void addProxyClientRule(RoutingContext ctx) {
-        // 从请求体获取JSON数据
-        String bodyStr = ctx.body().asString();
-        if (bodyStr == null || bodyStr.isEmpty()) {
+        ProxyClientRule rule = RequestUtil.getBodyObj(ctx, ProxyClientRule.class);
+        if (rule == null) {
             ResponseUtil.error(ctx, 400, "Request body is required");
             return;
         }
-        // 创建ProxyClientRule对象
-        ProxyClientRule rule = JsonUtil.parseJson(bodyStr, ProxyClientRule.class);
         // 保存到数据库
         ProxyClientRule newRule = proxyClientRuleService.addProxyClientRule(rule);
 
@@ -134,19 +101,11 @@ public class ProxyClientRuleController {
     }
 
     private void updateProxyClientRule(RoutingContext ctx) {
-        // 从请求体获取JSON数据
-        JsonObject body = ctx.body().asJsonObject();
-        if (body == null || !body.containsKey("id")) {
-            ResponseUtil.error(ctx, 400, "Request body with id is required");
+        ProxyClientRule rule = RequestUtil.getBodyObj(ctx, ProxyClientRule.class);
+        if (rule == null) {
+            ResponseUtil.error(ctx, 400, "Request body is required");
             return;
         }
-
-        ProxyClientRule rule = new ProxyClientRule();
-        rule.setId(body.getInteger("id"));
-        rule.setName(body.getString("name"));
-        rule.setServerPort(body.getInteger("serverPort"));
-        rule.setClientAddress(body.getString("clientAddress"));
-        rule.setEnableFlag(body.getBoolean("enableFlag", true));
         ProxyClientRule existingRule = proxyClientRuleService.updateProxyClientRule(rule);
 
         // 返回成功响应
@@ -155,13 +114,11 @@ public class ProxyClientRuleController {
 
     private void deleteProxyClientRule(RoutingContext ctx) {
         // 获取ID参数
-        String idParam = ctx.request().getParam("id");
-        if (idParam == null || idParam.isEmpty()) {
+        Integer id = RequestUtil.getParamInt(ctx, "id");
+        if (id == null) {
             ResponseUtil.error(ctx, 400, "Missing required parameter: id");
             return;
         }
-
-        Integer id = Integer.parseInt(idParam);
         boolean deleted = proxyClientRuleService.deleteProxyClientRule(id);
 
         // 从数据库删除

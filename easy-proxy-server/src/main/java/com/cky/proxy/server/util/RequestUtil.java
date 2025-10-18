@@ -4,7 +4,9 @@ import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RequestUtil {
 
     /**
@@ -30,5 +32,34 @@ public class RequestUtil {
         }
 
         return hutoolPage;
+    }
+
+    public static <T> T getBodyObj(RoutingContext ctx, Class<T> clazz) {
+        String bodyStr = ctx.body().asString();
+        if (bodyStr == null || bodyStr.isEmpty()) {
+            return null;
+        }
+        return JsonUtil.parseJson(bodyStr, clazz);
+    }
+
+    public static <T> T getParamsObj(RoutingContext ctx, Class<T> clazz) {
+        String paramStr = ctx.request().params().toString();
+        if (paramStr == null || paramStr.isEmpty()) {
+            return null;
+        }
+        return JsonUtil.parseJson(paramStr, clazz);
+    }
+
+    public static Integer getParamInt(RoutingContext ctx, String paramName) {
+        String paramStr = ctx.request().getParam(paramName);
+        if (paramStr == null || paramStr.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(paramStr);
+        } catch (NumberFormatException e) {
+            log.error("Failed to parse int parameter: {}", paramStr, e);
+            return null;
+        }
     }
 }
