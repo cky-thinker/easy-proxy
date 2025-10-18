@@ -2,112 +2,102 @@
   <div class="p-6 bg-gray-50 min-h-screen">
     <!-- 使用 Element Plus 消息通知（ElMessage）替代自定义 Toast -->
 
-    <!-- 页面标题和操作按钮 -->
+    <!-- 页面标题 -->
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">账号管理</h1>
         <p class="text-gray-600 mt-1">管理系统用户账号和权限</p>
       </div>
-      <el-button type="primary" @click="() => { showAddModal = true; showClientModal = true; }">
-        <el-icon class="mr-1">
-          <Plus />
-        </el-icon>
-        新增账号
-      </el-button>
     </div>
 
-    <!-- 搜索和筛选 -->
+    <!-- 搜索与操作 -->
     <div class="bg-white rounded-lg mb-6 p-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <div class="flex-1 max-w-md">
-          <el-input v-model="searchQuery" placeholder="搜索用户名或邮箱..." clearable>
+      <el-form :model="queryForm" inline label-position="left">
+        <el-form-item label="搜索">
+          <el-input v-model="queryForm.searchQuery" placeholder="搜索用户名或邮箱..." clearable>
             <template #prefix>
               <el-icon>
                 <Search />
               </el-icon>
             </template>
           </el-input>
-        </div>
-        <div class="flex space-x-4">
-          <el-select v-model="enbaleFlagFilter" placeholder="全部状态" clearable class="w-40">
-            <el-option label="激活" :value="true" />
-            <el-option label="禁用" :value="false" />
+        </el-form-item>
+        <el-form-item label="启用状态">
+          <el-select v-model="queryForm.enableFilter" placeholder="全部" class="w-40">
+            <el-option label="全部" value="" />
+            <el-option label="激活" value="enabled" />
+            <el-option label="禁用" value="disabled" />
           </el-select>
-        </div>
-      </div>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleQuery">
+            <el-icon class="mr-1">
+              <Search />
+            </el-icon>
+            查询
+          </el-button>
+          <el-button type="success" @click="openAddModal" class="!ml-8">
+            <el-icon class="mr-1">
+              <Plus />
+            </el-icon>
+            新增
+          </el-button>
+        </el-form-item>
+      </el-form>
     </div>
 
     <!-- 账号列表 -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户信息</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">启用状态</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后登录</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 h-10 w-10">
-                    <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <span class="text-indigo-600 font-medium text-sm">
-                        {{ user.username.charAt(0).toUpperCase() }}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
-                    <div class="text-sm text-gray-500">{{ user.email }}</div>
+        <el-table :data="users" v-loading="loading">
+          <el-table-column label="用户信息" min-width="320">
+            <template #default="{ row }">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10">
+                  <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <span class="text-indigo-600 font-medium text-sm">
+                      {{ row.username?.charAt(0)?.toUpperCase() || '?' }}
+                    </span>
                   </div>
                 </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="[
-                  'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                  getRoleColor(user.role)
-                ]">
-                  {{ getRoleText(user.role) }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <TagEnableFlag :value="user.enableFlag" />
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ user.lastLogin || '从未登录' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ user.createdAt }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                  <button @click="editUser(user)" class="text-indigo-600 hover:text-indigo-900">
-                    编辑
-                  </button>
-                  <!-- <button
-                    @click="showPermissionsModal(user)"
-                    class="text-blue-600 hover:text-blue-900"
-                  >
-                    权限
-                  </button> -->
-                  <button @click="toggleUserStatus(user)"
-                    :class="user.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'">
-                    {{ user.enableFlag ? '禁用' : '激活' }}
-                  </button>
-                  <button @click="deleteUser(user)" class="text-red-600 hover:text-red-900">
-                    删除
-                  </button>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">{{ row.username }}</div>
+                  <div class="text-sm text-gray-500">{{ row.email }}</div>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="角色" width="120">
+            <template #default="{ row }">
+              <el-tag :type="getRoleType(row.role)">{{ getRoleText(row.role) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="启用" width="120">
+            <template #default="{ row }">
+              <TagEnableFlag :value="row.enableFlag" />
+            </template>
+          </el-table-column>
+          <el-table-column label="最后登录" width="180">
+            <template #default="{ row }">
+              <span class="text-sm text-gray-900">{{ row.lastLogin || '从未登录' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createdAt" label="创建时间" width="180" />
+          <el-table-column label="操作" width="350" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" text @click="editUser(row)">编辑</el-button>
+              <el-button type="primary" text @click="showPermissionsModal(row)">权限</el-button>
+              <el-button :type="row.enableFlag ? 'warning' : 'success'" text @click="toggleUserStatus(row)">
+                {{ row.enableFlag ? '禁用' : '激活' }}
+              </el-button>
+              <el-popconfirm title="确认删除该账号？" @confirm="deleteUserAction(row)">
+                <template #reference>
+                  <el-button type="danger" text>删除</el-button>
+                </template>
+              </el-popconfirm>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
     </div>
 
@@ -183,7 +173,7 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import type { Permission, User } from '../api/types'
 import {
   createUser as createUserApi,
@@ -204,8 +194,10 @@ const pageSize = ref(10)
 const total = ref(0)
 const totalPage = ref(1)
 const loading = ref(false)
-const searchQuery = ref('')
-const enbaleFlagFilter = ref(undefined)
+const queryForm = reactive({
+  searchQuery: '',
+  enableFilter: ''
+})
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showClientModal = ref(false)
@@ -277,17 +269,16 @@ const permissions = ref<Record<string, Permission>>({
   }
 })
 
-// 计算属性：展示直接使用服务端返回的列表
-const filteredUsers = computed(() => users.value)
+// 使用服务端返回的列表，直接绑定 users 到 el-table
 
 // 工具函数
-const getRoleColor = (role: string): string => {
-  const colors = {
-    admin: 'bg-red-100 text-red-800',
-    user: 'bg-blue-100 text-blue-800',
-    viewer: 'bg-gray-100 text-gray-800'
-  }
-  return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800'
+const getRoleType = (role: string): 'danger' | 'primary' | 'info' => {
+  const types = {
+    admin: 'danger',
+    user: 'primary',
+    viewer: 'info'
+  } as const
+  return types[role as keyof typeof types] || 'info'
 }
 
 const getRoleText = (role: string): string => {
@@ -300,28 +291,37 @@ const getRoleText = (role: string): string => {
 }
 
 // 账号操作
+const openAddModal = () => {
+  showAddModal.value = true
+  showEditModal.value = false
+  showClientModal.value = true
+  currentUser.value = {
+    id: 0,
+    username: '',
+    email: '',
+    password: '',
+    role: 'user',
+    enableFlag: true,
+    createdAt: '',
+    permissions: {}
+  }
+}
+
 const editUser = (user: User) => {
   currentUser.value = { ...user }
   showEditModal.value = true
   showClientModal.value = true
 }
 
-const deleteUser = async (user: User) => {
+const deleteUserAction = async (user: User) => {
   try {
-    await ElMessageBox.confirm(`确定要删除账号 \"${user.username}\" 吗？`, '提示', {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
     await deleteUserApi(user.id)
     const index = users.value.findIndex(a => a.id === user.id)
     if (index > -1) users.value.splice(index, 1)
     showToast('删除成功', 'success')
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除账号失败:', error)
-      showToast('删除失败', 'error')
-    }
+    console.error('删除账号失败:', error)
+    showToast('删除失败', 'error')
   }
 }
 
@@ -427,15 +427,23 @@ const closePermissionsModal = () => {
 const loadUsers = async () => {
   try {
     loading.value = true
-    const page = currentPage.value
-    const hasQueryFilter = !!searchQuery.value
-    const hasEnableFlagFilter = enbaleFlagFilter.value !== undefined
+    const hasQueryFilter = !!queryForm.searchQuery
+    const hasEnableFlagFilter = queryForm.enableFilter !== ''
 
-    let pageData = await getUsersApi({
-      page: page,
+    const enableVal =
+      hasEnableFlagFilter
+        ? queryForm.enableFilter === 'enabled'
+          ? true
+          : queryForm.enableFilter === 'disabled'
+            ? false
+            : undefined
+        : undefined
+
+    const pageData = await getUsersApi({
+      page: currentPage.value,
       pageSize: pageSize.value,
-      q: hasQueryFilter ? searchQuery.value : undefined,
-      enableFlag: hasEnableFlagFilter ? enbaleFlagFilter.value : undefined
+      q: hasQueryFilter ? queryForm.searchQuery : undefined,
+      enableFlag: enableVal
     })
 
     users.value = (pageData.list || [])
@@ -448,15 +456,23 @@ const loadUsers = async () => {
   }
 }
 
+const handleQuery = async () => {
+  currentPage.value = 0
+  await loadUsers()
+}
+
 onMounted(() => {
   loadUsers()
 })
 
 // 监听筛选条件变化，重置到第一页并调用服务端搜索
-watch([searchQuery, enbaleFlagFilter], async () => {
-  currentPage.value = 0
-  await loadUsers()
-})
+watch(
+  () => [queryForm.searchQuery, queryForm.enableFilter],
+  async () => {
+    currentPage.value = 0
+    await loadUsers()
+  }
+)
 
 // 分页处理
 const onPageChange = async (page: number) => {

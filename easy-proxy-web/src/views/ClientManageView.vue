@@ -164,16 +164,13 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, reactive, ref, watch } from 'vue'
 import {
-  addClientRule,
   createClient,
   deleteClient as deleteClientApi,
-  deleteClientRule,
-  getClientRules,
   getClients,
   toggleClientStatus as toggleClientStatusApi,
-  updateClient,
-  updateClientRule
+  updateClient
 } from '../api/clients'
+import { addClientRule, deleteClientRule, getClientRules, updateClientRule } from '../api/proxyClientRule'
 import type { ProxyClientConfig } from '../api/types'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
 import TagStatus from '../components/TagStatus.vue'

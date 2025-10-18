@@ -14,7 +14,9 @@
         <el-form-item label="搜索">
           <el-input v-model="queryForm.nameQuery" placeholder="规则名称" clearable>
             <template #prefix>
-              <el-icon><Search /></el-icon>
+              <el-icon>
+                <Search />
+              </el-icon>
             </template>
           </el-input>
         </el-form-item>
@@ -29,11 +31,15 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery">
-            <el-icon class="mr-1"><Search /></el-icon>
+            <el-icon class="mr-1">
+              <Search />
+            </el-icon>
             查询
           </el-button>
           <el-button type="success" @click="openAddRuleModal" class="!ml-8">
-            <el-icon class="mr-1"><Plus /></el-icon>
+            <el-icon class="mr-1">
+              <Plus />
+            </el-icon>
             新增
           </el-button>
         </el-form-item>
@@ -65,92 +71,76 @@
         </el-table>
       </div>
       <!-- 分页组件：切换为 Element Plus el-pagination -->
-      <el-pagination
-        class="mt-4 flex justify-end"
-        background
-        :current-page="currentPage + 1"
-        :page-size="pageSize"
-        :total="total"
-        layout="prev, pager, next, total"
-        @current-change="onCurrentPageChange"
-      />
+      <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage + 1" :page-size="pageSize"
+        :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
     </div>
-  <!-- 新增规则模态框（使用 Element Plus el-dialog 替代） -->
-  <el-dialog
-    v-model="showAddRuleModal"
-    title="新增规则"
-    width="600px"
-    :close-on-click-modal="false"
-    @close="closeAddRuleModal"
-  >
-    <el-form :model="newRule" :rules="ruleFormRules" ref="addRuleFormRef" label-position="top">
-      <el-form-item label="客户端" prop="proxyClientId">
-        <el-select v-model="newRule.proxyClientId" placeholder="请选择客户端" class="w-full">
-          <el-option label="请选择客户端" :value="undefined" />
-          <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="规则名称" prop="name">
-        <el-input v-model="newRule.name" placeholder="规则名称" class="w-full" />
-      </el-form-item>
-      <el-form-item label="服务端口" prop="serverPort">
-        <el-input v-model="newRule.serverPort" placeholder="服务端口" class="w-full" />
-      </el-form-item>
-      <el-form-item label="客户端地址" prop="clientAddress">
-        <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
-      </el-form-item>
-      <el-form-item>
-        <el-checkbox v-model="newRule.enableFlag">启用</el-checkbox>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="closeAddRuleModal">取消</el-button>
-      <el-button type="primary" @click="saveRule">保存</el-button>
-    </template>
-  </el-dialog>
-  <!-- 编辑规则模态框（使用 Element Plus el-dialog 替代） -->
-  <el-dialog
-    v-model="showEditRuleModal"
-    title="编辑规则"
-    width="600px"
-    :close-on-click-modal="false"
-    @close="closeEditRuleModal"
-  >
-    <el-form :model="editRule" :rules="ruleFormRulesEdit" ref="editRuleFormRef" label-position="top">
-      <el-form-item label="规则名称" prop="name">
-        <el-input v-model="editRule.name" placeholder="规则名称" class="w-full" />
-      </el-form-item>
-      <el-form-item label="服务端口" prop="serverPort">
-        <el-input v-model="editRule.serverPort" class="w-full" />
-      </el-form-item>
-      <el-form-item label="客户端">
-        <el-input :model-value="clientNameMap[editRule.proxyClientId || 0] || '-'" disabled class="w-full" />
-      </el-form-item>
-      <el-form-item label="客户端地址" prop="clientAddress">
-        <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
-      </el-form-item>
-      <el-form-item>
-        <el-checkbox v-model="editRule.enableFlag">启用</el-checkbox>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="closeEditRuleModal">取消</el-button>
-      <el-button type="primary" @click="saveEditRule">保存</el-button>
-    </template>
-  </el-dialog>
-</div>
+    <!-- 新增规则模态框（使用 Element Plus el-dialog 替代） -->
+    <el-dialog v-model="showAddRuleModal" title="新增规则" width="600px" :close-on-click-modal="false"
+      @close="closeAddRuleModal">
+      <el-form :model="newRule" :rules="ruleFormRules" ref="addRuleFormRef" label-position="top">
+        <el-form-item label="客户端" prop="proxyClientId">
+          <el-select v-model="newRule.proxyClientId" placeholder="请选择客户端" class="w-full">
+            <el-option label="请选择客户端" :value="undefined" />
+            <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="规则名称" prop="name">
+          <el-input v-model="newRule.name" placeholder="规则名称" class="w-full" />
+        </el-form-item>
+        <el-form-item label="服务端口" prop="serverPort">
+          <el-input v-model="newRule.serverPort" placeholder="服务端口" class="w-full" />
+        </el-form-item>
+        <el-form-item label="客户端地址" prop="clientAddress">
+          <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
+        </el-form-item>
+        <el-form-item>
+          <el-checkbox v-model="newRule.enableFlag">启用</el-checkbox>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="closeAddRuleModal">取消</el-button>
+        <el-button type="primary" @click="saveRule">保存</el-button>
+      </template>
+    </el-dialog>
+    <!-- 编辑规则模态框（使用 Element Plus el-dialog 替代） -->
+    <el-dialog v-model="showEditRuleModal" title="编辑规则" width="600px" :close-on-click-modal="false"
+      @close="closeEditRuleModal">
+      <el-form :model="editRule" :rules="ruleFormRulesEdit" ref="editRuleFormRef" label-position="top">
+        <el-form-item label="规则名称" prop="name">
+          <el-input v-model="editRule.name" placeholder="规则名称" class="w-full" />
+        </el-form-item>
+        <el-form-item label="服务端口" prop="serverPort">
+          <el-input v-model="editRule.serverPort" class="w-full" />
+        </el-form-item>
+        <el-form-item label="客户端">
+          <el-input :model-value="clientNameMap[editRule.proxyClientId || 0] || '-'" disabled class="w-full" />
+        </el-form-item>
+        <el-form-item label="客户端地址" prop="clientAddress">
+          <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
+        </el-form-item>
+        <el-form-item>
+          <el-checkbox v-model="editRule.enableFlag">启用</el-checkbox>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="closeEditRuleModal">取消</el-button>
+        <el-button type="primary" @click="saveEditRule">保存</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
 import type { ExtendedProxyClientConfig } from '@/api/clients'
-import { addClientRule, getAllClients, getClientRulesPage, updateClientRule } from '@/api/clients'
+import { getAllClients } from '@/api/clients'
+import { addClientRule, getClientRulesPage, updateClientRule } from '@/api/proxyClientRule'
 import type { ProxyRule } from '@/api/types'
 
 
 import TagEnableFlag from '@/components/TagEnableFlag.vue'
-import { computed, onMounted, ref, watch, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 const rules = ref<ProxyRule[]>([])
 const clients = ref<ExtendedProxyClientConfig[]>([])
@@ -353,5 +343,4 @@ const saveEditRule = async () => {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
