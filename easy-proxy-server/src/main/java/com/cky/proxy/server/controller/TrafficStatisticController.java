@@ -10,8 +10,8 @@ import com.cky.proxy.server.domain.entity.TrafficStatisticClientRuleReport;
 import com.cky.proxy.server.domain.entity.TrafficStatisticDayReport;
 import com.cky.proxy.server.domain.entity.TrafficStatisticHourReport;
 import com.cky.proxy.server.service.TrafficStatisticService;
-import com.cky.proxy.server.util.PageUtil;
-import com.cky.proxy.server.util.VertxUtil;
+import com.cky.proxy.server.util.RequestUtil;
+import com.cky.proxy.server.util.ResponseUtil;
 
 import cn.hutool.db.Page;
 import io.vertx.ext.web.Router;
@@ -57,38 +57,38 @@ public class TrafficStatisticController {
     }
 
     private void getClientReportsPageable(RoutingContext ctx) {
-        Page page = PageUtil.getPage(ctx);
+        Page page = RequestUtil.getPage(ctx);
         Integer proxyClientId = getIntegerParam(ctx, "proxyClientId");
         Date startDate = getDateParam(ctx, "startDate");
         Date endDate = getDateParam(ctx, "endDate");
         PageResult<TrafficStatisticClientReport> result = statisticService.getClientReportsPageable(page, proxyClientId, startDate, endDate);
-        VertxUtil.success(ctx, result);
+        ResponseUtil.success(ctx, result);
     }
 
     private void getClientRuleReportsPageable(RoutingContext ctx) {
-        Page page = PageUtil.getPage(ctx);
+        Page page = RequestUtil.getPage(ctx);
         Integer proxyClientRuleId = getIntegerParam(ctx, "proxyClientRuleId");
         Date startDate = getDateParam(ctx, "startDate");
         Date endDate = getDateParam(ctx, "endDate");
         PageResult<TrafficStatisticClientRuleReport> result = statisticService.getClientRuleReportsPageable(page, proxyClientRuleId, startDate, endDate);
-        VertxUtil.success(ctx, result);
+        ResponseUtil.success(ctx, result);
     }
 
     private void getDayReportsPageable(RoutingContext ctx) {
-        Page page = PageUtil.getPage(ctx);
+        Page page = RequestUtil.getPage(ctx);
         Integer proxyClientRuleId = getIntegerParam(ctx, "proxyClientRuleId");
         Date startDate = getDateParam(ctx, "startDate");
         Date endDate = getDateParam(ctx, "endDate");
         PageResult<TrafficStatisticDayReport> result = statisticService.getDayReportsPageable(page, proxyClientRuleId, startDate, endDate);
-        VertxUtil.success(ctx, result);
+        ResponseUtil.success(ctx, result);
     }
 
     private void getHourReportsPageable(RoutingContext ctx) {
-        Page page = PageUtil.getPage(ctx);
+        Page page = RequestUtil.getPage(ctx);
         Integer proxyClientRuleId = getIntegerParam(ctx, "proxyClientRuleId");
         Date startDate = getDateParam(ctx, "startDate");
         Date endDate = getDateParam(ctx, "endDate");
         PageResult<TrafficStatisticHourReport> result = statisticService.getHourReportsPageable(page, proxyClientRuleId, startDate, endDate);
-        VertxUtil.success(ctx, result);
+        ResponseUtil.success(ctx, result);
     }
 }

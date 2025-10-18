@@ -7,8 +7,8 @@ import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.domain.entity.ProxyClient;
-import com.cky.proxy.server.util.PageUtil;
-import com.cky.proxy.server.util.VertxUtil;
+import com.cky.proxy.server.util.RequestUtil;
+import com.cky.proxy.server.util.ResponseUtil;
 
 import cn.hutool.db.Page;
 import io.vertx.core.json.JsonObject;
@@ -43,15 +43,15 @@ public class ProxyClientController {
     private void getAllProxyClients(RoutingContext ctx) {
         try {
             List<ProxyClient> list = proxyClientService.getProxyClients();
-            VertxUtil.success(ctx, list);
+            ResponseUtil.success(ctx, list);
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "Failed to get proxy clients: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "Failed to get proxy clients: " + e.getMessage());
         }
     }
 
     private void getProxyClientsPageable(RoutingContext ctx) {
         // 创建分页对象
-        Page page = PageUtil.getPage(ctx);
+        Page page = RequestUtil.getPage(ctx);
         // 获取查询参数
         String q = ctx.request().getParam("q");
         String status = ctx.request().getParam("status");
@@ -63,14 +63,14 @@ public class ProxyClientController {
         // 执行分页查询
         PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, q, status, enableFlag);
         // 返回结果
-        VertxUtil.success(ctx, result);
+        ResponseUtil.success(ctx, result);
     }
 
     private void getProxyClientDetail(RoutingContext ctx) {
         // 获取ID参数
         String idParam = ctx.request().getParam("id");
         if (idParam == null || idParam.isEmpty()) {
-            VertxUtil.error(ctx, 400, "Missing required parameter: id");
+            ResponseUtil.error(ctx, 400, "Missing required parameter: id");
             return;
         }
 
@@ -79,13 +79,13 @@ public class ProxyClientController {
             ProxyClient proxyClient = proxyClientService.getProxyClientById(id);
 
             if (proxyClient == null) {
-                VertxUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
+                ResponseUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
                 return;
             }
 
-            VertxUtil.response(ctx, Result.success(proxyClient));
+            ResponseUtil.response(ctx, Result.success(proxyClient));
         } catch (NumberFormatException e) {
-            VertxUtil.error(ctx, 400, "Invalid id format: " + idParam);
+            ResponseUtil.error(ctx, 400, "Invalid id format: " + idParam);
         }
     }
 
@@ -94,7 +94,7 @@ public class ProxyClientController {
             // 从请求体获取JSON数据
             JsonObject body = ctx.body().asJsonObject();
             if (body == null) {
-                VertxUtil.error(ctx, 400, "Request body is required");
+                ResponseUtil.error(ctx, 400, "Request body is required");
                 return;
             }
 
@@ -111,9 +111,9 @@ public class ProxyClientController {
             proxyClientService.addProxyClient(proxyClient);
 
             // 返回成功响应
-            VertxUtil.success(ctx, proxyClient);
+            ResponseUtil.success(ctx, proxyClient);
         } catch (Exception e) {
-            VertxUtil.error(ctx, "Failed to add proxy client: " + e.getMessage());
+            ResponseUtil.error(ctx, "Failed to add proxy client: " + e.getMessage());
         }
     }
 
@@ -122,7 +122,7 @@ public class ProxyClientController {
             // 从请求体获取JSON数据
             JsonObject body = ctx.body().asJsonObject();
             if (body == null || !body.containsKey("id")) {
-                VertxUtil.error(ctx, 400, "Request body with id is required");
+                ResponseUtil.error(ctx, 400, "Request body with id is required");
                 return;
             }
 
@@ -134,9 +134,9 @@ public class ProxyClientController {
             // 保存到数据库
             proxyClient = proxyClientService.updateProxyClient(proxyClient);
             // 返回成功响应
-            VertxUtil.success(ctx, proxyClient);
+            ResponseUtil.success(ctx, proxyClient);
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "Failed to update proxy client: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "Failed to update proxy client: " + e.getMessage());
         }
     }
 
@@ -145,7 +145,7 @@ public class ProxyClientController {
             // 获取ID参数
             String idParam = ctx.request().getParam("id");
             if (idParam == null || idParam.isEmpty()) {
-                VertxUtil.error(ctx, 400, "Missing required parameter: id");
+                ResponseUtil.error(ctx, 400, "Missing required parameter: id");
                 return;
             }
 
@@ -153,16 +153,16 @@ public class ProxyClientController {
             // 从数据库删除
             boolean deleted = proxyClientService.deleteProxyClient(id);
             if (!deleted) {
-                VertxUtil.error(ctx, 404, "Proxy client not found");
+                ResponseUtil.error(ctx, 404, "Proxy client not found");
                 return;
             }
 
             // 返回成功响应
-            VertxUtil.success(ctx, null);
+            ResponseUtil.success(ctx, null);
         } catch (NumberFormatException e) {
-            VertxUtil.error(ctx, 400, "Invalid id format");
+            ResponseUtil.error(ctx, 400, "Invalid id format");
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "Failed to delete proxy client: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "Failed to delete proxy client: " + e.getMessage());
         }
     }
 }

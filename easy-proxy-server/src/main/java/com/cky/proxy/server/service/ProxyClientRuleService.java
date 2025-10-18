@@ -69,16 +69,7 @@ public class ProxyClientRuleService {
     /**
      * 添加代理客户端规则
      */
-    public ProxyClientRule addProxyClientRule(JsonObject body) {
-        ProxyClientRule rule = new ProxyClientRule();
-        rule.setName(body.getString("name"));
-        rule.setProxyClientId(body.getInteger("proxyClientId"));
-        rule.setServerPort(body.getInteger("serverPort"));
-        rule.setClientAddress(body.getString("clientAddress"));
-        rule.setEnableFlag(body.getBoolean("enableFlag", false));
-        rule.setCreateBy(body.getString("createBy", "system"));
-        rule.setCreateTime(new Date());
-
+    public ProxyClientRule addProxyClientRule(ProxyClientRule rule) {
         proxyClientRuleDao.insert(rule);
         return rule;
     }

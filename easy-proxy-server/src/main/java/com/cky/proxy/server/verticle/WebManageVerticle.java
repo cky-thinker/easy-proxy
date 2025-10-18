@@ -7,7 +7,7 @@ import com.cky.proxy.server.controller.SysLogController;
 import com.cky.proxy.server.controller.UserController;
 import com.cky.proxy.server.controller.TrafficStatisticController;
 import com.cky.proxy.server.domain.dto.Result;
-import com.cky.proxy.server.util.VertxUtil;
+import com.cky.proxy.server.util.ResponseUtil;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -82,7 +82,7 @@ public class WebManageVerticle extends AbstractVerticle {
             }
 
             log.error("web服务异常：" + errorMessage, failure);
-            VertxUtil.response(ctx, Result.error(errorMessage));
+            ResponseUtil.response(ctx, Result.error(errorMessage));
         });
 
         // 添加JWT认证中间件到API路由

@@ -4,7 +4,7 @@ import com.cky.proxy.server.domain.dto.Result;
 
 import io.vertx.ext.web.RoutingContext;
 
-public class VertxUtil {
+public class ResponseUtil {
 
     /**
      * 响应成功结果

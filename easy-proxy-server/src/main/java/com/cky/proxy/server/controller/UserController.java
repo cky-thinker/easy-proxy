@@ -11,8 +11,8 @@ import com.cky.proxy.server.domain.dto.UserInfo;
 import com.cky.proxy.server.domain.entity.SysUser;
 import com.cky.proxy.server.service.UserService;
 import com.cky.proxy.server.util.JsonUtil;
-import com.cky.proxy.server.util.PageUtil;
-import com.cky.proxy.server.util.VertxUtil;
+import com.cky.proxy.server.util.RequestUtil;
+import com.cky.proxy.server.util.ResponseUtil;
 
 import cn.hutool.core.util.StrUtil;
 import io.vertx.codegen.annotations.Nullable;
@@ -54,7 +54,7 @@ public class UserController {
         // 从请求体获取JSON数据
         String body = ctx.body().asString();
         if (StrUtil.isEmpty(body)) {
-            VertxUtil.response(ctx, Result.error("请求体不能为空"));
+            ResponseUtil.response(ctx, Result.error("请求体不能为空"));
             return;
         }
         // 获取用户名、密码和验证码信息
@@ -62,9 +62,9 @@ public class UserController {
 
         try {
             UserInfo userInfo = authService.login(loginReq);
-            VertxUtil.response(ctx, Result.success(userInfo, "登录成功"));
+            ResponseUtil.response(ctx, Result.success(userInfo, "登录成功"));
         } catch (Exception e) {
-            VertxUtil.response(ctx, Result.error("登录失败: " + e.getMessage()));
+            ResponseUtil.response(ctx, Result.error("登录失败: " + e.getMessage()));
         }
     }
 
@@ -72,9 +72,9 @@ public class UserController {
         try {
             CaptchaImage captchaImage = authService.captchaImage();
             // 返回验证码信息
-            VertxUtil.response(ctx, Result.success(captchaImage, "获取验证码成功"));
+            ResponseUtil.response(ctx, Result.success(captchaImage, "获取验证码成功"));
         } catch (Exception e) {
-            VertxUtil.response(ctx, Result.error("生成验证码失败: " + e.getMessage()));
+            ResponseUtil.response(ctx, Result.error("生成验证码失败: " + e.getMessage()));
         }
     }
 
@@ -83,9 +83,9 @@ public class UserController {
             ConfigProperty configProperty = ConfigProperty.getInstance();
             HashMap<String, Object> map = new HashMap<>();
             map.put("captchaImageEnable", configProperty.getServer().getCatureImageEnable());
-            VertxUtil.response(routingcontext1, Result.success(map, "获取配置成功"));
+            ResponseUtil.response(routingcontext1, Result.success(map, "获取配置成功"));
         } catch (Exception e) {
-            VertxUtil.response(routingcontext1, Result.error("获取配置失败: " + e.getMessage()));
+            ResponseUtil.response(routingcontext1, Result.error("获取配置失败: " + e.getMessage()));
         }
     }
 
@@ -96,34 +96,34 @@ public class UserController {
             @Nullable
             String enableFlag = ctx.request().getParam("enableFlag");
             PageResult<SysUser> pageResult = authService.getUsersPageable(
-                    PageUtil.getPage(ctx),
+                    RequestUtil.getPage(ctx),
                     ctx.request().getParam("q"),
                     enableFlag != null ? Boolean.parseBoolean(enableFlag) : null);
 
-            VertxUtil.success(ctx, pageResult);
+            ResponseUtil.success(ctx, pageResult);
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "查询账户失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "查询账户失败: " + e.getMessage());
         }
     }
 
     private void getUserDetail(RoutingContext ctx) {
         String idParam = ctx.request().getParam("id");
         if (StrUtil.isEmpty(idParam)) {
-            VertxUtil.error(ctx, 400, "缺少参数: id");
+            ResponseUtil.error(ctx, 400, "缺少参数: id");
             return;
         }
         try {
             Integer id = Integer.parseInt(idParam);
             SysUser user = authService.getUserById(id);
             if (user == null) {
-                VertxUtil.error(ctx, 404, "账号不存在");
+                ResponseUtil.error(ctx, 404, "账号不存在");
                 return;
             }
-            VertxUtil.success(ctx, user);
+            ResponseUtil.success(ctx, user);
         } catch (NumberFormatException e) {
-            VertxUtil.error(ctx, 400, "id 格式错误");
+            ResponseUtil.error(ctx, 400, "id 格式错误");
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "获取账户详情失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "获取账户详情失败: " + e.getMessage());
         }
     }
 
@@ -131,7 +131,7 @@ public class UserController {
         try {
             io.vertx.core.json.JsonObject body = ctx.body().asJsonObject();
             if (body == null) {
-                VertxUtil.error(ctx, 400, "请求体不能为空");
+                ResponseUtil.error(ctx, 400, "请求体不能为空");
                 return;
             }
             SysUser user = new SysUser();
@@ -142,9 +142,9 @@ public class UserController {
             String status = body.getString("status", "active");
             user.setEnableFlag("active".equalsIgnoreCase(status));
             SysUser created = authService.createUser(user);
-            VertxUtil.success(ctx, created);
+            ResponseUtil.success(ctx, created);
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "创建账户失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "创建账户失败: " + e.getMessage());
         }
     }
 
@@ -152,18 +152,18 @@ public class UserController {
         try {
             String idParam = ctx.request().getParam("id");
             if (StrUtil.isEmpty(idParam)) {
-                VertxUtil.error(ctx, 400, "缺少参数: id");
+                ResponseUtil.error(ctx, 400, "缺少参数: id");
                 return;
             }
             Integer id = Integer.parseInt(idParam);
             io.vertx.core.json.JsonObject body = ctx.body().asJsonObject();
             if (body == null) {
-                VertxUtil.error(ctx, 400, "请求体不能为空");
+                ResponseUtil.error(ctx, 400, "请求体不能为空");
                 return;
             }
             SysUser user = authService.getUserById(id);
             if (user == null) {
-                VertxUtil.error(ctx, 404, "账号不存在");
+                ResponseUtil.error(ctx, 404, "账号不存在");
                 return;
             }
             if (body.getString("username") != null)
@@ -175,11 +175,11 @@ public class UserController {
             if (body.getString("status") != null)
                 user.setEnableFlag("active".equalsIgnoreCase(body.getString("status")));
             SysUser updated = authService.updateUser(user);
-            VertxUtil.success(ctx, updated);
+            ResponseUtil.success(ctx, updated);
         } catch (NumberFormatException e) {
-            VertxUtil.error(ctx, 400, "id 格式错误");
+            ResponseUtil.error(ctx, 400, "id 格式错误");
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "更新账户失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "更新账户失败: " + e.getMessage());
         }
     }
 
@@ -187,20 +187,20 @@ public class UserController {
         try {
             String idParam = ctx.request().getParam("id");
             if (StrUtil.isEmpty(idParam)) {
-                VertxUtil.error(ctx, 400, "缺少参数: id");
+                ResponseUtil.error(ctx, 400, "缺少参数: id");
                 return;
             }
             Integer id = Integer.parseInt(idParam);
             boolean ok = authService.deleteUser(id);
             if (!ok) {
-                VertxUtil.error(ctx, 404, "删除失败");
+                ResponseUtil.error(ctx, 404, "删除失败");
                 return;
             }
-            VertxUtil.success(ctx, null);
+            ResponseUtil.success(ctx, null);
         } catch (NumberFormatException e) {
-            VertxUtil.error(ctx, 400, "id 格式错误");
+            ResponseUtil.error(ctx, 400, "id 格式错误");
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "删除账户失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "删除账户失败: " + e.getMessage());
         }
     }
 
@@ -208,7 +208,7 @@ public class UserController {
         try {
             io.vertx.core.json.JsonObject body = ctx.body().asJsonObject();
             if (body == null || body.getJsonArray("ids") == null) {
-                VertxUtil.error(ctx, 400, "请求体缺少 ids");
+                ResponseUtil.error(ctx, 400, "请求体缺少 ids");
                 return;
             }
             java.util.List<Integer> ids = body.getJsonArray("ids").stream()
@@ -216,9 +216,9 @@ public class UserController {
                     .map(Integer::parseInt)
                     .collect(java.util.stream.Collectors.toList());
             authService.batchDeleteUsers(ids);
-            VertxUtil.success(ctx, null);
+            ResponseUtil.success(ctx, null);
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "批量删除失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "批量删除失败: " + e.getMessage());
         }
     }
 
@@ -226,21 +226,21 @@ public class UserController {
         try {
             String idParam = ctx.request().getParam("id");
             if (StrUtil.isEmpty(idParam)) {
-                VertxUtil.error(ctx, 400, "缺少参数: id");
+                ResponseUtil.error(ctx, 400, "缺少参数: id");
                 return;
             }
             Integer id = Integer.parseInt(idParam);
             io.vertx.core.json.JsonObject body = ctx.body().asJsonObject();
             if (body == null || StrUtil.isEmpty(body.getString("password"))) {
-                VertxUtil.error(ctx, 400, "请求体缺少 password");
+                ResponseUtil.error(ctx, 400, "请求体缺少 password");
                 return;
             }
             SysUser user = authService.resetPassword(id, body.getString("password"));
-            VertxUtil.success(ctx, user);
+            ResponseUtil.success(ctx, user);
         } catch (NumberFormatException e) {
-            VertxUtil.error(ctx, 400, "id 格式错误");
+            ResponseUtil.error(ctx, 400, "id 格式错误");
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "重置密码失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "重置密码失败: " + e.getMessage());
         }
     }
 
@@ -248,22 +248,22 @@ public class UserController {
         try {
             String idParam = ctx.request().getParam("id");
             if (StrUtil.isEmpty(idParam)) {
-                VertxUtil.error(ctx, 400, "缺少参数: id");
+                ResponseUtil.error(ctx, 400, "缺少参数: id");
                 return;
             }
             Integer id = Integer.parseInt(idParam);
             io.vertx.core.json.JsonObject body = ctx.body().asJsonObject();
             Boolean enableFlag = body == null ? null : body.getBoolean("enableFlag");
             if (enableFlag == null) {
-                VertxUtil.error(ctx, 400, "请求体缺少 enableFlag");
+                ResponseUtil.error(ctx, 400, "请求体缺少 enableFlag");
                 return;
             }
             SysUser user = authService.updateEnableFlag(id, enableFlag);
-            VertxUtil.success(ctx, user);
+            ResponseUtil.success(ctx, user);
         } catch (NumberFormatException e) {
-            VertxUtil.error(ctx, 400, "id 格式错误");
+            ResponseUtil.error(ctx, 400, "id 格式错误");
         } catch (Exception e) {
-            VertxUtil.error(ctx, 500, "更新状态失败: " + e.getMessage());
+            ResponseUtil.error(ctx, 500, "更新状态失败: " + e.getMessage());
         }
     }
 
@@ -280,7 +280,7 @@ public class UserController {
                 .put("actions", new io.vertx.core.json.JsonArray().add("查看").add("导出").add("清理")));
         list.add(new io.vertx.core.json.JsonObject().put("name", "系统设置").put("description", "管理系统配置和参数").put("actions",
                 new io.vertx.core.json.JsonArray().add("查看").add("修改")));
-        VertxUtil.success(ctx, list);
+        ResponseUtil.success(ctx, list);
     }
 
     private void searchUsers(RoutingContext ctx) {

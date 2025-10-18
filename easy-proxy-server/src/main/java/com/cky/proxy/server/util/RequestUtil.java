@@ -5,7 +5,7 @@ import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
 import io.vertx.ext.web.RoutingContext;
 
-public class PageUtil {
+public class RequestUtil {
 
     /**
      * 从请求上下文中创建分页对象
