@@ -6,8 +6,17 @@ import cn.hutool.db.sql.Order;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+
+import java.util.Set;
+
 @Slf4j
 public class RequestUtil {
+
+    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
      * 从请求上下文中创建分页对象
@@ -39,7 +48,17 @@ public class RequestUtil {
         if (bodyStr == null || bodyStr.isEmpty()) {
             return null;
         }
-        return JsonUtil.parseJson(bodyStr, clazz);
+        T obj = JsonUtil.parseJson(bodyStr, clazz);
+        if (obj == null) {
+            return null;
+        }
+        Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
+        if (!violations.isEmpty()) {
+            ConstraintViolationException ex = new ConstraintViolationException((Set) violations);
+            ctx.fail(400, ex);
+            throw ex;
+        }
+        return obj;
     }
 
     public static <T> T getParamsObj(RoutingContext ctx, Class<T> clazz) {
@@ -47,7 +66,17 @@ public class RequestUtil {
         if (paramStr == null || paramStr.isEmpty()) {
             return null;
         }
-        return JsonUtil.parseJson(paramStr, clazz);
+        T obj = JsonUtil.parseJson(paramStr, clazz);
+        if (obj == null) {
+            return null;
+        }
+        Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
+        if (!violations.isEmpty()) {
+            ConstraintViolationException ex = new ConstraintViolationException((Set) violations);
+            ctx.fail(400, ex);
+            throw ex;
+        }
+        return obj;
     }
 
     public static Integer getParamInt(RoutingContext ctx, String paramName) {

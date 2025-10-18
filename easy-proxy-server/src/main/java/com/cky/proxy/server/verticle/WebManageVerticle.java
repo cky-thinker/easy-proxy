@@ -63,26 +63,30 @@ public class WebManageVerticle extends AbstractVerticle {
         // 添加全局错误处理
         baseRouter.route().failureHandler(ctx -> {
             int statusCode = ctx.statusCode();
-            if (statusCode == -1) {
-                statusCode = 500;
-            }
-
             Throwable failure = ctx.failure();
-            String errorMessage = failure != null ? failure.getMessage() : "Unknown error";
 
-            // 未认证请求返回 401
-            if (statusCode == 401) {
-                Result<Object> result = Result.error("Unauthorized");
-                result.code = 401;
-                ctx.response()
-                        .setStatusCode(401)
-                        .putHeader("content-type", "application/json")
-                        .end(JsonUtil.toJson(result));
-                return;
+            String errorMessage;
+            if (failure instanceof jakarta.validation.ConstraintViolationException cve) {
+                statusCode = statusCode == -1 ? 400 : statusCode;
+                StringBuilder sb = new StringBuilder();
+                cve.getConstraintViolations().forEach(v -> {
+                    if (sb.length() > 0) sb.append("; ");
+                    sb.append(v.getPropertyPath()).append(": ").append(v.getMessage());
+                });
+                errorMessage = sb.toString();
+            } else {
+                statusCode = statusCode == -1 ? 500 : statusCode;
+                errorMessage = failure != null ? failure.getMessage() : "Server error";
             }
 
-            log.error("web服务异常：" + errorMessage, failure);
-            ResponseUtil.response(ctx, Result.error(errorMessage));
+            JsonObject res = new JsonObject()
+                .put("code", statusCode)
+                .put("msg", errorMessage);
+
+            ctx.response()
+                .setStatusCode(statusCode)
+                .putHeader("Content-Type", "application/json;charset=UTF-8")
+                .end(res.encode());
         });
 
         // 添加JWT认证中间件到API路由
