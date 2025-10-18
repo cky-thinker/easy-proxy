@@ -30,8 +30,13 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleQuery">查询</el-button>
-          <el-button type="success" @click="openAddModal">
+          <el-button type="primary" @click="handleQuery">
+            <el-icon class="mr-1">
+              <Search />
+            </el-icon>
+            查询
+          </el-button>
+          <el-button type="success" @click="openAddModal" class="!ml-8">
             <el-icon class="mr-1">
               <Plus />
             </el-icon>
@@ -44,52 +49,39 @@
     <!-- 客户端列表 -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户端名称</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">启用</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">规则数</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="client in clients" :key="client.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ client.name }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ client.token }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <TagStatus :value="client.status" />
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <TagEnableFlag :value="client.enableFlag" />
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ client.proxyRules?.length || 0 }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                  <button @click="openEditModal(client)" class="text-indigo-600 hover:text-indigo-900">编辑</button>
-                  <button @click="openRulesModal(client)" class="text-blue-600 hover:text-blue-900">规则</button>
-                  <button
-                    @click="toggleClientStatus(client)"
-                    :class="client.enableFlag ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
-                  >
-                    {{ client.enableFlag ? '禁用' : '启用' }}
-                  </button>
-                  <button @click="deleteClientAction(client)" class="text-red-600 hover:text-red-900 cursor-pointer">
-                    删除
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <el-table :data="clients" v-loading="loading">
+          <el-table-column prop="name" label="客户端名称" width="300" />
+          <el-table-column prop="token" label="Token" min-width="320" />
+          <el-table-column label="状态" width="120">
+            <template #default="{ row }">
+              <TagStatus :value="row.status" />
+            </template>
+          </el-table-column>
+          <el-table-column label="启用" width="120">
+            <template #default="{ row }">
+              <TagEnableFlag :value="row.enableFlag" />
+            </template>
+          </el-table-column>
+          <el-table-column label="规则数" width="100">
+            <template #default="{ row }">
+              {{ row.proxyRules?.length || 0 }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="350" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" text @click="openEditModal(row)">编辑</el-button>
+              <el-button type="primary" text @click="openRulesModal(row)">规则</el-button>
+              <el-button :type="row.enableFlag ? 'warning' : 'success'" text @click="toggleClientStatus(row)">
+                {{ row.enableFlag ? '禁用' : '启用' }}
+              </el-button>
+              <el-popconfirm title="确认删除该客户端？" @confirm="deleteClientAction(row)">
+                <template #reference>
+                  <el-button type="danger" text>删除</el-button>
+                </template>
+              </el-popconfirm>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
     </div>
 
@@ -98,13 +90,8 @@
       :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
 
     <!-- 新增/编辑客户端模态框：替换为 Element Plus el-dialog -->
-    <el-dialog
-      v-model="showClientModal"
-      :title="showAddModal ? '新增客户端' : '编辑客户端'"
-      width="480px"
-      :close-on-click-modal="false"
-      @close="closeModal"
-    >
+    <el-dialog v-model="showClientModal" :title="showAddModal ? '新增客户端' : '编辑客户端'" width="480px"
+      :close-on-click-modal="false" @close="closeModal">
       <el-form :model="currentClient" :rules="clientFormRules" ref="clientFormRef" label-position="top">
         <el-form-item label="客户端名称" prop="name">
           <el-input v-model="currentClient.name" placeholder="请输入客户端名称" class="w-full" />
@@ -126,13 +113,8 @@
     </el-dialog>
 
     <!-- 代理规则模态框：替换为 Element Plus el-dialog -->
-    <el-dialog
-      v-model="showRulesModalFlag"
-      :title="(selectedClient?.name || '') + ' - 代理规则管理'"
-      width="800px"
-      :close-on-click-modal="false"
-      @close="closeRulesModal"
-    >
+    <el-dialog v-model="showRulesModalFlag" :title="(selectedClient?.name || '') + ' - 代理规则管理'" width="800px"
+      :close-on-click-modal="false" @close="closeRulesModal">
       <div class="flex justify-end mb-4">
         <el-button type="success" size="small" @click="addProxyRule">
           <el-icon class="mr-1">
@@ -142,7 +124,8 @@
         </el-button>
       </div>
       <div class="space-y-3">
-        <div v-for="(rule, index) in selectedClient?.proxyRules" :key="index" class="border border-gray-200 rounded-lg p-4">
+        <div v-for="(rule, index) in selectedClient?.proxyRules" :key="index"
+          class="border border-gray-200 rounded-lg p-4">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
@@ -150,7 +133,8 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
-              <el-input-number v-model="rule.serverPort" :min="1" :max="65535" controls-position="right" class="w-full" />
+              <el-input-number v-model="rule.serverPort" :min="1" :max="65535" controls-position="right"
+                class="w-full" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
@@ -173,13 +157,12 @@
       </template>
     </el-dialog>
   </div>
-  <!-- 使用 Element Plus 消息通知（ElMessage）替代自定义 Toast） -->
 </template>
 
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, ref, watch, reactive } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import {
   addClientRule,
   createClient,
@@ -192,8 +175,6 @@ import {
   updateClientRule
 } from '../api/clients'
 import type { ProxyClientConfig } from '../api/types'
-// 移除自定义 Modal 引用
-// import Modal from '../components/Modal.vue'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
 import TagStatus from '../components/TagStatus.vue'
 
@@ -427,8 +408,8 @@ const loadClients = async () => {
         ? queryForm.enableFilter === 'enabled'
           ? true
           : queryForm.enableFilter === 'disabled'
-          ? false
-          : undefined
+            ? false
+            : undefined
         : undefined
 
     const result = await getClients(
