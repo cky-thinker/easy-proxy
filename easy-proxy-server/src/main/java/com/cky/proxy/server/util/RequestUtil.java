@@ -1,21 +1,17 @@
 package com.cky.proxy.server.util;
 
-import java.util.Set;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
 import io.vertx.ext.web.RoutingContext;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RequestUtil {
-
-    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
     /**
      * 从请求上下文中创建分页对象
@@ -51,12 +47,6 @@ public class RequestUtil {
         if (obj == null) {
             return null;
         }
-        Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
-        if (!violations.isEmpty()) {
-            ConstraintViolationException ex = new ConstraintViolationException((Set<ConstraintViolation<T>>) violations);
-            ctx.fail(400, ex);
-            throw ex;
-        }
         return obj;
     }
 
@@ -68,12 +58,6 @@ public class RequestUtil {
         T obj = JsonUtil.parseJson(paramStr, clazz);
         if (obj == null) {
             return null;
-        }
-        Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
-        if (!violations.isEmpty()) {
-            ConstraintViolationException ex = new ConstraintViolationException((Set<ConstraintViolation<T>>) violations);
-            ctx.fail(400, ex);
-            throw ex;
         }
         return obj;
     }
@@ -87,6 +71,33 @@ public class RequestUtil {
             return Integer.parseInt(paramStr);
         } catch (NumberFormatException e) {
             log.error("Failed to parse int parameter: {}", paramStr, e);
+            return null;
+        }
+    }
+
+    public static Date getParamDate(RoutingContext ctx, String name) {
+        String val = ctx.request().getParam(name);
+        if (val == null || val.isEmpty())
+            return null;
+        try {
+            // 支持 yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss
+            SimpleDateFormat sdf = val.length() > 10 ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                    : new SimpleDateFormat("yyyy-MM-dd");
+            return sdf.parse(val);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
+    public static Boolean getParamBoolean(RoutingContext ctx, String paramName) {
+        String paramStr = ctx.request().getParam(paramName);
+        if (paramStr == null || paramStr.isEmpty()) {
+            return null;
+        }
+        try {
+            return Boolean.parseBoolean(paramStr);
+        } catch (NumberFormatException e) {
+            log.error("Failed to parse boolean parameter: {}", paramStr, e);
             return null;
         }
     }

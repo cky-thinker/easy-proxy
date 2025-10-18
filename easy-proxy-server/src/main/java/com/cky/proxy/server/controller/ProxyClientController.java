@@ -9,6 +9,7 @@ import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
+import com.cky.proxy.server.domain.dto.ProxyClientReq;
 
 import cn.hutool.db.Page;
 import io.vertx.core.json.JsonObject;
@@ -41,128 +42,71 @@ public class ProxyClientController {
     }
 
     private void getAllProxyClients(RoutingContext ctx) {
-        try {
-            List<ProxyClient> list = proxyClientService.getProxyClients();
-            ResponseUtil.success(ctx, list);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "Failed to get proxy clients: " + e.getMessage());
-        }
+        List<ProxyClient> list = proxyClientService.getProxyClients();
+        ResponseUtil.success(ctx, list);
     }
 
     private void getProxyClientsPageable(RoutingContext ctx) {
-        // 创建分页对象
         Page page = RequestUtil.getPage(ctx);
-        // 获取查询参数
-        String q = ctx.request().getParam("q");
-        String status = ctx.request().getParam("status");
-        String enableFlagStr = ctx.request().getParam("enableFlag");
-        Boolean enableFlag = null;
-        if (enableFlagStr != null && !enableFlagStr.isEmpty()) {
-            enableFlag = Boolean.parseBoolean(enableFlagStr);
-        }
-        // 执行分页查询
-        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, q, status, enableFlag);
-        // 返回结果
+        ProxyClientReq req = RequestUtil.getParamsObj(ctx, ProxyClientReq.class);
+        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, req.getQ(), req.getStatus(), req.getEnableFlag());
         ResponseUtil.success(ctx, result);
     }
 
     private void getProxyClientDetail(RoutingContext ctx) {
-        // 获取ID参数
-        String idParam = ctx.request().getParam("id");
-        if (idParam == null || idParam.isEmpty()) {
+        Integer id = RequestUtil.getParamInt(ctx, "id");
+        if (id == null) {
             ResponseUtil.error(ctx, 400, "Missing required parameter: id");
             return;
         }
-
-        try {
-            Integer id = Integer.parseInt(idParam);
-            ProxyClient proxyClient = proxyClientService.getProxyClientById(id);
-
-            if (proxyClient == null) {
-                ResponseUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
-                return;
-            }
-
-            ResponseUtil.response(ctx, Result.success(proxyClient));
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "Invalid id format: " + idParam);
+        ProxyClient proxyClient = proxyClientService.getProxyClientById(id);
+        if (proxyClient == null) {
+            ResponseUtil.error(ctx, 404, "ProxyClient not found with id: " + id);
+            return;
         }
+        ResponseUtil.success(ctx, proxyClient);
     }
 
     private void addProxyClient(RoutingContext ctx) {
-        try {
-            // 从请求体获取JSON数据
-            JsonObject body = ctx.body().asJsonObject();
-            if (body == null) {
-                ResponseUtil.error(ctx, 400, "Request body is required");
-                return;
-            }
-
-            // 创建ProxyClient对象
-            ProxyClient proxyClient = new ProxyClient();
-            proxyClient.setName(body.getString("name"));
-            proxyClient.setToken(body.getString("token"));
-            proxyClient.setStatus("offline"); // 默认离线状态
-            proxyClient.setEnableFlag(body.getBoolean("enableFlag", true));
-            proxyClient.setCreateBy(body.getString("createBy", "system"));
-            proxyClient.setCreateTime(new Date());
-
-            // 保存到数据库
-            proxyClientService.addProxyClient(proxyClient);
-
-            // 返回成功响应
-            ResponseUtil.success(ctx, proxyClient);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, "Failed to add proxy client: " + e.getMessage());
+        ProxyClient proxyClient = RequestUtil.getBodyObj(ctx, ProxyClient.class);
+        if (proxyClient == null) {
+            ResponseUtil.error(ctx, 400, "Request body is required");
+            return;
         }
+        if (proxyClient.getStatus() == null || proxyClient.getStatus().isEmpty()) {
+            proxyClient.setStatus("offline");
+        }
+        if (proxyClient.getEnableFlag() == null) {
+            proxyClient.setEnableFlag(true);
+        }
+        if (proxyClient.getCreateBy() == null || proxyClient.getCreateBy().isEmpty()) {
+            proxyClient.setCreateBy("system");
+        }
+        ProxyClient newClient = proxyClientService.addProxyClient(proxyClient);
+        ResponseUtil.success(ctx, newClient);
     }
 
     private void updateProxyClient(RoutingContext ctx) {
-        try {
-            // 从请求体获取JSON数据
-            JsonObject body = ctx.body().asJsonObject();
-            if (body == null || !body.containsKey("id")) {
-                ResponseUtil.error(ctx, 400, "Request body with id is required");
-                return;
-            }
-
-            ProxyClient proxyClient = new ProxyClient();
-            proxyClient.setId(body.getInteger("id"));
-            proxyClient.setName(body.getString("name"));
-            proxyClient.setToken(body.getString("token"));
-            proxyClient.setEnableFlag(body.getBoolean("enableFlag", true));
-            // 保存到数据库
-            proxyClient = proxyClientService.updateProxyClient(proxyClient);
-            // 返回成功响应
-            ResponseUtil.success(ctx, proxyClient);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "Failed to update proxy client: " + e.getMessage());
+        ProxyClient proxyClient = RequestUtil.getBodyObj(ctx, ProxyClient.class);
+        if (proxyClient == null) {
+            ResponseUtil.error(ctx, 400, "Request body is required");
+            return;
         }
+        ProxyClient updated = proxyClientService.updateProxyClient(proxyClient);
+        ResponseUtil.success(ctx, updated);
     }
 
     private void deleteProxyClient(RoutingContext ctx) {
-        try {
-            // 获取ID参数
-            String idParam = ctx.request().getParam("id");
-            if (idParam == null || idParam.isEmpty()) {
-                ResponseUtil.error(ctx, 400, "Missing required parameter: id");
-                return;
-            }
-
-            Integer id = Integer.parseInt(idParam);
-            // 从数据库删除
-            boolean deleted = proxyClientService.deleteProxyClient(id);
-            if (!deleted) {
-                ResponseUtil.error(ctx, 404, "Proxy client not found");
-                return;
-            }
-
-            // 返回成功响应
-            ResponseUtil.success(ctx, null);
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "Invalid id format");
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "Failed to delete proxy client: " + e.getMessage());
+        Integer id = RequestUtil.getParamInt(ctx, "id");
+        if (id == null) {
+            ResponseUtil.error(ctx, 400, "Missing required parameter: id");
+            return;
         }
+        boolean deleted = proxyClientService.deleteProxyClient(id);
+        if (!deleted) {
+            ResponseUtil.error(ctx, 404, "Proxy client not found");
+            return;
+        }
+        ResponseUtil.success(ctx, null);
     }
 }

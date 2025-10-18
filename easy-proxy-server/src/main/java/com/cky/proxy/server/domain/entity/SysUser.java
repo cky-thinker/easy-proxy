@@ -1,12 +1,12 @@
 package com.cky.proxy.server.domain.entity;
 
-import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
-
 import java.util.Date;
 
 import com.cky.proxy.server.consts.AddGroup;
 import com.cky.proxy.server.consts.UpdateGroup;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -56,8 +56,8 @@ public class SysUser {
     /**
      * 启用标记
      */
-    @DatabaseField(columnName="enable_flag")
-    private Boolean enableFlag;
+    @DatabaseField(columnName = "enable_flag")
+    private Boolean enableFlag = true;
     /**
      * 上次登录时间
      */
