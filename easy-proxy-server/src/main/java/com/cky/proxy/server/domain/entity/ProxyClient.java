@@ -1,12 +1,12 @@
 package com.cky.proxy.server.domain.entity;
 
-import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
-
 import java.util.Date;
 
 import com.cky.proxy.server.consts.AddGroup;
 import com.cky.proxy.server.consts.UpdateGroup;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -36,30 +36,30 @@ public class ProxyClient {
      * 在线状态 online offline
      */
     @DatabaseField
-    private String status;
+    private String status = "offline";
     /**
      * 启用标记
      */
-    @DatabaseField(columnName="enable_flag")
-    private Boolean enableFlag;
+    @DatabaseField(columnName = "enable_flag")
+    private Boolean enableFlag = true;
     /**
      * 创建人
      */
-    @DatabaseField(columnName="create_by")
+    @DatabaseField(columnName = "create_by")
     private String createBy;
     /**
      * 创建时间
      */
-    @DatabaseField(columnName="create_time")
+    @DatabaseField(columnName = "create_time")
     private Date createTime;
     /**
      * 更新人
      */
-    @DatabaseField(columnName="update_by")
+    @DatabaseField(columnName = "update_by")
     private String updateBy;
     /**
      * 更新时间
      */
-    @DatabaseField(columnName="update_time")
+    @DatabaseField(columnName = "update_time")
     private Date updateTime;
 }

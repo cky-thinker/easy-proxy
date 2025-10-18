@@ -9,6 +9,9 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
+import com.cky.proxy.server.util.ValidateUtil;
+import com.cky.proxy.server.consts.AddGroup;
+import com.cky.proxy.server.consts.UpdateGroup;
 
 import cn.hutool.db.Page;
 import io.vertx.ext.web.Router;
@@ -29,14 +32,14 @@ public class ProxyClientRuleController {
         router.get("/api/proxyClientRule/all").handler(this::getAllProxyClientRules);
         // 分页查询转发规则
         router.get("/api/proxyClientRule").handler(this::getProxyClientRulesPageable);
-        // 查询转发规则详情
-        router.get("/api/proxyClientRule/:id").handler(this::getProxyClientRuleDetail);
+        // 查询转发规则详情（使用请求参数 id）
+        router.get("/api/proxyClientRule/detail").handler(this::getProxyClientRuleDetail);
         // 新增转发规则
         router.post("/api/proxyClientRule").handler(this::addProxyClientRule);
-        // 修改转发规则
+        // 修改转发规则（使用请求参数 id）
         router.put("/api/proxyClientRule").handler(this::updateProxyClientRule);
-        // 删除转发规则
-        router.delete("/api/proxyClientRule/:id").handler(this::deleteProxyClientRule);
+        // 删除转发规则（使用请求参数 id）
+        router.delete("/api/proxyClientRule").handler(this::deleteProxyClientRule);
     }
 
     private void getAllProxyClientRules(RoutingContext ctx) {
@@ -91,6 +94,7 @@ public class ProxyClientRuleController {
             ResponseUtil.error(ctx, 400, "Request body is required");
             return;
         }
+        ValidateUtil.validate(rule, AddGroup.class);
         // 保存到数据库
         ProxyClientRule newRule = proxyClientRuleService.addProxyClientRule(rule);
 
@@ -104,6 +108,7 @@ public class ProxyClientRuleController {
             ResponseUtil.error(ctx, 400, "Request body is required");
             return;
         }
+        ValidateUtil.validate(rule, UpdateGroup.class);
         ProxyClientRule existingRule = proxyClientRuleService.updateProxyClientRule(rule);
 
         // 返回成功响应

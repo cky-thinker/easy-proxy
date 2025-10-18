@@ -13,15 +13,15 @@ public class ValidateUtil {
     public static <T> void validate(T obj) {
         Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
         if (!violations.isEmpty()) {
-            ConstraintViolationException ex = new ConstraintViolationException((Set<ConstraintViolation<T>>) violations);
+            ConstraintViolationException ex = new ConstraintViolationException(violations);
             throw ex;
         }
     }
     
-    public static <T> void validate(T obj, Class<T> group) {
-        Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj, group);
+    public static <T> void validate(T obj, Class<?>... groups) {
+        Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj, groups);
         if (!violations.isEmpty()) {
-            ConstraintViolationException ex = new ConstraintViolationException((Set<ConstraintViolation<T>>) violations);
+            ConstraintViolationException ex = new ConstraintViolationException(violations);
             throw ex;
         }
     }

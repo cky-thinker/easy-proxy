@@ -1,18 +1,18 @@
 package com.cky.proxy.server.controller;
 
-import java.util.Date;
 import java.util.List;
 
-import com.cky.proxy.server.service.ProxyClientService;
+import com.cky.proxy.server.consts.AddGroup;
+import com.cky.proxy.server.consts.UpdateGroup;
 import com.cky.proxy.server.domain.dto.PageResult;
-import com.cky.proxy.server.domain.dto.Result;
+import com.cky.proxy.server.domain.dto.ProxyClientReq;
 import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
-import com.cky.proxy.server.domain.dto.ProxyClientReq;
+import com.cky.proxy.server.util.ValidateUtil;
 
 import cn.hutool.db.Page;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -32,13 +32,13 @@ public class ProxyClientController {
         // 查询所有客户端
         router.get("/api/proxyClient/all").handler(this::getAllProxyClients);
         // 查询明细
-        router.get("/api/proxyClient/:id").handler(this::getProxyClientDetail);
+        router.get("/api/proxyClient/detail").handler(this::getProxyClientDetail);
         // 添加客户端
         router.post("/api/proxyClient").handler(this::addProxyClient);
         // 更新客户端
-        router.put("/api/proxyClient/:id").handler(this::updateProxyClient);
+        router.put("/api/proxyClient").handler(this::updateProxyClient);
         // 删除客户端
-        router.delete("/api/proxyClient/:id").handler(this::deleteProxyClient);
+        router.delete("/api/proxyClient").handler(this::deleteProxyClient);
     }
 
     private void getAllProxyClients(RoutingContext ctx) {
@@ -73,15 +73,7 @@ public class ProxyClientController {
             ResponseUtil.error(ctx, 400, "Request body is required");
             return;
         }
-        if (proxyClient.getStatus() == null || proxyClient.getStatus().isEmpty()) {
-            proxyClient.setStatus("offline");
-        }
-        if (proxyClient.getEnableFlag() == null) {
-            proxyClient.setEnableFlag(true);
-        }
-        if (proxyClient.getCreateBy() == null || proxyClient.getCreateBy().isEmpty()) {
-            proxyClient.setCreateBy("system");
-        }
+        ValidateUtil.validate(proxyClient, AddGroup.class);
         ProxyClient newClient = proxyClientService.addProxyClient(proxyClient);
         ResponseUtil.success(ctx, newClient);
     }
@@ -92,6 +84,11 @@ public class ProxyClientController {
             ResponseUtil.error(ctx, 400, "Request body is required");
             return;
         }
+        if (proxyClient.getId() == null) {
+            ResponseUtil.error(ctx, 400, "Request body missing id");
+            return;
+        }
+        ValidateUtil.validate(proxyClient, UpdateGroup.class);
         ProxyClient updated = proxyClientService.updateProxyClient(proxyClient);
         ResponseUtil.success(ctx, updated);
     }

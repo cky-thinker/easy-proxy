@@ -40,12 +40,12 @@ public class UserController {
 
         // 用户管理路由
         router.get("/api/users").handler(this::getUsersPageable);
-        router.get("/api/users/:id").handler(this::getUserDetail);
+        router.get("/api/users/detail").handler(this::getUserDetail);
         router.post("/api/users").handler(this::addUser);
-        router.put("/api/users/:id").handler(this::updateUser);
-        router.delete("/api/users/:id").handler(this::deleteUser);
-        router.post("/api/users/:id/reset-password").handler(this::resetPassword);
-        router.patch("/api/users/:id/enableFlag").handler(this::updateEnableFlag);
+        router.put("/api/users").handler(this::updateUser);
+        router.delete("/api/users").handler(this::deleteUser);
+        router.post("/api/users/reset-password").handler(this::resetPassword);
+        router.put("/api/users/enableFlag").handler(this::updateEnableFlag);
         router.get("/api/permissions").handler(this::getPermissions);
     }
 
@@ -137,16 +137,40 @@ public class UserController {
     private void updateUser(RoutingContext ctx) {
         try {
             SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
-            if (user == null) {
-                ResponseUtil.error(ctx, 400, "请求体不能为空");
-                return;
-            }
+        if (user == null) {
+            ResponseUtil.error(ctx, 400, "请求体不能为空");
+            return;
+        }
+        if (user.getId() == null) {
+            ResponseUtil.error(ctx, 400, "请求体缺少 id");
+            return;
+        }
             SysUser updated = authService.updateUser(user);
             ResponseUtil.success(ctx, updated);
         } catch (NumberFormatException e) {
             ResponseUtil.error(ctx, 400, "id 格式错误");
         } catch (Exception e) {
             ResponseUtil.error(ctx, 500, "更新账户失败: " + e.getMessage());
+        }
+    }
+
+    private void resetPassword(RoutingContext ctx) {
+        try {
+            SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+            if (user == null) {
+                ResponseUtil.error(ctx, 400, "请求体不能为空");
+                return;
+            }
+            if (user.getId() == null || user.getPassword() == null) {
+                ResponseUtil.error(ctx, 400, "请求体缺少 id 或 password");
+                return;
+            }
+            SysUser updated = authService.resetPassword(user.getId(), user.getPassword());
+            ResponseUtil.success(ctx, updated);
+        } catch (NumberFormatException e) {
+            ResponseUtil.error(ctx, 400, "id 格式错误");
+        } catch (Exception e) {
+            ResponseUtil.error(ctx, 500, "重置密码失败: " + e.getMessage());
         }
     }
 
@@ -165,22 +189,6 @@ public class UserController {
             ResponseUtil.success(ctx, null);
         } catch (Exception e) {
             ResponseUtil.error(ctx, 500, "删除账户失败: " + e.getMessage());
-        }
-    }
-
-    private void resetPassword(RoutingContext ctx) {
-        try {
-            SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
-            if (user == null) {
-                ResponseUtil.error(ctx, 400, "请求体不能为空");
-                return;
-            }
-            SysUser updated = authService.resetPassword(user.getId(), user.getPassword());
-            ResponseUtil.success(ctx, updated);
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "id 格式错误");
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "重置密码失败: " + e.getMessage());
         }
     }
 
