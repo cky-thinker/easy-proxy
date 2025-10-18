@@ -10,75 +10,59 @@
 
     <!-- 搜索和筛选 -->
     <div class="bg-white rounded-lg mb-6 p-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-start space-y-4 md:space-y-0">
-        <!-- 搜索输入宽度与 UserManageView 保持一致，整体左对齐 -->
-        <div class="max-w-md">
-          <el-input v-model="nameQuery" placeholder="按规则名称搜索..." clearable>
+      <el-form inline label-position="left">
+        <el-form-item label="搜索">
+          <el-input v-model="queryForm.nameQuery" placeholder="规则名称" clearable>
             <template #prefix>
               <el-icon><Search /></el-icon>
             </template>
           </el-input>
-        </div>
-        <div class="flex items-center space-x-4 md:ml-4">
-          <el-input-number v-model="portQuery" :min="1" :max="65535" controls-position="right" class="w-40" />
-          <el-select v-model="clientFilter" placeholder="全部客户端" class="w-48">
-            <el-option label="全部客户端" :value="undefined" />
+        </el-form-item>
+        <el-form-item label="端口">
+          <el-input v-model="queryForm.portQuery" placeholder="服务端口" class="w-40" />
+        </el-form-item>
+        <el-form-item label="客户端">
+          <el-select v-model="queryForm.clientFilter" placeholder="全部" class="w-48">
+            <el-option label="全部" :value="undefined" />
             <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
-          <el-button type="primary" @click="reload">查询</el-button>
-          <el-button type="success" @click="openAddRuleModal">
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleQuery">
+            <el-icon class="mr-1"><Search /></el-icon>
+            查询
+          </el-button>
+          <el-button type="success" @click="openAddRuleModal" class="!ml-8">
             <el-icon class="mr-1"><Plus /></el-icon>
             新增
           </el-button>
-        </div>
-      </div>
+        </el-form-item>
+      </el-form>
     </div>
 
     <!-- 规则列表 -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">规则名称</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">服务端端口</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">转发地址</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户端</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">启用状态</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="rule in rules" :key="rule.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ rule.name }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ rule.serverPort }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ rule.clientAddress }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ clientNameMap[rule.proxyClientId || 0] || '-' }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex space-x-2">
-                  <TagEnableFlag :value="rule.enableFlag" />
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex space-x-2">
-                  <button @click="openEditRuleModal(rule)" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">编辑</button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="!loading && rules.length === 0">
-              <td colspan="6" class="px-6 py-6 text-center text-gray-500">暂无符合条件的规则</td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-if="loading" class="p-4 text-center text-gray-500">加载中...</div>
+        <el-table :data="rules" v-loading="loading" :empty-text="'暂无符合条件的规则'">
+          <el-table-column prop="name" label="规则名称" width="300" />
+          <el-table-column prop="serverPort" label="服务端端口" width="140" />
+          <el-table-column prop="clientAddress" label="转发地址" min-width="320" />
+          <el-table-column label="客户端" width="200">
+            <template #default="{ row }">
+              {{ clientNameMap[(row as any).proxyClientId || 0] || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="启用状态" width="140">
+            <template #default="{ row }">
+              <TagEnableFlag :value="row.enableFlag" />
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="150" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" text @click="openEditRuleModal(row)">编辑</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
       <!-- 分页组件：切换为 Element Plus el-pagination -->
       <el-pagination
@@ -99,32 +83,26 @@
     :close-on-click-modal="false"
     @close="closeAddRuleModal"
   >
-    <form @submit.prevent="saveRule">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
-          <el-input v-model="newRule.name" placeholder="规则名称" class="w-full" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
-          <el-input-number v-model="newRule.serverPort" :min="1" :max="65535" controls-position="right" class="w-full" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">客户端</label>
-          <el-select v-model="newRule.proxyClientId" placeholder="请选择客户端" class="w-full">
-            <el-option label="请选择客户端" :value="undefined" />
-            <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
-          </el-select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
-          <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
-        </div>
-        <div class="md:col-span-2 flex items-center">
-          <el-checkbox v-model="newRule.enableFlag">启用</el-checkbox>
-        </div>
-      </div>
-    </form>
+    <el-form :model="newRule" :rules="ruleFormRules" ref="addRuleFormRef" label-position="top">
+      <el-form-item label="客户端" prop="proxyClientId">
+        <el-select v-model="newRule.proxyClientId" placeholder="请选择客户端" class="w-full">
+          <el-option label="请选择客户端" :value="undefined" />
+          <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="规则名称" prop="name">
+        <el-input v-model="newRule.name" placeholder="规则名称" class="w-full" />
+      </el-form-item>
+      <el-form-item label="服务端口" prop="serverPort">
+        <el-input v-model="newRule.serverPort" placeholder="服务端口" class="w-full" />
+      </el-form-item>
+      <el-form-item label="客户端地址" prop="clientAddress">
+        <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="newRule.enableFlag">启用</el-checkbox>
+      </el-form-item>
+    </el-form>
     <template #footer>
       <el-button @click="closeAddRuleModal">取消</el-button>
       <el-button type="primary" @click="saveRule">保存</el-button>
@@ -138,29 +116,23 @@
     :close-on-click-modal="false"
     @close="closeEditRuleModal"
   >
-    <form @submit.prevent="saveEditRule">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
-          <el-input v-model="editRule.name" placeholder="规则名称" class="w-full" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
-          <el-input-number v-model="editRule.serverPort" :min="1" :max="65535" controls-position="right" class="w-full" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">客户端</label>
-          <el-input :model-value="clientNameMap[editRule.proxyClientId || 0] || '-'" disabled class="w-full" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
-          <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
-        </div>
-        <div class="md:col-span-2 flex items-center">
-          <el-checkbox v-model="editRule.enableFlag">启用</el-checkbox>
-        </div>
-      </div>
-    </form>
+    <el-form :model="editRule" :rules="ruleFormRulesEdit" ref="editRuleFormRef" label-position="top">
+      <el-form-item label="规则名称" prop="name">
+        <el-input v-model="editRule.name" placeholder="规则名称" class="w-full" />
+      </el-form-item>
+      <el-form-item label="服务端口" prop="serverPort">
+        <el-input v-model="editRule.serverPort" class="w-full" />
+      </el-form-item>
+      <el-form-item label="客户端">
+        <el-input :model-value="clientNameMap[editRule.proxyClientId || 0] || '-'" disabled class="w-full" />
+      </el-form-item>
+      <el-form-item label="客户端地址" prop="clientAddress">
+        <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="editRule.enableFlag">启用</el-checkbox>
+      </el-form-item>
+    </el-form>
     <template #footer>
       <el-button @click="closeEditRuleModal">取消</el-button>
       <el-button type="primary" @click="saveEditRule">保存</el-button>
@@ -176,8 +148,9 @@ import type { ProxyRule } from '@/api/types'
 
 
 import TagEnableFlag from '@/components/TagEnableFlag.vue'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 
 const rules = ref<ProxyRule[]>([])
 const clients = ref<ExtendedProxyClientConfig[]>([])
@@ -193,9 +166,11 @@ const currentPage = ref(0)
 const pageSize = ref(10)
 const total = ref(0)
 const totalPage = ref(1)
-const portQuery = ref<number | undefined>(undefined)
-const clientFilter = ref<number | undefined>(undefined)
-const nameQuery = ref('')
+const queryForm = reactive<{ nameQuery: string; portQuery?: number; clientFilter?: number }>({
+  nameQuery: '',
+  portQuery: undefined,
+  clientFilter: undefined
+})
 
 // 新增规则模态与表单
 const showAddRuleModal = ref(false)
@@ -213,7 +188,7 @@ const openAddRuleModal = () => {
     serverPort: undefined,
     clientAddress: '',
     enableFlag: true,
-    proxyClientId: clientFilter.value
+    proxyClientId: queryForm.clientFilter
   }
   showAddRuleModal.value = true
 }
@@ -222,19 +197,10 @@ const closeAddRuleModal = () => {
   showAddRuleModal.value = false
 }
 
-const saveRule = async () => {
-  const clientId = newRule.value.proxyClientId ?? clientFilter.value
-  const { name, serverPort, clientAddress, enableFlag } = newRule.value
-  if (!clientId) { ElMessage.warning('请先选择客户端'); return }
-  if (!name || !clientAddress || !serverPort || serverPort <= 0) { ElMessage.warning('请完整填写规则信息'); return }
-  try {
-    await addClientRule(clientId, { name, serverPort, clientAddress, enableFlag })
-    showAddRuleModal.value = false
-    await reload()
-  } catch (e) {
-    console.error('新增规则失败', e)
-    ElMessage.error('新增失败，请稍后重试')
-  }
+const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  if (type === 'success') ElMessage.success(message)
+  else if (type === 'error') ElMessage.error(message)
+  else ElMessage.info(message)
 }
 
 const reload = async () => {
@@ -243,9 +209,9 @@ const reload = async () => {
     const pageData = await getClientRulesPage({
       page: currentPage.value.toString(),
       pageSize: pageSize.value,
-      proxyClientId: clientFilter.value,
-      name: nameQuery.value || undefined,
-      serverPort: portQuery.value
+      proxyClientId: queryForm.clientFilter,
+      name: queryForm.nameQuery || undefined,
+      serverPort: queryForm.portQuery
     })
     rules.value = pageData.list || []
     total.value = pageData.total || 0
@@ -265,10 +231,10 @@ onMounted(async () => {
 })
 
 // 监听筛选变化，自动刷新
-watch([nameQuery, portQuery, clientFilter], async () => {
+const handleQuery = async () => {
   currentPage.value = 0
   await reload()
-})
+}
 
 // 分页切换
 const onPageChange = async (page: number) => {
@@ -309,17 +275,80 @@ const closeEditRuleModal = () => {
   showEditRuleModal.value = false
 }
 
-const saveEditRule = async () => {
-  const { id, name, serverPort, clientAddress, enableFlag, proxyClientId } = editRule.value
-  if (!id) { ElMessage.error('规则ID缺失'); return }
-  if (!name || !clientAddress || !serverPort || serverPort <= 0) { ElMessage.warning('请完整填写规则信息'); return }
+const addRuleFormRef = ref<FormInstance>()
+const editRuleFormRef = ref<FormInstance>()
+
+const ruleFormRules: FormRules = {
+  name: [{ required: true, message: '请输入规则名称', trigger: 'blur' }],
+  serverPort: [
+    { required: true, message: '请输入服务端口', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        const n = Number(value)
+        if (!n || n < 1 || n > 65535) callback(new Error('端口范围为 1-65535'))
+        else callback()
+      },
+      trigger: ['blur', 'change']
+    }
+  ],
+  clientAddress: [{ required: true, message: '请输入客户端地址', trigger: 'blur' }],
+  proxyClientId: [
+    {
+      validator: (_rule, value, callback) => {
+        if (value || queryForm.clientFilter) callback()
+        else callback(new Error('请选择客户端'))
+      },
+      trigger: ['change']
+    }
+  ]
+}
+
+const ruleFormRulesEdit: FormRules = {
+  name: [{ required: true, message: '请输入规则名称', trigger: 'blur' }],
+  serverPort: [
+    { required: true, message: '请输入服务端口', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        const n = Number(value)
+        if (!n || n < 1 || n > 65535) callback(new Error('端口范围为 1-65535'))
+        else callback()
+      },
+      trigger: ['blur', 'change']
+    }
+  ],
+  clientAddress: [{ required: true, message: '请输入客户端地址', trigger: 'blur' }]
+}
+
+const saveRule = async () => {
+  const valid = await addRuleFormRef.value?.validate?.()
+  if (valid !== true) return
+  const clientId = newRule.value.proxyClientId ?? queryForm.clientFilter
+  if (!clientId) { showToast('请先选择客户端', 'error'); return }
   try {
-    await updateClientRule(proxyClientId || 0, id, { name, serverPort, clientAddress, enableFlag })
+    const { name, serverPort, clientAddress, enableFlag } = newRule.value
+    await addClientRule(clientId, { name, serverPort: serverPort!, clientAddress, enableFlag })
+    showAddRuleModal.value = false
+    await reload()
+    showToast('新增成功', 'success')
+  } catch (e) {
+    console.error('新增规则失败', e)
+    showToast('新增失败，请稍后重试', 'error')
+  }
+}
+
+const saveEditRule = async () => {
+  const valid = await editRuleFormRef.value?.validate?.()
+  if (valid !== true) return
+  const { id, name, serverPort, clientAddress, enableFlag, proxyClientId } = editRule.value
+  if (!id) { showToast('规则ID缺失', 'error'); return }
+  try {
+    await updateClientRule(proxyClientId || 0, id, { name, serverPort: serverPort!, clientAddress, enableFlag })
     showEditRuleModal.value = false
     await reload()
+    showToast('保存成功', 'success')
   } catch (e) {
     console.error('更新规则失败', e)
-    ElMessage.error('更新失败，请稍后重试')
+    showToast('更新失败，请稍后重试', 'error')
   }
 }
 </script>

@@ -89,7 +89,7 @@
     <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage + 1" :page-size="pageSize"
       :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
 
-    <!-- 新增/编辑客户端模态框：替换为 Element Plus el-dialog -->
+    <!-- 新增/编辑客户端模态框 -->
     <el-dialog v-model="showClientModal" :title="showAddModal ? '新增客户端' : '编辑客户端'" width="480px"
       :close-on-click-modal="false" @close="closeModal">
       <el-form :model="currentClient" :rules="clientFormRules" ref="clientFormRef" label-position="top">
@@ -112,7 +112,7 @@
       </template>
     </el-dialog>
 
-    <!-- 代理规则模态框：替换为 Element Plus el-dialog -->
+    <!-- 代理规则模态框 -->
     <el-dialog v-model="showRulesModalFlag" :title="(selectedClient?.name || '') + ' - 代理规则管理'" width="800px"
       :close-on-click-modal="false" @close="closeRulesModal">
       <div class="flex justify-end mb-4">
