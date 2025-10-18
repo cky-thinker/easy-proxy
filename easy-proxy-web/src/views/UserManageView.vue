@@ -1,15 +1,6 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
-    <!-- Toast 通知组件 -->
-    <div class="fixed top-4 right-4 z-50">
-      <div v-if="toast.show" :class="['px-4 py-3 rounded-lg shadow-md transition-all duration-300',
-        toast.type === 'success' ? 'bg-green-500' :
-          toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500']">
-        <div class="flex items-center text-white">
-          <span>{{ toast.message }}</span>
-        </div>
-      </div>
-    </div>
+    <!-- 使用 Element Plus 消息通知（ElMessage）替代自定义 Toast -->
 
     <!-- 页面标题和操作按钮 -->
     <div class="flex justify-between items-center mb-6">
@@ -17,35 +8,31 @@
         <h1 class="text-2xl font-bold text-gray-900">账号管理</h1>
         <p class="text-gray-600 mt-1">管理系统用户账号和权限</p>
       </div>
-      <button @click="() => { showAddModal = true; showClientModal = true; }"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        <span>新增账号</span>
-      </button>
+      <el-button type="primary" @click="() => { showAddModal = true; showClientModal = true; }">
+        <el-icon class="mr-1">
+          <Plus />
+        </el-icon>
+        新增账号
+      </el-button>
     </div>
 
     <!-- 搜索和筛选 -->
     <div class="bg-white rounded-lg mb-6 p-4">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div class="flex-1 max-w-md">
-          <div class="relative">
-            <input v-model="searchQuery" type="text" placeholder="搜索用户名或邮箱..."
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </div>
+          <el-input v-model="searchQuery" placeholder="搜索用户名或邮箱..." clearable>
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-input>
         </div>
         <div class="flex space-x-4">
-          <select v-model="enbaleFlagFilter" class="border border-gray-300 rounded-lg px-3 py-2">
-            <option :value="undefined">全部状态</option>
-            <option :value="true">激活</option>
-            <option :value="false">禁用</option>
-          </select>
+          <el-select v-model="enbaleFlagFilter" placeholder="全部状态" clearable class="w-40">
+            <el-option label="激活" :value="true" />
+            <el-option label="禁用" :value="false" />
+          </el-select>
         </div>
       </div>
     </div>
@@ -124,85 +111,90 @@
       </div>
     </div>
 
-    <!-- 分页组件：总条数位于页码按钮左侧 -->
+    <!-- 分页组件：切换为 Element Plus el-pagination -->
 
-    <Pagination :currentPage="currentPage" :pageSize="pageSize" :total="total" :totalPage="totalPage"
-      :loading="loading" @change="onPageChange" />
-      
+    <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage + 1" :page-size="pageSize"
+      :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
+
     <!-- 新增/编辑账号模态框 -->
-    <Modal v-model="showClientModal" :title="showAddModal ? '新增账号' : '编辑账号'" @confirm="saveUser" @close="closeModal">
-      <form @submit.prevent="saveUser">
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
-          <input v-model="currentUser.username" type="text" required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="请输入用户名">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
-          <input v-model="currentUser.email" type="email" required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="请输入邮箱">
-        </div>
-        <div class="mb-4" v-if="showAddModal">
-          <label class="block text-sm font-medium text-gray-700 mb-2">密码</label>
-          <input v-model="currentUser.password" type="password" required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="请输入密码">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">角色</label>
-          <select v-model="currentUser.role" required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="user">普通用户</option>
-            <option value="admin">管理员</option>
-            <option value="viewer">只读用户</option>
-          </select>
-        </div>
-      </form>
-    </Modal>
+    <el-dialog
+      v-model="showClientModal"
+      :title="showAddModal ? '新增账号' : '编辑账号'"
+      width="480px"
+      :close-on-click-modal="false"
+      @close="closeModal"
+    >
+      <el-form :model="currentUser" :rules="userFormRules" ref="userFormRef" label-position="top">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="currentUser.username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="currentUser.email" placeholder="请输入邮箱" />
+        </el-form-item>
+        <el-form-item v-if="showAddModal" label="密码" prop="password">
+          <el-input v-model="currentUser.password" type="password" placeholder="请输入密码" show-password />
+        </el-form-item>
+        <el-form-item label="角色" prop="role">
+          <el-select v-model="currentUser.role" placeholder="请选择角色" class="w-full">
+            <el-option label="普通用户" value="user" />
+            <el-option label="管理员" value="admin" />
+            <el-option label="只读用户" value="viewer" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="closeModal">取消</el-button>
+        <el-button type="primary" @click="saveUser">{{ showAddModal ? '新增' : '保存' }}</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 权限管理模态框 -->
-    <Modal v-model="showPermissionsModalFlag" :title="`${selectedUser?.username} - 权限管理`" @confirm="savePermissions"
-      @close="closePermissionsModal" :width="'2/3'">
+    <el-dialog
+      v-model="showPermissionsModalFlag"
+      :title="`${selectedUser?.username || ''} - 权限管理`"
+      width="800px"
+      :close-on-click-modal="false"
+      @close="closePermissionsModal"
+    >
       <div class="space-y-4">
         <div v-for="(permission, key) in permissions" :key="key" class="border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between mb-2">
             <h4 class="text-md font-medium text-gray-900">{{ permission.name }}</h4>
-            <label class="flex items-center">
-              <input v-model="selectedUser!.permissions[key]" type="checkbox"
-                class="rounded border-gray-300 text-indigo-600">
-              <span class="ml-2 text-sm text-gray-700">启用</span>
-            </label>
+            <el-checkbox v-model="selectedUser!.permissions[key]">启用</el-checkbox>
           </div>
           <p class="text-sm text-gray-600">{{ permission.description }}</p>
           <div class="mt-2">
             <div class="flex flex-wrap gap-2">
-              <span v-for="action in permission.actions" :key="action"
-                class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+              <span v-for="action in permission.actions" :key="action" class="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
                 {{ action }}
               </span>
             </div>
           </div>
         </div>
       </div>
-    </Modal>
+      <template #footer>
+        <el-button @click="closePermissionsModal">取消</el-button>
+        <el-button type="primary" @click="savePermissions">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { computed, onMounted, ref, watch } from 'vue'
+import type { Permission, User } from '../api/types'
 import {
-  getUsers as getUsersApi,
   createUser as createUserApi,
-  updateUser as updateUserApi,
   deleteUser as deleteUserApi,
-  toggleUserEnableFlag as toggleUserEnableFlagApi
+  getUsers as getUsersApi,
+  toggleUserEnableFlag as toggleUserEnableFlagApi,
+  updateUser as updateUserApi
 } from '../api/user'
-import type { User, Permission, CreateUserRequest, UpdateUserRequest } from '../api/types'
-import Modal from '../components/Modal.vue'
+
 import TagEnableFlag from '../components/TagEnableFlag.vue'
-import Pagination from '../components/Pagination.vue'
+
 
 // 响应式数据
 const users = ref<User[]>([])
@@ -230,23 +222,30 @@ const currentUser = ref<User>({
   permissions: {}
 })
 
-// Toast 提示
-const toast = ref({
-  show: false,
-  message: '',
-  type: 'info' as 'success' | 'error' | 'info'
-})
+const userFormRef = ref<FormInstance>()
+const userFormRules: FormRules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '邮箱格式不正确', trigger: ['blur', 'change'] }
+  ],
+  password: [
+    {
+      validator: (_rule, value, callback) => {
+        if (showAddModal.value && !value) callback(new Error('请输入密码'))
+        else callback()
+      },
+      trigger: 'blur'
+    }
+  ],
+  role: [{ required: true, message: '请选择角色', trigger: 'change' }]
+}
 
-// 显示 Toast 提示
+// Toast 提示
 const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-  toast.value = {
-    show: true,
-    message,
-    type
-  }
-  setTimeout(() => {
-    toast.value.show = false
-  }, 3000)
+  if (type === 'success') ElMessage.success(message)
+  else if (type === 'error') ElMessage.error(message)
+  else ElMessage.info(message)
 }
 
 // 权限配置
@@ -308,13 +307,18 @@ const editUser = (user: User) => {
 }
 
 const deleteUser = async (user: User) => {
-  if (confirm(`确定要删除账号 "${user.username}" 吗？`)) {
-    try {
-      await deleteUserApi(user.id)
-      const index = users.value.findIndex(a => a.id === user.id)
-      if (index > -1) users.value.splice(index, 1)
-      showToast('删除成功', 'success')
-    } catch (error) {
+  try {
+    await ElMessageBox.confirm(`确定要删除账号 \"${user.username}\" 吗？`, '提示', {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await deleteUserApi(user.id)
+    const index = users.value.findIndex(a => a.id === user.id)
+    if (index > -1) users.value.splice(index, 1)
+    showToast('删除成功', 'success')
+  } catch (error) {
+    if (error !== 'cancel') {
       console.error('删除账号失败:', error)
       showToast('删除失败', 'error')
     }
@@ -323,47 +327,49 @@ const deleteUser = async (user: User) => {
 
 const toggleUserStatus = async (user: User) => {
   try {
-    const newStatus = !user.enableFlag
-    const updated = await toggleUserEnableFlagApi(user.id, newStatus)
+    const targetStatus = !user.enableFlag
+    await ElMessageBox.confirm(`确认${targetStatus ? '激活' : '禁用'}账号 \"${user.username}\"？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: targetStatus ? 'info' : 'warning'
+    })
+    const updated = await toggleUserEnableFlagApi(user.id, targetStatus)
     const index = users.value.findIndex(a => a.id === updated.id)
     if (index > -1) users.value[index] = updated
     showToast(`账号已${updated.enableFlag ? '激活' : '禁用'}`, 'success')
   } catch (error) {
-    console.error('更新账号状态失败:', error)
-    showToast('操作失败', 'error')
+    if (error !== 'cancel') {
+      console.error('更新账号状态失败:', error)
+      showToast('操作失败', 'error')
+    }
   }
 }
 
 const saveUser = async () => {
   try {
+    const valid = await userFormRef.value?.validate?.()
+    if (valid !== true) return
     if (showAddModal.value) {
-      // 新增账号
-      const payload: CreateUserRequest = {
+      await createUserApi({
         username: currentUser.value.username,
         email: currentUser.value.email,
-        password: currentUser.value.password || '',
+        password: currentUser.value.password,
         role: currentUser.value.role,
-        enableFlag: currentUser.value.enableFlag
-      }
-      const created = await createUserApi(payload)
-      // 新增后刷新列表而不是直接追加
-      await loadUsers()
+        enableFlag: currentUser.value.enableFlag,
+      })
       showToast('新增成功', 'success')
     } else {
-      // 编辑账号
-      const payload: UpdateUserRequest = {
-        id: currentUser.value.id,
+      await updateUserApi({
+        id: (currentUser.value as any).id as number,
         username: currentUser.value.username,
         email: currentUser.value.email,
         role: currentUser.value.role,
-        enableFlag: currentUser.value.enableFlag
-      }
-      const updated = await updateUserApi(payload)
-      const index = users.value.findIndex(a => a.id === updated.id)
-      if (index > -1) users.value[index] = updated
+        enableFlag: currentUser.value.enableFlag,
+      })
       showToast('保存成功', 'success')
     }
     closeModal()
+    await loadUsers()
   } catch (error) {
     console.error('保存账号失败:', error)
     showToast('保存失败', 'error')
@@ -447,7 +453,7 @@ onMounted(() => {
 })
 
 // 监听筛选条件变化，重置到第一页并调用服务端搜索
-watch([searchQuery,  enbaleFlagFilter], async () => {
+watch([searchQuery, enbaleFlagFilter], async () => {
   currentPage.value = 0
   await loadUsers()
 })
@@ -457,6 +463,11 @@ const onPageChange = async (page: number) => {
   if (page < 0) return
   currentPage.value = page
   await loadUsers()
+}
+
+// el-pagination 事件（页面为 1 基坐标）
+const onCurrentPageChange = async (page: number) => {
+  await onPageChange(page - 1)
 }
 
 // 页大小固定为 10，如后端需要可调整组件支持

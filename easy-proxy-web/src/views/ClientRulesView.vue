@@ -13,31 +13,23 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-start space-y-4 md:space-y-0">
         <!-- 搜索输入宽度与 UserManageView 保持一致，整体左对齐 -->
         <div class="max-w-md">
-          <div class="relative">
-            <input
-              v-model="nameQuery"
-              type="text"
-              placeholder="按规则名称搜索..."
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </div>
+          <el-input v-model="nameQuery" placeholder="按规则名称搜索..." clearable>
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
         </div>
         <div class="flex items-center space-x-4 md:ml-4">
-          <input
-            v-model.number="portQuery"
-            type="number"
-            placeholder="按端口筛选，如 8080"
-            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          >
-          <select v-model="clientFilter" class="border border-gray-300 rounded-lg px-3 py-2">
-            <option :value="undefined">全部客户端</option>
-            <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
-          <button @click="reload" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg cursor-pointer">查询</button>
-          <button @click="openAddRuleModal" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg cursor-pointer">新增规则</button>
+          <el-input-number v-model="portQuery" :min="1" :max="65535" controls-position="right" class="w-40" />
+          <el-select v-model="clientFilter" placeholder="全部客户端" class="w-48">
+            <el-option label="全部客户端" :value="undefined" />
+            <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+          <el-button type="primary" @click="reload">查询</el-button>
+          <el-button type="success" @click="openAddRuleModal">
+            <el-icon class="mr-1"><Plus /></el-icon>
+            新增规则
+          </el-button>
         </div>
       </div>
     </div>
@@ -88,77 +80,92 @@
         </table>
         <div v-if="loading" class="p-4 text-center text-gray-500">加载中...</div>
       </div>
-      <!-- 分页组件 -->
-      <Pagination
-        :currentPage="currentPage"
-        :pageSize="pageSize"
+      <!-- 分页组件：切换为 Element Plus el-pagination -->
+      <el-pagination
+        class="mt-4 flex justify-end"
+        background
+        :current-page="currentPage + 1"
+        :page-size="pageSize"
         :total="total"
-        :totalPage="totalPage"
-        :loading="loading"
-        @change="onPageChange"
+        layout="prev, pager, next, total"
+        @current-change="onCurrentPageChange"
       />
     </div>
-  <!-- 新增规则模态框（合并到主模板） -->
-  <Modal v-model="showAddRuleModal" title="新增规则" @confirm="saveRule" @close="closeAddRuleModal">
+  <!-- 新增规则模态框（使用 Element Plus el-dialog 替代） -->
+  <el-dialog
+    v-model="showAddRuleModal"
+    title="新增规则"
+    width="600px"
+    :close-on-click-modal="false"
+    @close="closeAddRuleModal"
+  >
     <form @submit.prevent="saveRule">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
-          <input v-model="newRule.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="规则名称">
+          <el-input v-model="newRule.name" placeholder="规则名称" class="w-full" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
-          <input v-model.number="newRule.serverPort" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="8080">
+          <el-input-number v-model="newRule.serverPort" :min="1" :max="65535" controls-position="right" class="w-full" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">客户端</label>
-          <select v-model="newRule.proxyClientId" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-            <option :value="undefined">请选择客户端</option>
-            <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+          <el-select v-model="newRule.proxyClientId" placeholder="请选择客户端" class="w-full">
+            <el-option label="请选择客户端" :value="undefined" />
+            <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
-          <input v-model="newRule.clientAddress" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="localhost:3000">
+          <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
         </div>
         <div class="md:col-span-2 flex items-center">
-          <label class="flex items-center">
-            <input v-model="newRule.enableFlag" type="checkbox" class="rounded border-gray-300 text-indigo-600">
-            <span class="ml-2 text-sm text-gray-700">启用</span>
-          </label>
+          <el-checkbox v-model="newRule.enableFlag">启用</el-checkbox>
         </div>
       </div>
     </form>
-  </Modal>
-  <!-- 编辑规则模态框 -->
-  <Modal v-model="showEditRuleModal" title="编辑规则" @confirm="saveEditRule" @close="closeEditRuleModal">
+    <template #footer>
+      <el-button @click="closeAddRuleModal">取消</el-button>
+      <el-button type="primary" @click="saveRule">保存</el-button>
+    </template>
+  </el-dialog>
+  <!-- 编辑规则模态框（使用 Element Plus el-dialog 替代） -->
+  <el-dialog
+    v-model="showEditRuleModal"
+    title="编辑规则"
+    width="600px"
+    :close-on-click-modal="false"
+    @close="closeEditRuleModal"
+  >
     <form @submit.prevent="saveEditRule">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
-          <input v-model="editRule.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="规则名称">
+          <el-input v-model="editRule.name" placeholder="规则名称" class="w-full" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
-          <input v-model.number="editRule.serverPort" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="8080">
+          <el-input-number v-model="editRule.serverPort" :min="1" :max="65535" controls-position="right" class="w-full" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">客户端</label>
-          <input :value="clientNameMap[editRule.proxyClientId || 0] || '-'" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100" disabled>
+          <el-input :model-value="clientNameMap[editRule.proxyClientId || 0] || '-'" disabled class="w-full" />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
-          <input v-model="editRule.clientAddress" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="localhost:3000">
+          <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
         </div>
         <div class="md:col-span-2 flex items-center">
-          <label class="flex items-center">
-            <input v-model="editRule.enableFlag" type="checkbox" class="rounded border-gray-300 text-indigo-600">
-            <span class="ml-2 text-sm text-gray-700">启用</span>
-          </label>
+          <el-checkbox v-model="editRule.enableFlag">启用</el-checkbox>
         </div>
       </div>
     </form>
-  </Modal>
+    <template #footer>
+      <el-button @click="closeEditRuleModal">取消</el-button>
+      <el-button type="primary" @click="saveEditRule">保存</el-button>
+    </template>
+  </el-dialog>
 </div>
 </template>
 
@@ -166,10 +173,11 @@
 import type { ExtendedProxyClientConfig } from '@/api/clients'
 import { addClientRule, getAllClients, getClientRulesPage, updateClientRule } from '@/api/clients'
 import type { ProxyRule } from '@/api/types'
-import Modal from '@/components/Modal.vue'
-import Pagination from '@/components/Pagination.vue'
+
+
 import TagEnableFlag from '@/components/TagEnableFlag.vue'
 import { computed, onMounted, ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const rules = ref<ProxyRule[]>([])
 const clients = ref<ExtendedProxyClientConfig[]>([])
@@ -217,15 +225,15 @@ const closeAddRuleModal = () => {
 const saveRule = async () => {
   const clientId = newRule.value.proxyClientId ?? clientFilter.value
   const { name, serverPort, clientAddress, enableFlag } = newRule.value
-  if (!clientId) { alert('请先选择客户端'); return }
-  if (!name || !clientAddress || !serverPort || serverPort <= 0) { alert('请完整填写规则信息'); return }
+  if (!clientId) { ElMessage.warning('请先选择客户端'); return }
+  if (!name || !clientAddress || !serverPort || serverPort <= 0) { ElMessage.warning('请完整填写规则信息'); return }
   try {
     await addClientRule(clientId, { name, serverPort, clientAddress, enableFlag })
     showAddRuleModal.value = false
     await reload()
   } catch (e) {
     console.error('新增规则失败', e)
-    alert('新增失败，请稍后重试')
+    ElMessage.error('新增失败，请稍后重试')
   }
 }
 
@@ -269,6 +277,11 @@ const onPageChange = async (page: number) => {
   await reload()
 }
 
+// el-pagination 事件（页面为 1 基坐标）
+const onCurrentPageChange = async (page: number) => {
+  await onPageChange(page - 1)
+}
+
 // 编辑规则模态与方法
 const showEditRuleModal = ref(false)
 const editRule = ref<ProxyRule>({
@@ -298,15 +311,15 @@ const closeEditRuleModal = () => {
 
 const saveEditRule = async () => {
   const { id, name, serverPort, clientAddress, enableFlag, proxyClientId } = editRule.value
-  if (!id) { alert('规则ID缺失'); return }
-  if (!name || !clientAddress || !serverPort || serverPort <= 0) { alert('请完整填写规则信息'); return }
+  if (!id) { ElMessage.error('规则ID缺失'); return }
+  if (!name || !clientAddress || !serverPort || serverPort <= 0) { ElMessage.warning('请完整填写规则信息'); return }
   try {
     await updateClientRule(proxyClientId || 0, id, { name, serverPort, clientAddress, enableFlag })
     showEditRuleModal.value = false
     await reload()
   } catch (e) {
     console.error('更新规则失败', e)
-    alert('更新失败，请稍后重试')
+    ElMessage.error('更新失败，请稍后重试')
   }
 }
 </script>

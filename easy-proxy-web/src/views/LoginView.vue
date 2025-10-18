@@ -10,91 +10,51 @@
         </p>
       </div>
       
-      <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
-        <div class="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label for="username" class="sr-only">用户名</label>
-            <input
-              id="username"
-              v-model="loginForm.username"
-              name="username"
-              type="text"
-              required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="用户名"
+      <el-form class="mt-8 space-y-6" :model="loginForm" :rules="rules" ref="loginFormRef" @submit.prevent="handleLogin" label-position="top">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="loginForm.username" placeholder="请输入用户名" autocomplete="username" />
+        </el-form-item>
+
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" autocomplete="current-password" show-password />
+        </el-form-item>
+
+        <el-form-item v-if="captchaEnabled" label="验证码" prop="captchaCode">
+          <div class="flex">
+            <el-input v-model="loginForm.captchaCode" placeholder="请输入验证码" />
+            <img
+              v-if="captchaImage"
+              :src="captchaImage.img"
+              alt="验证码"
+              class="h-10 w-24 ml-2 border rounded-md cursor-pointer"
+              @click="refreshCaptcha"
             />
-          </div>
-          
-          <div>
-            <label for="password" class="sr-only">密码</label>
-            <input
-              id="password"
-              v-model="loginForm.password"
-              name="password"
-              type="password"
-              required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              :class="{ 'rounded-b-md': !captchaEnabled }"
-              placeholder="密码"
-            />
-          </div>
-          
-          <div v-if="captchaEnabled" class="flex">
-            <input
-              id="captchaCode"
-              v-model="loginForm.captchaCode"
-              name="captchaCode"
-              type="text"
-              :required="captchaEnabled"
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-bl-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="验证码"
-            />
-            <div class="relative">
-              <img
-                v-if="captchaImage"
-                :src="captchaImage.img"
-                alt="验证码"
-                class="h-10 w-24 border border-l-0 border-gray-300 rounded-br-md cursor-pointer"
-                @click="refreshCaptcha"
-                title="点击刷新验证码"
-              />
-              <div
-                v-else
-                class="h-10 w-24 border border-l-0 border-gray-300 rounded-br-md bg-gray-100 flex items-center justify-center cursor-pointer"
-                @click="refreshCaptcha"
-              >
-                <span class="text-xs text-gray-500">点击获取</span>
-              </div>
+            <div
+              v-else
+              class="h-10 w-24 ml-2 border rounded-md bg-gray-100 flex items-center justify-center cursor-pointer"
+              @click="refreshCaptcha"
+            >
+              <span class="text-xs text-gray-500">点击获取</span>
             </div>
           </div>
-        </div>
+        </el-form-item>
 
         <div v-if="errorMessage" class="text-red-600 text-sm text-center">
           {{ errorMessage }}
         </div>
 
-        <div>
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span v-if="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </span>
-            {{ isLoading ? '登录中...' : '登录' }}
-          </button>
-        </div>
-      </form>
+        <el-form-item>
+          <el-button type="primary" :loading="isLoading" native-type="submit" class="w-full">登录</el-button>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import type { FormInstance, FormRules } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { useAuthStore } from '../stores/auth';
 import type { LoginRequest, CaptchaImage } from '../api/types';
 
@@ -113,6 +73,23 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 const captchaEnabled = computed(() => authStore.serverConfig?.captchaImageEnable === true);
 
+// Element Plus 表单引用与校验规则
+const loginFormRef = ref<FormInstance>()
+const rules: FormRules<LoginRequest> = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  captchaCode: [{
+    validator: (_rule, value, callback) => {
+      if (captchaEnabled.value && !value) {
+        callback(new Error('请输入验证码'))
+      } else {
+        callback()
+      }
+    },
+    trigger: 'blur'
+  }]
+}
+
 // 获取验证码
 const refreshCaptcha = async () => {
   try {
@@ -127,41 +104,42 @@ const refreshCaptcha = async () => {
 
 // 处理登录
 const handleLogin = async () => {
-  if (captchaEnabled.value) {
-    if (!captchaImage.value) {
-      errorMessage.value = '请先获取验证码';
-      return;
-    }
+  if (captchaEnabled.value && !captchaImage.value) {
+    errorMessage.value = '请先获取验证码'
+    ElMessage.warning('请先获取验证码')
+    return
   }
 
-  errorMessage.value = '';
-  isLoading.value = true;
+  errorMessage.value = ''
+  isLoading.value = true
 
   try {
-    await authStore.login(loginForm.value);
-    
+    await loginFormRef.value?.validate?.()
+    await authStore.login(loginForm.value)
+    ElMessage.success('登录成功')
     // 登录成功，跳转到首页
-    window.location.href = '/';
+    window.location.href = '/'
   } catch (error: any) {
-    console.error('登录失败:', error);
-    
+    console.error('登录失败:', error)
+
     // 显示错误信息
-    if (error.response?.data?.msg) {
-      errorMessage.value = error.response.data.msg;
-    } else if (error.response?.data?.error) {
-      errorMessage.value = error.response.data.error;
+    if (error?.response?.data?.msg) {
+      errorMessage.value = error.response.data.msg
+    } else if (error?.response?.data?.error) {
+      errorMessage.value = error.response.data.error
     } else {
-      errorMessage.value = '登录失败，请检查用户名和密码';
+      errorMessage.value = '登录失败，请检查用户名和密码'
     }
-    
+    ElMessage.error(errorMessage.value)
+
     // 刷新验证码（仅当启用时）
     if (captchaEnabled.value) {
-      await refreshCaptcha();
+      await refreshCaptcha()
     }
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 // 组件挂载时获取验证码
 onMounted(async () => {

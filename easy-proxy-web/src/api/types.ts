@@ -118,7 +118,7 @@ export interface Permission {
 export interface CreateUserRequest {
   username: string;
   email: string;
-  password: string;
+  password?: string;
   role: 'admin' | 'user' | 'viewer';
   enableFlag?: boolean;
 }
