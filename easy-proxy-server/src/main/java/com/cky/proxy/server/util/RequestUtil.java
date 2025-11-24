@@ -1,21 +1,21 @@
 package com.cky.proxy.server.util;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.slf4j.Slf4j;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 @Slf4j
 public class RequestUtil {
 
     /**
      * 从请求上下文中创建分页对象
-     * 
+     *
      * @param ctx 路由上下文
      * @return 分页对象
      */
@@ -43,23 +43,7 @@ public class RequestUtil {
         if (bodyStr == null || bodyStr.isEmpty()) {
             return null;
         }
-        T obj = JsonUtil.parseJson(bodyStr, clazz);
-        if (obj == null) {
-            return null;
-        }
-        return obj;
-    }
-
-    public static <T> T getParamsObj(RoutingContext ctx, Class<T> clazz) {
-        String paramStr = ctx.request().params().toString();
-        if (paramStr == null || paramStr.isEmpty()) {
-            return null;
-        }
-        T obj = JsonUtil.parseJson(paramStr, clazz);
-        if (obj == null) {
-            return null;
-        }
-        return obj;
+        return JsonUtil.parseJson(bodyStr, clazz);
     }
 
     public static Integer getParamInt(RoutingContext ctx, String paramName) {
@@ -89,7 +73,11 @@ public class RequestUtil {
         }
     }
 
-    public static Boolean getParamBoolean(RoutingContext ctx, String paramName) {
+    public static String getParam(RoutingContext ctx, String paramName) {
+        return ctx.request().getParam(paramName);
+    }
+
+    public static Boolean getParamBool(RoutingContext ctx, String paramName) {
         String paramStr = ctx.request().getParam(paramName);
         if (paramStr == null || paramStr.isEmpty()) {
             return null;

@@ -92,7 +92,7 @@ public class UserController {
 
     private void getUsersPageable(RoutingContext ctx) {
         try {
-            Boolean enableFlag = RequestUtil.getParamBoolean(ctx, "enableFlag");
+            Boolean enableFlag = RequestUtil.getParamBool(ctx, "enableFlag");
             PageResult<SysUser> pageResult = authService.getUsersPageable(RequestUtil.getPage(ctx),
                     ctx.request().getParam("q"), enableFlag);
 
@@ -199,7 +199,7 @@ public class UserController {
                 ResponseUtil.error(ctx, 400, "缺少参数: id");
                 return;
             }
-            Boolean enableFlag = RequestUtil.getParamBoolean(ctx, "enableFlag");
+            Boolean enableFlag = RequestUtil.getParamBool(ctx, "enableFlag");
             if (enableFlag == null) {
                 ResponseUtil.error(ctx, 400, "请求体缺少 enableFlag");
                 return;

@@ -1,15 +1,15 @@
 package com.cky.proxy.server.controller;
 
+import cn.hutool.db.Page;
 import com.cky.proxy.server.domain.dto.PageResult;
-import com.cky.proxy.server.domain.dto.SysLogReq;
 import com.cky.proxy.server.domain.entity.SysLog;
 import com.cky.proxy.server.service.SysLogService;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
-
-import cn.hutool.db.Page;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+
+import static com.cky.proxy.server.util.RequestUtil.getParam;
 
 public class SysLogController {
     private final Router router;
@@ -28,8 +28,7 @@ public class SysLogController {
 
     private void getSysLogsPageable(RoutingContext ctx) {
         Page page = RequestUtil.getPage(ctx);
-        SysLogReq req = RequestUtil.getParamsObj(ctx, SysLogReq.class);
-        PageResult<SysLog> result = sysLogService.getSysLogsPageable(page, req.getLogType(), req.getKeyword());
+        PageResult<SysLog> result = sysLogService.getSysLogsPageable(page, getParam(ctx, "logType"), getParam(ctx, "keyword"));
         ResponseUtil.success(ctx, result);
     }
 }

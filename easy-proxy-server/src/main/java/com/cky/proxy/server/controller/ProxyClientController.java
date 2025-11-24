@@ -13,8 +13,11 @@ import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
 
 import cn.hutool.db.Page;
+import io.vertx.core.MultiMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+
+import static com.cky.proxy.server.util.RequestUtil.getParamBool;
 
 public class ProxyClientController {
     private final Router router;
@@ -48,8 +51,8 @@ public class ProxyClientController {
 
     private void getProxyClientsPageable(RoutingContext ctx) {
         Page page = RequestUtil.getPage(ctx);
-        ProxyClientReq req = RequestUtil.getParamsObj(ctx, ProxyClientReq.class);
-        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, req.getQ(), req.getStatus(), req.getEnableFlag());
+        MultiMap params = ctx.request().params();
+        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, params.get("q"), params.get("status"), getParamBool(ctx, "enableFlag"));
         ResponseUtil.success(ctx, result);
     }
 

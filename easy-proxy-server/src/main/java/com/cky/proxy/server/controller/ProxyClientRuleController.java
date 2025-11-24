@@ -1,21 +1,22 @@
 
 package com.cky.proxy.server.controller;
 
-import java.util.List;
-
+import cn.hutool.db.Page;
+import com.cky.proxy.server.consts.AddGroup;
+import com.cky.proxy.server.consts.UpdateGroup;
 import com.cky.proxy.server.domain.dto.PageResult;
-import com.cky.proxy.server.domain.dto.ProxyClientRuleReq;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
-import com.cky.proxy.server.consts.AddGroup;
-import com.cky.proxy.server.consts.UpdateGroup;
-
-import cn.hutool.db.Page;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+
+import java.util.List;
+
+import static com.cky.proxy.server.util.RequestUtil.getParam;
+import static com.cky.proxy.server.util.RequestUtil.getParamInt;
 
 public class ProxyClientRuleController {
     private final Router router;
@@ -43,13 +44,8 @@ public class ProxyClientRuleController {
     }
 
     private void getAllProxyClientRules(RoutingContext ctx) {
-        // 获取查询参数
-        ProxyClientRuleReq req = RequestUtil.getParamsObj(ctx, ProxyClientRuleReq.class);
-
         // 执行查询
-        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(req.getQ(), req.getServerPort(),
-                req.getProxyClientId());
-
+        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(getParam(ctx, "q"), getParamInt(ctx, "serverPort"), getParamInt(ctx, "proxyClientId"));
         // 返回结果
         ResponseUtil.success(ctx, rules);
     }
@@ -57,13 +53,10 @@ public class ProxyClientRuleController {
     private void getProxyClientRulesPageable(RoutingContext ctx) {
         // 创建分页对象
         Page page = RequestUtil.getPage(ctx);
-        // 获取查询参数
-        ProxyClientRuleReq req = RequestUtil.getParamsObj(ctx, ProxyClientRuleReq.class);
-
         // 执行分页查询
-        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, req.getQ(),
-                req.getServerPort(),
-                req.getProxyClientId());
+        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, getParam(ctx, "q"),
+            getParamInt(ctx, "serverPort"),
+            getParamInt(ctx, "proxyClientId"));
 
         // 返回结果
         ResponseUtil.success(ctx, result);
@@ -71,7 +64,7 @@ public class ProxyClientRuleController {
 
     private void getProxyClientRuleDetail(RoutingContext ctx) {
         // 获取ID参数
-        Integer id = RequestUtil.getParamInt(ctx, "id");
+        Integer id = getParamInt(ctx, "id");
         if (id == null) {
             ResponseUtil.error(ctx, 400, "Missing required parameter: id");
             return;
@@ -117,7 +110,7 @@ public class ProxyClientRuleController {
 
     private void deleteProxyClientRule(RoutingContext ctx) {
         // 获取ID参数
-        Integer id = RequestUtil.getParamInt(ctx, "id");
+        Integer id = getParamInt(ctx, "id");
         if (id == null) {
             ResponseUtil.error(ctx, 400, "Missing required parameter: id");
             return;

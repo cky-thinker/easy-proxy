@@ -28,7 +28,7 @@ public class WebManageVerticle extends AbstractVerticle {
     private JWTAuth jwtAuth;
 
     @Override
-    public void start(Promise<Void> startPromise) {        
+    public void start(Promise<Void> startPromise) {
         // 初始化JWT认证
         initJWTAuth();
 
@@ -64,13 +64,16 @@ public class WebManageVerticle extends AbstractVerticle {
         baseRouter.route().failureHandler(ctx -> {
             int statusCode = ctx.statusCode();
             Throwable failure = ctx.failure();
+            if (failure != null) {
+                log.error("Request failed", failure);
+            }
 
             String errorMessage;
             if (failure instanceof jakarta.validation.ConstraintViolationException cve) {
                 statusCode = statusCode == -1 ? 400 : statusCode;
                 StringBuilder sb = new StringBuilder();
                 cve.getConstraintViolations().forEach(v -> {
-                    if (sb.length() > 0) sb.append("; ");
+                    if (!sb.isEmpty()) sb.append("; ");
                     sb.append(v.getPropertyPath()).append(": ").append(v.getMessage());
                 });
                 errorMessage = sb.toString();
