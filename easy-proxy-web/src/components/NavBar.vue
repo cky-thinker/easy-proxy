@@ -1,7 +1,7 @@
 <template>
   <nav class="bg-white shadow-lg relative z-20">
     <div class="px-4">
-      <div class="flex justify-between h-16 items-center">
+      <div class="flex justify-between items-center">
         <div class="flex items-center space-x-4">
           <!-- Logo + Title -->
           <router-link to="/" class="flex-shrink-0 flex items-center space-x-2">
