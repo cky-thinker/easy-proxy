@@ -1,3 +1,8 @@
+# 依赖
+node v22.17.0
+vue3 https://vuejs.org/
+element-plus https://element-plus.org/zh-CN/
+
 1. 总览
 - 客户端在线数
 - 客户端离线数
