@@ -70,7 +70,7 @@
           <el-table-column label="操作" width="350" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" text @click="openEditModal(row)">编辑</el-button>
-              <el-button type="primary" text @click="openRulesModal(row)">规则</el-button>
+              <el-button type="primary" text @click="goToRulesPage(row)">规则</el-button>
               <el-button :type="row.enableFlag ? 'warning' : 'success'" text @click="toggleClientStatus(row)">
                 {{ row.enableFlag ? '禁用' : '启用' }}
               </el-button>
@@ -112,50 +112,7 @@
       </template>
     </el-dialog>
 
-    <!-- 代理规则模态框 -->
-    <el-dialog v-model="showRulesModalFlag" :title="(selectedClient?.name || '') + ' - 代理规则管理'" width="800px"
-      :close-on-click-modal="false" @close="closeRulesModal">
-      <div class="flex justify-end mb-4">
-        <el-button type="success" size="small" @click="addProxyRule">
-          <el-icon class="mr-1">
-            <Plus />
-          </el-icon>
-          新增
-        </el-button>
-      </div>
-      <div class="space-y-3">
-        <div v-for="(rule, index) in selectedClient?.proxyRules" :key="index"
-          class="border border-gray-200 rounded-lg p-4">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">规则名称</label>
-              <el-input v-model="rule.name" placeholder="规则名称" class="w-full" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">服务端口</label>
-              <el-input-number v-model="rule.serverPort" :min="1" :max="65535" controls-position="right"
-                class="w-full" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">客户端地址</label>
-              <el-input v-model="rule.clientAddress" placeholder="localhost:3000" class="w-full" />
-            </div>
-            <div class="flex items-end space-x-2">
-              <el-checkbox v-model="rule.enableFlag">启用</el-checkbox>
-              <el-popconfirm title="确认删除该规则？" @confirm="removeProxyRule(index)">
-                <template #reference>
-                  <el-button type="danger" text size="small">删除</el-button>
-                </template>
-              </el-popconfirm>
-            </div>
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="closeRulesModal">取消</el-button>
-        <el-button type="primary" @click="saveProxyRules">保存规则</el-button>
-      </template>
-    </el-dialog>
+    
   </div>
 </template>
 
@@ -163,6 +120,7 @@
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   createClient,
   deleteClient as deleteClientApi,
@@ -170,11 +128,12 @@ import {
   toggleClientStatus as toggleClientStatusApi,
   updateClient
 } from '../api/proxyClient'
-import { addClientRule, deleteClientRule, getClientRules, updateClientRule } from '../api/proxyClientRule'
 import type { ProxyClientConfig } from '../api/types'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
 import TagStatus from '../components/TagStatus.vue'
 
+
+const router = useRouter()
 
 // 响应式数据
 const clients = ref<ProxyClientConfig[]>([])
@@ -186,8 +145,6 @@ const queryForm = reactive({
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showClientModal = ref(false)
-const showRulesModalFlag = ref(false)
-const selectedClient = ref<ProxyClientConfig | null>(null)
 const currentClient = ref<ProxyClientConfig>({
   name: '',
   token: '',
@@ -324,72 +281,8 @@ const closeModal = () => {
   }
 }
 
-// 代理规则操作
-const openRulesModal = async (client: ProxyClientConfig) => {
-  selectedClient.value = { ...client }
-  showRulesModalFlag.value = true
-  try {
-    const rules = await getClientRules({ proxyClientId: client.id })
-    selectedClient.value.proxyRules = (rules || []).filter(r => (r as any).proxyClientId === (client as any).id)
-  } catch (error) {
-    console.error('加载代理规则失败:', error)
-  }
-}
-
-const addProxyRule = () => {
-  if (selectedClient.value) {
-    if (!selectedClient.value.proxyRules) {
-      selectedClient.value.proxyRules = []
-    }
-    selectedClient.value.proxyRules.push({
-      name: '',
-      serverPort: undefined,
-      clientAddress: '',
-      enableFlag: true
-    } as any)
-  }
-}
-
-const removeProxyRule = async (index: number) => {
-  if (selectedClient.value?.proxyRules) {
-    const rule = selectedClient.value.proxyRules[index]
-    try {
-      if ((rule as any).id) {
-        await deleteClientRule((selectedClient.value as any).id as number, (rule as any).id as number)
-      }
-      selectedClient.value.proxyRules.splice(index, 1)
-    } catch (error) {
-      console.error('删除规则失败:', error)
-      ElMessage.error('删除失败，请稍后重试')
-    }
-  }
-}
-
-const saveProxyRules = async () => {
-  try {
-    if (selectedClient.value) {
-      const clientId = (selectedClient.value as any).id as number
-      for (const rule of selectedClient.value.proxyRules || []) {
-        if (!(rule as any).id) {
-          const created = await addClientRule(clientId, rule as any)
-          Object.assign(rule, created)
-        } else {
-          const updated = await updateClientRule(clientId, (rule as any).id as number, rule as any)
-          Object.assign(rule, updated)
-        }
-      }
-    }
-    showToast('保存成功', 'success')
-    closeRulesModal()
-  } catch (error) {
-    console.error('保存代理规则失败:', error)
-    showToast('保存失败', 'error')
-  }
-}
-
-const closeRulesModal = () => {
-  showRulesModalFlag.value = false
-  selectedClient.value = null
+const goToRulesPage = (client: ProxyClientConfig) => {
+  router.push({ path: '/clientRules', query: { clientId: (client as any).id } })
 }
 
 // 加载数据

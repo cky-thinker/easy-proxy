@@ -141,6 +141,7 @@ import TagEnableFlag from '@/components/TagEnableFlag.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 const rules = ref<ProxyRule[]>([])
 const clients = ref<ExtendedProxyClientConfig[]>([])
@@ -151,6 +152,7 @@ const clientNameMap = computed<Record<number, string>>(() => {
 })
 
 const loading = ref(false)
+const route = useRoute()
 // 分页状态
 const currentPage = ref(0)
 const pageSize = ref(10)
@@ -215,8 +217,11 @@ const reload = async () => {
 const filteredRules = computed(() => rules.value)
 
 onMounted(async () => {
-  // 取所有客户端用于下拉选择
   clients.value = await getAllClients()
+  const clientIdParam = Number((route.query.clientId as string) || '')
+  if (clientIdParam) {
+    queryForm.clientFilter = clientIdParam
+  }
   await reload()
 })
 
