@@ -13,7 +13,8 @@
         <div class="flex items-center">
           <div class="p-2 bg-green-100 rounded-lg">
             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
+              <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
             </svg>
           </div>
           <div class="ml-4">
@@ -28,7 +29,8 @@
         <div class="flex items-center">
           <div class="p-2 bg-red-100 rounded-lg">
             <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6l-12 12"/>
+              <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
             </svg>
           </div>
           <div class="ml-4">
@@ -43,7 +45,8 @@
         <div class="flex items-center">
           <div class="p-2 bg-blue-100 rounded-lg">
             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12M7 9l5-5 5 5"/>
+              <rect x="4" y="16" width="16" height="4" rx="1" stroke-width="2"></rect>
             </svg>
           </div>
           <div class="ml-4">
@@ -56,9 +59,10 @@
       <!-- 总下行流量 -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
-          <div class="p-2 bg-purple-100 rounded-lg">
-            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          <div class="p-2 bg-green-100 rounded-lg">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20V8M17 15l-5 5-5-5"/>
+              <rect x="4" y="4" width="16" height="4" rx="1" stroke-width="2"></rect>
             </svg>
           </div>
           <div class="ml-4">
