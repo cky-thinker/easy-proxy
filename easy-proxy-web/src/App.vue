@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import { useAuthStore } from './stores/auth'
 
 const authStore = useAuthStore()
+const route = useRoute()
 
 // 初始化认证状态
 onMounted(() => {
@@ -13,17 +15,17 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="flex flex-col min-h-screen bg-gray-50">
-        <!-- 导航栏 -->
+    <div v-if="route.path !== '/login'" class="flex flex-col min-h-screen bg-gray-50">
         <NavBar />
 
-        <!-- 主体内容区 -->
         <div class="flex-1 relative z-10">
-            <!-- 内容区域 -->
             <main class="min-h-[calc(100vh-64px)]">
                 <RouterView />
             </main>
         </div>
+    </div>
+    <div v-else class="min-h-screen bg-gray-50">
+        <RouterView />
     </div>
 </template>
 
