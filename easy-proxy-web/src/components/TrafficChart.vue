@@ -44,9 +44,9 @@ const chartContainer = ref<HTMLElement | null>(null)
 let chart: echarts.ECharts | null = null
 
 const periods = [
-  { label: '今日', value: 'day' as const },
-  { label: '本周', value: 'week' as const },
-  { label: '本月', value: 'month' as const }
+  { label: '近24小时', value: 'day' as const },
+  { label: '近7日', value: 'week' as const },
+  { label: '近30日', value: 'month' as const }
 ]
 
 const formatBytes = (bytes: number): string => {

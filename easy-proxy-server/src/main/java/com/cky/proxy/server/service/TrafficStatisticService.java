@@ -4,9 +4,9 @@ import java.util.Date;
 import java.util.List;
 
 import com.cky.proxy.server.domain.dto.ClientTrafficDayReport;
-import com.cky.proxy.server.dao.TrafficStatisticClientRuleReportDao;
-import com.cky.proxy.server.dao.TrafficStatisticDayReportDao;
-import com.cky.proxy.server.dao.TrafficStatisticHourReportDao;
+import com.cky.proxy.server.dao.TsReportDao;
+import com.cky.proxy.server.dao.TsDayReportDao;
+import com.cky.proxy.server.dao.TsHourReportDao;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.TsReport;
 import com.cky.proxy.server.domain.entity.TsDayReport;
@@ -16,9 +16,9 @@ import com.cky.proxy.server.util.BeanContext;
 import cn.hutool.db.Page;
 
 public class TrafficStatisticService {
-    private final TrafficStatisticClientRuleReportDao clientRuleReportDao = BeanContext.getTrafficStatisticClientRuleReportDao();
-    private final TrafficStatisticDayReportDao dayReportDao = BeanContext.getTrafficStatisticDayReportDao();
-    private final TrafficStatisticHourReportDao hourReportDao = BeanContext.getTrafficStatisticHourReportDao();
+    private final TsReportDao clientRuleReportDao = BeanContext.getTrafficStatisticClientRuleReportDao();
+    private final TsDayReportDao dayReportDao = BeanContext.getTrafficStatisticDayReportDao();
+    private final TsHourReportDao hourReportDao = BeanContext.getTrafficStatisticHourReportDao();
 
     // 客户端总报告分页查询
     public PageResult<ClientTrafficDayReport> getClientReportsPageable(Page page, Integer proxyClientId, Date startDate, Date endDate) {

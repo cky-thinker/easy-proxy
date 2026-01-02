@@ -8,9 +8,9 @@ import com.cky.proxy.server.config.DatabaseConnectionManager;
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.dao.SysLogDao;
-import com.cky.proxy.server.dao.TrafficStatisticClientRuleReportDao;
-import com.cky.proxy.server.dao.TrafficStatisticDayReportDao;
-import com.cky.proxy.server.dao.TrafficStatisticHourReportDao;
+import com.cky.proxy.server.dao.TsReportDao;
+import com.cky.proxy.server.dao.TsDayReportDao;
+import com.cky.proxy.server.dao.TsHourReportDao;
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
@@ -38,9 +38,9 @@ public class BeanContext {
     private ProxyClientDao proxyClientDao;
     private ProxyClientRuleDao proxyClientRuleDao;
     private SysLogDao sysLogDao;
-    private TrafficStatisticClientRuleReportDao trafficStatisticClientRuleReportDao;
-    private TrafficStatisticDayReportDao trafficStatisticDayReportDao;
-    private TrafficStatisticHourReportDao trafficStatisticHourReportDao;
+    private TsReportDao trafficStatisticClientRuleReportDao;
+    private TsDayReportDao trafficStatisticDayReportDao;
+    private TsHourReportDao trafficStatisticHourReportDao;
 
     private BeanContext() {
     }
@@ -75,15 +75,15 @@ public class BeanContext {
         return instance.sysLogDao;
     }
 
-    public static TrafficStatisticClientRuleReportDao getTrafficStatisticClientRuleReportDao() {
+    public static TsReportDao getTrafficStatisticClientRuleReportDao() {
         return instance.trafficStatisticClientRuleReportDao;
     }
 
-    public static TrafficStatisticDayReportDao getTrafficStatisticDayReportDao() {
+    public static TsDayReportDao getTrafficStatisticDayReportDao() {
         return instance.trafficStatisticDayReportDao;
     }
 
-    public static TrafficStatisticHourReportDao getTrafficStatisticHourReportDao() {
+    public static TsHourReportDao getTrafficStatisticHourReportDao() {
         return instance.trafficStatisticHourReportDao;
     }
 
@@ -111,9 +111,9 @@ public class BeanContext {
         proxyClientDao = new ProxyClientDao();
         proxyClientRuleDao = new ProxyClientRuleDao();
         sysLogDao = new SysLogDao();
-        trafficStatisticClientRuleReportDao = new TrafficStatisticClientRuleReportDao();
-        trafficStatisticDayReportDao = new TrafficStatisticDayReportDao();
-        trafficStatisticHourReportDao = new TrafficStatisticHourReportDao();
+        trafficStatisticClientRuleReportDao = new TsReportDao();
+        trafficStatisticDayReportDao = new TsDayReportDao();
+        trafficStatisticHourReportDao = new TsHourReportDao();
     }
 
     /**
