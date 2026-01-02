@@ -55,7 +55,7 @@ public class DbInitTest {
         }
 
         List<ProxyClient> clients = new ArrayList<>();
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 15; i++) {
             ProxyClient c = new ProxyClient();
             c.setName(String.format("客户端-%03d", i));
             c.setToken(UUID.randomUUID().toString().replace("-", ""));
@@ -71,7 +71,7 @@ public class DbInitTest {
         int portBase = 8000;
         int ipBase = 100;
         for (ProxyClient c : clients) {
-            int ruleCount = 3;
+            int ruleCount = 12;
             for (int r = 1; r <= ruleCount; r++) {
                 ProxyClientRule rule = new ProxyClientRule();
                 rule.setProxyClientId(c.getId());
