@@ -24,9 +24,9 @@ public class DbInitTest {
     public void dataInit() {
         BeanContext beanContext = BeanContext.getInstance();
         com.cky.proxy.server.config.DatabaseProperty db = new com.cky.proxy.server.config.DatabaseProperty();
-        db.setUrl("jdbc:h2:mem:dashboard-test;DB_CLOSE_DELAY=-1");
-        db.setUsername("sa");
-        db.setPassword("");
+        db.setUrl("jdbc:h2:~/easy-proxy/database");
+        db.setUsername("test");
+        db.setPassword("test");
         com.cky.proxy.server.config.ConfigProperty.getInstance().setDb(db);
         beanContext.initializeDatabase();
         ProxyClientDao clientDao = BeanContext.getProxyClientDao();
@@ -90,6 +90,7 @@ public class DbInitTest {
                 cal.set(Calendar.HOUR_OF_DAY, 23);
                 cal.set(Calendar.MINUTE, 59);
                 cal.set(Calendar.SECOND, 59);
+                cal.set(Calendar.MILLISECOND, 0);
                 Date day = cal.getTime();
                 
                 long up = rule.getEnableFlag() ? ThreadLocalRandom.current().nextLong(5_000_000L, 50_000_000L) : 0L;
@@ -114,6 +115,7 @@ public class DbInitTest {
                 // 设置为该小时的59分59秒，模拟小时结束生成
                 cal.set(Calendar.MINUTE, 59);
                 cal.set(Calendar.SECOND, 59);
+                cal.set(Calendar.MILLISECOND, 0);
                 Date hour = cal.getTime();
                 
                 long up = ThreadLocalRandom.current().nextLong(200_000L, 2_000_000L);

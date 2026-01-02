@@ -77,7 +77,8 @@ public class DashboardController {
             java.util.Date start = cal.getTime();
 
             String sql = "SELECT proxy_client_id, COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) AS total FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY proxy_client_id ORDER BY total DESC LIMIT 10";
-            String[] params = new String[] { new java.sql.Timestamp(start.getTime()).toString(), new java.sql.Timestamp(end.getTime()).toString() };
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String[] params = new String[] { sdf.format(start), sdf.format(end) };
             var res = BeanContext.getTsDayReportDao().getDao().queryRaw(sql, params);
             java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
 
@@ -132,12 +133,29 @@ public class DashboardController {
                 start = cal.getTime();
                 sql = "SELECT date, COALESCE(SUM(upward_traffic_bytes),0) AS upload, COALESCE(SUM(downward_traffic_bytes),0) AS download FROM ts_hour_report WHERE date >= ? AND date <= ? GROUP BY date ORDER BY date ASC";
             } else {
-                if ("week".equals(period)) cal.add(java.util.Calendar.DAY_OF_MONTH, -7); else cal.add(java.util.Calendar.DAY_OF_MONTH, -30);
+                if ("week".equals(period)) {
+                    cal.add(java.util.Calendar.DAY_OF_MONTH, -7);
+                } else {
+                    cal.add(java.util.Calendar.DAY_OF_MONTH, -30);
+                }
+                // 设置为起始当天的 00:00:00，确保覆盖完整的一天
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                cal.set(java.util.Calendar.MINUTE, 0);
+                cal.set(java.util.Calendar.SECOND, 0);
+                cal.set(java.util.Calendar.MILLISECOND, 0);
                 start = cal.getTime();
                 sql = "SELECT date, COALESCE(SUM(upward_traffic_bytes),0) AS upload, COALESCE(SUM(downward_traffic_bytes),0) AS download FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY date ORDER BY date ASC";
             }
-            String[] params = new String[] { new java.sql.Timestamp(start.getTime()).toString(), new java.sql.Timestamp(end.getTime()).toString() };
-            var res = BeanContext.getTsDayReportDao().getDao().queryRaw(sql, params);
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String[] params = new String[] { sdf.format(start), sdf.format(end) };
+            // 根据 period 决定使用哪个 DAO，因为 ts_hour_report 和 ts_day_report 是不同的表
+            com.j256.ormlite.dao.Dao<?, ?> dao;
+            if ("day".equals(period)) {
+                dao = BeanContext.getTsHourReportDao().getDao();
+            } else {
+                dao = BeanContext.getTsDayReportDao().getDao();
+            }
+            var res = dao.queryRaw(sql, params);
             java.util.List<java.util.Map<String, Object>> data = new java.util.ArrayList<>();
             for (String[] row : res.getResults()) {
                 java.util.Map<String, Object> item = new java.util.HashMap<>();
