@@ -6,6 +6,7 @@ import com.cky.proxy.server.controller.ProxyClientRuleController;
 import com.cky.proxy.server.controller.SysLogController;
 import com.cky.proxy.server.controller.UserController;
 import com.cky.proxy.server.controller.TrafficStatisticController;
+import com.cky.proxy.server.controller.DashboardController;
 import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.util.ResponseUtil;
 
@@ -114,6 +115,7 @@ public class WebManageVerticle extends AbstractVerticle {
         new ProxyClientRuleController(baseRouter);
         new SysLogController(baseRouter);
         new TrafficStatisticController(baseRouter);
+        new DashboardController(baseRouter);
         new UserController(baseRouter, vertx);
 
         // 启动HTTP服务器

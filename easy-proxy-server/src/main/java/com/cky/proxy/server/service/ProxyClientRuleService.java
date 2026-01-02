@@ -24,21 +24,21 @@ public class ProxyClientRuleService {
      */
     public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId) {
         return proxyClientRuleDao.selectList(qb -> {
-            var where = qb.where();
             boolean hasWhere = false;
             if (name != null && !name.isEmpty()) {
-                where.like("name", "%" + name + "%");
+                qb.where().like("name", "%" + name + "%");
                 hasWhere = true;
             }
             if (serverPort != null) {
-                if (hasWhere) where.and();
-                where.eq("server_port", serverPort);
+                if (hasWhere) qb.where().and();
+                qb.where().eq("server_port", serverPort);
                 hasWhere = true;
             }
             if (proxyClientId != null) {
-                if (hasWhere) where.and();
-                where.eq("proxy_client_id", proxyClientId);
+                if (hasWhere) qb.where().and();
+                qb.where().eq("proxy_client_id", proxyClientId);
             }
+            // 当所有条件为空时，不调用 qb.where()，以返回全部
         });
     }
 

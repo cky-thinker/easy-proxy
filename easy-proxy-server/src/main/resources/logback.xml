@@ -13,12 +13,12 @@
         </encoder>
     </appender>
 
-    <logger name="com.cky.proxy" level="DEBUG" additivity="false">
+    <logger name="com.cky.proxy" level="INFO" additivity="false">
         <appender-ref ref="console"/>
     </logger>
 
     <!-- ORMLite SQL 打印：启用 TRACE 级别 -->
-    <logger name="com.j256.ormlite" level="TRACE" additivity="false">
+    <logger name="com.j256.ormlite" level="INFO" additivity="false">
         <appender-ref ref="console"/>
     </logger>
 

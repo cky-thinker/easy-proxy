@@ -141,6 +141,7 @@
 import { ref, onMounted } from 'vue'
 import TrafficChart from '@/components/TrafficChart.vue'
 import type { DashboardStats, TrafficRanking, RecentActivity, TrafficTrend } from '@/api/types'
+import { getDashboardStats, getTrafficRanking, getTrafficTrend, getRecentActivities } from '@/api/dashboard'
 
 // 响应式数据
 const stats = ref({
@@ -158,21 +159,9 @@ const loading = ref({
   trafficTrend: false
 })
 
-const trafficRanking = ref([
-  { name: '客户端-001', ip: '192.168.1.100', traffic: 1024 * 1024 * 500, connections: 15 },
-  { name: '客户端-002', ip: '192.168.1.101', traffic: 1024 * 1024 * 320, connections: 8 },
-  { name: '客户端-003', ip: '192.168.1.102', traffic: 1024 * 1024 * 280, connections: 12 },
-  { name: '客户端-004', ip: '192.168.1.103', traffic: 1024 * 1024 * 150, connections: 5 },
-  { name: '客户端-005', ip: '192.168.1.104', traffic: 1024 * 1024 * 90, connections: 3 }
-])
+const trafficRanking = ref<TrafficRanking[]>([])
 
-const recentActivities = ref([
-  { message: '客户端-001 上线', time: '2分钟前' },
-  { message: '客户端-003 流量异常', time: '5分钟前' },
-  { message: '新增代理规则：端口8080', time: '10分钟前' },
-  { message: '客户端-002 下线', time: '15分钟前' },
-  { message: '系统启动完成', time: '1小时前' }
-])
+const recentActivities = ref<RecentActivity[]>([])
 
 // 工具函数
 const formatBytes = (bytes: number): string => {
@@ -193,8 +182,7 @@ const handlePeriodChange = (period: string) => {
 const loadTrafficTrendData = async () => {
   loading.value.trafficTrend = true
   try {
-    // 模拟流量趋势数据
-    trafficTrendData.value = []
+    trafficTrendData.value = await getTrafficTrend(trendPeriod.value as 'day'|'week'|'month')
   } catch (error) {
     console.error('加载流量趋势数据失败:', error)
   } finally {
@@ -205,13 +193,9 @@ const loadTrafficTrendData = async () => {
 // 加载数据
 const loadDashboardData = async () => {
   try {
-    // 模拟数据加载
-    stats.value = {
-      onlineClients: 12,
-      offlineClients: 3,
-      totalTraffic: 1024 * 1024 * 1024 * 2.5, // 2.5GB
-      activeConnections: 45
-    }
+    stats.value = await getDashboardStats()
+    trafficRanking.value = await getTrafficRanking(trafficPeriod.value as 'day'|'week'|'month')
+    recentActivities.value = await getRecentActivities()
     await loadTrafficTrendData()
   } catch (error) {
     console.error('加载仪表板数据失败:', error)
