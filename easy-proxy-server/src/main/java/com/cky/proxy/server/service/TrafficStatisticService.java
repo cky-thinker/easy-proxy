@@ -3,44 +3,68 @@ package com.cky.proxy.server.service;
 import java.util.Date;
 import java.util.List;
 
-import com.cky.proxy.server.dao.TrafficStatisticClientReportDao;
+import com.cky.proxy.server.domain.dto.ClientTrafficDayReport;
 import com.cky.proxy.server.dao.TrafficStatisticClientRuleReportDao;
 import com.cky.proxy.server.dao.TrafficStatisticDayReportDao;
 import com.cky.proxy.server.dao.TrafficStatisticHourReportDao;
 import com.cky.proxy.server.domain.dto.PageResult;
-import com.cky.proxy.server.domain.entity.TrafficStatisticClientReport;
-import com.cky.proxy.server.domain.entity.TrafficStatisticClientRuleReport;
-import com.cky.proxy.server.domain.entity.TrafficStatisticDayReport;
-import com.cky.proxy.server.domain.entity.TrafficStatisticHourReport;
+import com.cky.proxy.server.domain.entity.TsReport;
+import com.cky.proxy.server.domain.entity.TsDayReport;
+import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.cky.proxy.server.util.BeanContext;
 
 import cn.hutool.db.Page;
 
 public class TrafficStatisticService {
-    private final TrafficStatisticClientReportDao clientReportDao = BeanContext.getTrafficStatisticClientReportDao();
     private final TrafficStatisticClientRuleReportDao clientRuleReportDao = BeanContext.getTrafficStatisticClientRuleReportDao();
     private final TrafficStatisticDayReportDao dayReportDao = BeanContext.getTrafficStatisticDayReportDao();
     private final TrafficStatisticHourReportDao hourReportDao = BeanContext.getTrafficStatisticHourReportDao();
 
     // 客户端总报告分页查询
-    public PageResult<TrafficStatisticClientReport> getClientReportsPageable(Page page, Integer proxyClientId, Date startDate, Date endDate) {
-        return clientReportDao.selectPage(page, where -> {
-            int clauses = 0;
-            if (proxyClientId != null) {
-                clauses++; where.eq("proxy_client_id", proxyClientId);
-            }
-            if (startDate != null) {
-                clauses++; where.ge("date", startDate);
-            }
-            if (endDate != null) {
-                clauses++; where.le("date", endDate);
-            }
-            if (clauses == 0) { where.raw("1=1"); }
-        });
+    public PageResult<ClientTrafficDayReport> getClientReportsPageable(Page page, Integer proxyClientId, Date startDate, Date endDate) {
+        try {
+            StringBuilder whereSql = new StringBuilder(" WHERE 1=1 ");
+            java.util.List<Object> args = new java.util.ArrayList<>();
+            if (proxyClientId != null) { whereSql.append(" AND proxy_client_id = ?"); args.add(proxyClientId); }
+            if (startDate != null) { whereSql.append(" AND date >= ?"); args.add(new java.sql.Timestamp(startDate.getTime())); }
+            if (endDate != null) { whereSql.append(" AND date <= ?"); args.add(new java.sql.Timestamp(endDate.getTime())); }
+
+            String countSql = "SELECT COUNT(*) FROM (SELECT proxy_client_id, date FROM ts_day_report" + whereSql + " GROUP BY proxy_client_id, date) t";
+            com.j256.ormlite.dao.GenericRawResults<String[]> countRes = dayReportDao.getDao().queryRaw(countSql, args.toArray(new String[0]));
+            int total = 0; if (!countRes.getResults().isEmpty()) { total = Integer.parseInt(countRes.getResults().get(0)[0]); }
+            int pageSize = page.getPageSize();
+            int totalPage = total % pageSize == 0 ? total / pageSize : total / pageSize + 1;
+
+            String dataSql = "SELECT proxy_client_id, date, SUM(upward_traffic_bytes) AS upload_bytes, SUM(downward_traffic_bytes) AS download_bytes FROM ts_day_report"
+                    + whereSql + " GROUP BY proxy_client_id, date ORDER BY date DESC LIMIT ? OFFSET ?";
+            args.add(pageSize);
+            args.add(page.getStartPosition());
+
+            com.j256.ormlite.dao.GenericRawResults<ClientTrafficDayReport> dataRes = dayReportDao.getDao().queryRaw(
+                    dataSql,
+                    new com.j256.ormlite.dao.RawRowMapper<ClientTrafficDayReport>() {
+                        @Override
+                        public ClientTrafficDayReport mapRow(String[] columnNames, String[] resultColumns) {
+                            ClientTrafficDayReport r = new ClientTrafficDayReport();
+                            r.setProxyClientId(Integer.valueOf(resultColumns[0]));
+                            r.setDate(new java.sql.Timestamp(java.sql.Timestamp.valueOf(resultColumns[1]).getTime()));
+                            r.setUploadBytes(Long.valueOf(resultColumns[2]));
+                            r.setDownloadBytes(Long.valueOf(resultColumns[3]));
+                            return r;
+                        }
+                    },
+                    args.stream().map(Object::toString).toArray(String[]::new)
+            );
+
+            java.util.List<ClientTrafficDayReport> list = dataRes.getResults();
+            return new PageResult<>(page.getPageNumber(), pageSize, totalPage, total, list);
+        } catch (Exception e) {
+            throw new RuntimeException("聚合客户端日流量失败", e);
+        }
     }
 
     // 客户端规则总报告分页查询
-    public PageResult<TrafficStatisticClientRuleReport> getClientRuleReportsPageable(Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
+    public PageResult<TsReport> getClientRuleReportsPageable(Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
         return clientRuleReportDao.selectPage(page, where -> {
             int clauses = 0;
             if (proxyClientRuleId != null) {
@@ -57,7 +81,7 @@ public class TrafficStatisticService {
     }
 
     // 天报告分页查询
-    public PageResult<TrafficStatisticDayReport> getDayReportsPageable(Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
+    public PageResult<TsDayReport> getDayReportsPageable(Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
         return dayReportDao.selectPage(page, where -> {
             int clauses = 0;
             if (proxyClientRuleId != null) {
@@ -74,7 +98,7 @@ public class TrafficStatisticService {
     }
 
     // 小时报告分页查询
-    public PageResult<TrafficStatisticHourReport> getHourReportsPageable(Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
+    public PageResult<TsHourReport> getHourReportsPageable(Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
         return hourReportDao.selectPage(page, where -> {
             int clauses = 0;
             if (proxyClientRuleId != null) {
@@ -91,7 +115,7 @@ public class TrafficStatisticService {
     }
 
     // 明细列表（不分页）示例
-    public List<TrafficStatisticDayReport> listDayReports(Integer proxyClientRuleId, Date startDate, Date endDate) {
+    public List<TsDayReport> listDayReports(Integer proxyClientRuleId, Date startDate, Date endDate) {
         return dayReportDao.selectList(qb -> {
             qb.where();
             int clauses = 0;

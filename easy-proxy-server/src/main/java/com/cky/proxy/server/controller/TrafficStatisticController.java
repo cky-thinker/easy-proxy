@@ -3,10 +3,10 @@ package com.cky.proxy.server.controller;
 import java.util.Date;
 
 import com.cky.proxy.server.domain.dto.PageResult;
-import com.cky.proxy.server.domain.entity.TrafficStatisticClientReport;
-import com.cky.proxy.server.domain.entity.TrafficStatisticClientRuleReport;
-import com.cky.proxy.server.domain.entity.TrafficStatisticDayReport;
-import com.cky.proxy.server.domain.entity.TrafficStatisticHourReport;
+import com.cky.proxy.server.domain.dto.ClientTrafficDayReport;
+import com.cky.proxy.server.domain.entity.TsReport;
+import com.cky.proxy.server.domain.entity.TsDayReport;
+import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.cky.proxy.server.service.TrafficStatisticService;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
@@ -41,7 +41,7 @@ public class TrafficStatisticController {
         Integer proxyClientId = RequestUtil.getParamInt(ctx, "proxyClientId");
         Date startDate = RequestUtil.getParamDate(ctx, "startDate");
         Date endDate = RequestUtil.getParamDate(ctx, "endDate");
-        PageResult<TrafficStatisticClientReport> result = statisticService.getClientReportsPageable(page, proxyClientId,
+        PageResult<ClientTrafficDayReport> result = statisticService.getClientReportsPageable(page, proxyClientId,
                 startDate, endDate);
         ResponseUtil.success(ctx, result);
     }
@@ -51,7 +51,7 @@ public class TrafficStatisticController {
         Integer proxyClientRuleId = RequestUtil.getParamInt(ctx, "proxyClientRuleId");
         Date startDate = RequestUtil.getParamDate(ctx, "startDate");
         Date endDate = RequestUtil.getParamDate(ctx, "endDate");
-        PageResult<TrafficStatisticClientRuleReport> result = statisticService.getClientRuleReportsPageable(page,
+        PageResult<TsReport> result = statisticService.getClientRuleReportsPageable(page,
                 proxyClientRuleId, startDate, endDate);
         ResponseUtil.success(ctx, result);
     }
@@ -61,7 +61,7 @@ public class TrafficStatisticController {
         Integer proxyClientRuleId = RequestUtil.getParamInt(ctx, "proxyClientRuleId");
         Date startDate = RequestUtil.getParamDate(ctx, "startDate");
         Date endDate = RequestUtil.getParamDate(ctx, "endDate");
-        PageResult<TrafficStatisticDayReport> result = statisticService.getDayReportsPageable(page, proxyClientRuleId,
+        PageResult<TsDayReport> result = statisticService.getDayReportsPageable(page, proxyClientRuleId,
                 startDate, endDate);
         ResponseUtil.success(ctx, result);
     }
@@ -71,7 +71,7 @@ public class TrafficStatisticController {
         Integer proxyClientRuleId = RequestUtil.getParamInt(ctx, "proxyClientRuleId");
         Date startDate = RequestUtil.getParamDate(ctx, "startDate");
         Date endDate = RequestUtil.getParamDate(ctx, "endDate");
-        PageResult<TrafficStatisticHourReport> result = statisticService.getHourReportsPageable(page, proxyClientRuleId,
+        PageResult<TsHourReport> result = statisticService.getHourReportsPageable(page, proxyClientRuleId,
                 startDate, endDate);
         ResponseUtil.success(ctx, result);
     }
