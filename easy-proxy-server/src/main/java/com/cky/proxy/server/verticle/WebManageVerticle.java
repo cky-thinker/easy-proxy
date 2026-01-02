@@ -7,8 +7,6 @@ import com.cky.proxy.server.controller.SysLogController;
 import com.cky.proxy.server.controller.UserController;
 import com.cky.proxy.server.controller.TrafficStatisticController;
 import com.cky.proxy.server.controller.DashboardController;
-import com.cky.proxy.server.domain.dto.Result;
-import com.cky.proxy.server.util.ResponseUtil;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -21,7 +19,6 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.cky.proxy.server.util.JsonUtil;
 
 public class WebManageVerticle extends AbstractVerticle {
     private static final Logger log = LoggerFactory.getLogger(WebManageVerticle.class);
