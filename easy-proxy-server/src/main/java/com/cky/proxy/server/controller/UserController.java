@@ -81,7 +81,7 @@ public class UserController {
         try {
             ConfigProperty configProperty = ConfigProperty.getInstance();
             HashMap<String, Object> map = new HashMap<>();
-            map.put("captchaImageEnable", configProperty.getServer().getCatureImageEnable());
+            map.put("captchaImageEnable", configProperty.getServer().getCaptchaImageEnable());
             ResponseUtil.response(routingcontext1, Result.success(map, "获取配置成功"));
         } catch (Exception e) {
             ResponseUtil.response(routingcontext1, Result.error("获取配置失败: " + e.getMessage()));

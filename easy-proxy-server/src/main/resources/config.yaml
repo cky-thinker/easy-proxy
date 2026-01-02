@@ -1,7 +1,7 @@
 server:
     proxyPort: 10090
     webPort: 10091
-    catureImageEnable: false
+    captchaImageEnable: false
 db:
     url: jdbc:h2:~/easy-proxy/database
     username: test
