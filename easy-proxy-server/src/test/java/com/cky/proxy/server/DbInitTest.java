@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import com.cky.proxy.server.util.BeanContext;
 import com.j256.ormlite.table.TableUtils;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.dao.TsDayReportDao;
@@ -20,6 +23,7 @@ import com.cky.proxy.server.domain.entity.SysLog;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Slf4j
 public class DbInitTest {
     @Test
     public void dataInit() {
@@ -29,6 +33,7 @@ public class DbInitTest {
         db.setUsername("test");
         db.setPassword("test");
         com.cky.proxy.server.config.ConfigProperty.getInstance().setDb(db);
+        // 初始化数据库连接
         beanContext.initializeDatabase();
         ProxyClientDao clientDao = BeanContext.getProxyClientDao();
         ProxyClientRuleDao ruleDao = BeanContext.getProxyClientRuleDao();
@@ -37,16 +42,16 @@ public class DbInitTest {
         TsHourReportDao hourDao = BeanContext.getTsHourReportDao();
         SysLogDao sysLogDao = BeanContext.getSysLogDao();
         
-        // 清空表数据
+        // 然后清空表数据
         try {
-            TableUtils.clearTable(clientDao.getDao().getConnectionSource(), ProxyClient.class);
-            TableUtils.clearTable(ruleDao.getDao().getConnectionSource(), ProxyClientRule.class);
-            TableUtils.clearTable(reportDao.getDao().getConnectionSource(), TsReport.class);
-            TableUtils.clearTable(dayDao.getDao().getConnectionSource(), TsDayReport.class);
-            TableUtils.clearTable(hourDao.getDao().getConnectionSource(), TsHourReport.class);
-            TableUtils.clearTable(sysLogDao.getDao().getConnectionSource(), SysLog.class);
-        } catch (java.sql.SQLException e) {
-            throw new RuntimeException("清空表失败", e);
+            com.j256.ormlite.table.TableUtils.clearTable(clientDao.getDao().getConnectionSource(), ProxyClient.class);
+            com.j256.ormlite.table.TableUtils.clearTable(ruleDao.getDao().getConnectionSource(), ProxyClientRule.class);
+            com.j256.ormlite.table.TableUtils.clearTable(reportDao.getDao().getConnectionSource(), TsReport.class);
+            com.j256.ormlite.table.TableUtils.clearTable(dayDao.getDao().getConnectionSource(), TsDayReport.class);
+            com.j256.ormlite.table.TableUtils.clearTable(hourDao.getDao().getConnectionSource(), TsHourReport.class);
+            com.j256.ormlite.table.TableUtils.clearTable(sysLogDao.getDao().getConnectionSource(), SysLog.class);
+        } catch (Exception e) {
+            log.error("清空表数据失败", e);
         }
 
         List<ProxyClient> clients = new ArrayList<>();
@@ -130,6 +135,20 @@ public class DbInitTest {
                 hr.setCreateTime(new Date());
                 hourDao.insert(hr);
             }
+        }
+
+        for (ProxyClientRule rule : rules) {
+            // 生成总统计数据
+            long up = rule.getEnableFlag() ? ThreadLocalRandom.current().nextLong(50_000_000L, 500_000_000L) : 0L;
+            long down = rule.getEnableFlag() ? ThreadLocalRandom.current().nextLong(80_000_000L, 800_000_000L) : 0L;
+            TsReport report = new TsReport();
+            report.setProxyClientId(rule.getProxyClientId());
+            report.setProxyClientRuleId(rule.getId());
+            report.setUploadBytes(up);
+            report.setDownloadBytes(down);
+            report.setCreateTime(new Date());
+            report.setUpdateTime(new Date());
+            reportDao.insert(report);
         }
 
         String[] msgs = new String[] {
