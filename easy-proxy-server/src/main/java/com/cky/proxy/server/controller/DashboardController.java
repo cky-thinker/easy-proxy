@@ -44,7 +44,7 @@ public class DashboardController {
             }
 
             String sumSql = "SELECT COALESCE(SUM(upward_traffic_bytes), 0), COALESCE(SUM(downward_traffic_bytes), 0) FROM ts_day_report";
-            String[] res = BeanContext.getTrafficStatisticDayReportDao().getDao()
+            String[] res = BeanContext.getTsDayReportDao().getDao()
                     .queryRaw(sumSql).getFirstResult();
             long totalUpload = 0L;
             long totalDownload = 0L;
@@ -78,7 +78,7 @@ public class DashboardController {
 
             String sql = "SELECT proxy_client_id, COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) AS total FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY proxy_client_id ORDER BY total DESC LIMIT 10";
             String[] params = new String[] { new java.sql.Timestamp(start.getTime()).toString(), new java.sql.Timestamp(end.getTime()).toString() };
-            var res = BeanContext.getTrafficStatisticDayReportDao().getDao().queryRaw(sql, params);
+            var res = BeanContext.getTsDayReportDao().getDao().queryRaw(sql, params);
             java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
 
             // 预取规则连接数
@@ -137,7 +137,7 @@ public class DashboardController {
                 sql = "SELECT date, COALESCE(SUM(upward_traffic_bytes),0) AS upload, COALESCE(SUM(downward_traffic_bytes),0) AS download FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY date ORDER BY date ASC";
             }
             String[] params = new String[] { new java.sql.Timestamp(start.getTime()).toString(), new java.sql.Timestamp(end.getTime()).toString() };
-            var res = BeanContext.getTrafficStatisticDayReportDao().getDao().queryRaw(sql, params);
+            var res = BeanContext.getTsDayReportDao().getDao().queryRaw(sql, params);
             java.util.List<java.util.Map<String, Object>> data = new java.util.ArrayList<>();
             for (String[] row : res.getResults()) {
                 java.util.Map<String, Object> item = new java.util.HashMap<>();

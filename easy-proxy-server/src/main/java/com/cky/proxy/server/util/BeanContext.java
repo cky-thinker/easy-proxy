@@ -75,15 +75,15 @@ public class BeanContext {
         return instance.sysLogDao;
     }
 
-    public static TsReportDao getTrafficStatisticClientRuleReportDao() {
+    public static TsReportDao getTsReportDao() {
         return instance.trafficStatisticClientRuleReportDao;
     }
 
-    public static TsDayReportDao getTrafficStatisticDayReportDao() {
+    public static TsDayReportDao getTsDayReportDao() {
         return instance.trafficStatisticDayReportDao;
     }
 
-    public static TsHourReportDao getTrafficStatisticHourReportDao() {
+    public static TsHourReportDao getTsHourReportDao() {
         return instance.trafficStatisticHourReportDao;
     }
 

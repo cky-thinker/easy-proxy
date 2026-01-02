@@ -16,9 +16,9 @@ import com.cky.proxy.server.util.BeanContext;
 import cn.hutool.db.Page;
 
 public class TrafficStatisticService {
-    private final TsReportDao clientRuleReportDao = BeanContext.getTrafficStatisticClientRuleReportDao();
-    private final TsDayReportDao dayReportDao = BeanContext.getTrafficStatisticDayReportDao();
-    private final TsHourReportDao hourReportDao = BeanContext.getTrafficStatisticHourReportDao();
+    private final TsReportDao clientRuleReportDao = BeanContext.getTsReportDao();
+    private final TsDayReportDao dayReportDao = BeanContext.getTsDayReportDao();
+    private final TsHourReportDao hourReportDao = BeanContext.getTsHourReportDao();
 
     // 客户端总报告分页查询
     public PageResult<ClientTrafficDayReport> getClientReportsPageable(Page page, Integer proxyClientId, Date startDate, Date endDate) {

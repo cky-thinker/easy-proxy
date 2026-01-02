@@ -31,9 +31,9 @@ public class DbInitTest {
         beanContext.initializeDatabase();
         ProxyClientDao clientDao = BeanContext.getProxyClientDao();
         ProxyClientRuleDao ruleDao = BeanContext.getProxyClientRuleDao();
-        TsReportDao reportDao = BeanContext.getTrafficStatisticClientRuleReportDao();
-        TsDayReportDao dayDao = BeanContext.getTrafficStatisticDayReportDao();
-        TsHourReportDao hourDao = BeanContext.getTrafficStatisticHourReportDao();
+        TsReportDao reportDao = BeanContext.getTsReportDao();
+        TsDayReportDao dayDao = BeanContext.getTsDayReportDao();
+        TsHourReportDao hourDao = BeanContext.getTsHourReportDao();
         SysLogDao sysLogDao = BeanContext.getSysLogDao();
         
         // 清空表数据
