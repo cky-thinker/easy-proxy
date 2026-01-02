@@ -64,13 +64,20 @@
           </el-table-column>
           <el-table-column label="规则数" width="100">
             <template #default="{ row }">
-              {{ row.proxyRules?.length || 0 }}
+              <div class="flex items-center space-x-2">
+                <span>{{ row.proxyRules?.length || 0 }}</span>
+                <el-button type="primary" text @click="goToRulesPage(row)">
+                  <el-icon>
+                    <Edit />
+                  </el-icon>
+                </el-button>
+              </div>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="350" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" text @click="openEditModal(row)">编辑</el-button>
-              <el-button type="primary" text @click="goToRulesPage(row)">规则</el-button>
+
               <el-button :type="row.enableFlag ? 'warning' : 'success'" text @click="toggleClientStatus(row)">
                 {{ row.enableFlag ? '禁用' : '启用' }}
               </el-button>
