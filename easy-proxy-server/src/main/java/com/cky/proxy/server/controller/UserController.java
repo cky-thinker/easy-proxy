@@ -194,12 +194,17 @@ public class UserController {
 
     private void updateEnableFlag(RoutingContext ctx) {
         try {
-            Integer id = RequestUtil.getParamInt(ctx, "id");
-            if (id == null) {
-                ResponseUtil.error(ctx, 400, "缺少参数: id");
+            SysUser sysUser = RequestUtil.getBodyObj(ctx, SysUser.class);
+            if (sysUser == null) {
+                ResponseUtil.error(ctx, 400, "请求体不能为空");
                 return;
             }
-            Boolean enableFlag = RequestUtil.getParamBool(ctx, "enableFlag");
+            Integer id = sysUser.getId();
+            if (id == null) {
+                ResponseUtil.error(ctx, 400, "请求体缺少 id");
+                return;
+            }
+            Boolean enableFlag = sysUser.getEnableFlag();
             if (enableFlag == null) {
                 ResponseUtil.error(ctx, 400, "请求体缺少 enableFlag");
                 return;

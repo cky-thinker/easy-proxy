@@ -56,7 +56,7 @@ export const resetUserPassword = async (id: number, newPassword: string): Promis
 
 // 切换账号状态
 export const toggleUserEnableFlag = async (id: number, enableFlag: boolean): Promise<User> => {
-  const response = await apiClient.patch<ApiResponse<User>>(`/api/users/${id}/enableFlag`, { enableFlag })
+  const response = await apiClient.put<ApiResponse<User>>(`/api/users/enableFlag`, { id, enableFlag })
   return response.data.data
 }
 
