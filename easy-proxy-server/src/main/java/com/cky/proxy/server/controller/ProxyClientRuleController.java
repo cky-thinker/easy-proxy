@@ -45,7 +45,7 @@ public class ProxyClientRuleController {
 
     private void getAllProxyClientRules(RoutingContext ctx) {
         // 执行查询
-        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(getParam(ctx, "q"), getParamInt(ctx, "serverPort"), getParamInt(ctx, "proxyClientId"));
+        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(getParam(ctx, "name"), getParamInt(ctx, "serverPort"), getParamInt(ctx, "proxyClientId"));
         // 返回结果
         ResponseUtil.success(ctx, rules);
     }
@@ -54,7 +54,7 @@ public class ProxyClientRuleController {
         // 创建分页对象
         Page page = RequestUtil.getPage(ctx);
         // 执行分页查询
-        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, getParam(ctx, "q"),
+        PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, getParam(ctx, "name"),
             getParamInt(ctx, "serverPort"),
             getParamInt(ctx, "proxyClientId"));
 

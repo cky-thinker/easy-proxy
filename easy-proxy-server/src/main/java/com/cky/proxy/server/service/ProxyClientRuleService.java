@@ -24,16 +24,21 @@ public class ProxyClientRuleService {
      */
     public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId) {
         return proxyClientRuleDao.selectList(qb -> {
+            var where = qb.where();
+            boolean hasWhere = false;
             if (name != null && !name.isEmpty()) {
-                qb.where().like("name", "%" + name + "%");
+                where.like("name", "%" + name + "%");
+                hasWhere = true;
             }
             if (serverPort != null) {
-                qb.where().eq("server_port", serverPort);
+                if (hasWhere) where.and();
+                where.eq("server_port", serverPort);
+                hasWhere = true;
             }
             if (proxyClientId != null) {
-                qb.where().eq("proxy_client_id", proxyClientId);
+                if (hasWhere) where.and();
+                where.eq("proxy_client_id", proxyClientId);
             }
-            // 当没有任何条件时，返回全部，不需要额外处理
         });
     }
 
@@ -43,13 +48,18 @@ public class ProxyClientRuleService {
     public PageResult<ProxyClientRule> getProxyClientRulesPageable(Page page, String name, Integer serverPort,
             Integer proxyClientId) {
         return proxyClientRuleDao.selectPage(page, where -> {
+            boolean hasWhere = false;
             if (name != null && !name.isEmpty()) {
                 where.like("name", "%" + name + "%");
+                hasWhere = true;
             }
             if (serverPort != null) {
+                if (hasWhere) where.and();
                 where.eq("server_port", serverPort);
+                hasWhere = true;
             }
             if (proxyClientId != null) {
+                if (hasWhere) where.and();
                 where.eq("proxy_client_id", proxyClientId);
             }
         });

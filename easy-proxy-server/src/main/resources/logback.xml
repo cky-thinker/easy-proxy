@@ -17,6 +17,11 @@
         <appender-ref ref="console"/>
     </logger>
 
+    <!-- ORMLite SQL 打印：启用 TRACE 级别 -->
+    <logger name="com.j256.ormlite" level="TRACE" additivity="false">
+        <appender-ref ref="console"/>
+    </logger>
+
     <root level="info">
         <appender-ref ref="console"/>
     </root>
