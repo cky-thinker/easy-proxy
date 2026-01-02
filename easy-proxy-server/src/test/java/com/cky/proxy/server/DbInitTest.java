@@ -44,12 +44,12 @@ public class DbInitTest {
         
         // 然后清空表数据
         try {
-            com.j256.ormlite.table.TableUtils.clearTable(clientDao.getDao().getConnectionSource(), ProxyClient.class);
-            com.j256.ormlite.table.TableUtils.clearTable(ruleDao.getDao().getConnectionSource(), ProxyClientRule.class);
-            com.j256.ormlite.table.TableUtils.clearTable(reportDao.getDao().getConnectionSource(), TsReport.class);
-            com.j256.ormlite.table.TableUtils.clearTable(dayDao.getDao().getConnectionSource(), TsDayReport.class);
-            com.j256.ormlite.table.TableUtils.clearTable(hourDao.getDao().getConnectionSource(), TsHourReport.class);
-            com.j256.ormlite.table.TableUtils.clearTable(sysLogDao.getDao().getConnectionSource(), SysLog.class);
+            TableUtils.clearTable(clientDao.getDao().getConnectionSource(), ProxyClient.class);
+            TableUtils.clearTable(ruleDao.getDao().getConnectionSource(), ProxyClientRule.class);
+            TableUtils.clearTable(reportDao.getDao().getConnectionSource(), TsReport.class);
+            TableUtils.clearTable(dayDao.getDao().getConnectionSource(), TsDayReport.class);
+            TableUtils.clearTable(hourDao.getDao().getConnectionSource(), TsHourReport.class);
+            TableUtils.clearTable(sysLogDao.getDao().getConnectionSource(), SysLog.class);
         } catch (Exception e) {
             log.error("清空表数据失败", e);
         }
