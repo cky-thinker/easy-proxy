@@ -12,18 +12,18 @@
     <div class="bg-white rounded-lg mb-6 p-4">
       <el-form :model="queryForm" inline label-position="left">
         <el-form-item label="搜索">
-          <el-input v-model="queryForm.searchQuery" placeholder="名称或Token" clearable>
+          <el-input v-model="queryForm.searchQuery" clearable placeholder="名称或TOKEN">
           </el-input>
         </el-form-item>
         <el-form-item label="在线状态">
-          <el-select v-model="queryForm.statusFilter" placeholder="全部" class="w-48">
+          <el-select v-model="queryForm.statusFilter" clearable placeholder="全部" class="w-48">
             <el-option label="全部" value="" />
             <el-option label="在线" value="online" />
             <el-option label="离线" value="offline" />
           </el-select>
         </el-form-item>
         <el-form-item label="启用状态">
-          <el-select v-model="queryForm.enableFilter" placeholder="全部" class="w-48">
+          <el-select v-model="queryForm.enableFilter" clearable placeholder="全部" class="w-48">
             <el-option label="全部" value="" />
             <el-option label="启用" value="enabled" />
             <el-option label="禁用" value="disabled" />
@@ -51,21 +51,24 @@
       <div class="overflow-x-auto">
         <el-table :data="clients" v-loading="loading">
           <el-table-column prop="name" label="客户端名称" width="300" />
-          <el-table-column prop="token" label="Token" min-width="320" />
-          <el-table-column label="状态" width="120">
+          <el-table-column prop="token" label="TOKEN" min-width="320" />
+          <el-table-column label="在线状态" width="120">
             <template #default="{ row }">
               <TagStatus :value="row.status" />
             </template>
           </el-table-column>
-          <el-table-column label="启用" width="120">
+          <el-table-column label="启用状态" width="220">
             <template #default="{ row }">
-              <TagEnableFlag :value="row.enableFlag" />
+              <div class="flex items-center space-x-3">
+                <el-switch :model-value="!!row.enableFlag" @change="toggleClientEnableSwitch(row, $event)" />
+                <!-- <TagEnableFlag :value="row.enableFlag" /> -->
+              </div>
             </template>
           </el-table-column>
-          <el-table-column label="规则数" width="100">
+          <el-table-column label="规则" width="100">
             <template #default="{ row }">
               <div class="flex items-center space-x-2">
-                <span>{{ row.proxyRules?.length || 0 }}</span>
+                <span>{{ row.proxyRules?.length || 0 }}条</span>
                 <el-button type="primary" text @click="goToRulesPage(row)">
                   <el-icon>
                     <Edit />
@@ -74,13 +77,11 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="350" fixed="right">
+          <el-table-column label="操作" width="350" fixed="right" header-align="center" align="center">
             <template #default="{ row }">
               <el-button type="primary" text @click="openEditModal(row)">编辑</el-button>
 
-              <el-button :type="row.enableFlag ? 'warning' : 'success'" text @click="toggleClientStatus(row)">
-                {{ row.enableFlag ? '禁用' : '启用' }}
-              </el-button>
+              
               <el-popconfirm title="确认删除该客户端？" @confirm="deleteClientAction(row)">
                 <template #reference>
                   <el-button type="danger" text>删除</el-button>
@@ -213,6 +214,24 @@ const toggleClientStatus = async (client: ProxyClientConfig) => {
   try {
     const targetStatus = !(client as any).enableFlag
     await ElMessageBox.confirm(`确认${targetStatus ? '启用' : '禁用'}客户端 \"${client.name}\"？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: targetStatus ? 'info' : 'warning'
+    })
+    await toggleClientStatusApi((client as any).id as number, targetStatus)
+    await loadClients()
+    showToast(`客户端已${targetStatus ? '启用' : '禁用'}`, 'success')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('更新客户端状态失败:', error)
+      showToast('操作失败', 'error')
+    }
+  }
+}
+
+const toggleClientEnableSwitch = async (client: ProxyClientConfig, targetStatus: boolean) => {
+  try {
+    await ElMessageBox.confirm(`确认${targetStatus ? '启用' : '禁用'}客户端 "${client.name}"？`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: targetStatus ? 'info' : 'warning'

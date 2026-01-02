@@ -97,7 +97,7 @@ export const updateClient = async (
   id: number,
   clientData: Partial<ExtendedProxyClientConfig>
 ): Promise<ExtendedProxyClientConfig> => {
-  const response = await apiClient.put<ApiResponse<ExtendedProxyClientConfig>>(`/api/proxyClient/${id}`, { id, ...clientData })
+  const response = await apiClient.put<ApiResponse<ExtendedProxyClientConfig>>(`/api/proxyClient`, { id, ...clientData })
   return response.data.data
 }
 

@@ -8,6 +8,7 @@
 
 - JDK 17
 - Maven 3.6.0+
+- https://element-plus.org/zh-CN/
 
 ### mvn命令
 
