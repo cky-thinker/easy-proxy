@@ -11,9 +11,9 @@
 
           <!-- Navigation Menu -->
           <el-menu v-if="authStore.isLoggedIn" mode="horizontal" :default-active="route.path" :ellipsis="false" class="border-0 bg-transparent">
-            <el-menu-item index="/" @click="router.push('/')">系统总览</el-menu-item>
-            <el-menu-item index="/clients" @click="router.push('/clients')">客户端管理</el-menu-item>
-            <el-menu-item index="/clientRules" @click="router.push('/clientRules')">规则管理</el-menu-item>
+            <el-menu-item index="/" @click="router.push('/')">总览</el-menu-item>
+            <el-menu-item index="/clients" @click="router.push('/clients')">客户端</el-menu-item>
+            <el-menu-item index="/clientRules" @click="router.push('/clientRules')">转发规则</el-menu-item>
             <el-menu-item index="/accounts" @click="router.push('/accounts')">账号管理</el-menu-item>
           </el-menu>
         </div>

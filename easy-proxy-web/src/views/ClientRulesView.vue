@@ -12,7 +12,7 @@
     <div class="bg-white rounded-lg mb-6 p-4">
       <el-form inline label-position="left">
         <el-form-item label="搜索">
-          <el-input v-model="queryForm.nameQuery" placeholder="规则名称" clearable>
+          <el-input v-model="queryForm.nameQuery" clearable placeholder="规则名称">
             <template #prefix>
               <el-icon>
                 <Search />
@@ -21,10 +21,10 @@
           </el-input>
         </el-form-item>
         <el-form-item label="端口">
-          <el-input v-model="queryForm.portQuery" placeholder="服务端口" class="w-40" />
+          <el-input v-model="queryForm.portQuery" clearable placeholder="端口" class="w-40" />
         </el-form-item>
         <el-form-item label="客户端">
-          <el-select v-model="queryForm.clientFilter" placeholder="全部" class="w-48">
+          <el-select v-model="queryForm.clientFilter" clearable placeholder="全部" class="w-48">
             <el-option label="全部" :value="undefined" />
             <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
@@ -50,14 +50,14 @@
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
         <el-table :data="rules" v-loading="loading" :empty-text="'暂无符合条件的规则'">
-          <el-table-column prop="name" label="规则名称" width="300" />
-          <el-table-column prop="serverPort" label="服务端端口" width="140" />
-          <el-table-column prop="clientAddress" label="转发地址" min-width="320" />
           <el-table-column label="客户端" width="200">
             <template #default="{ row }">
               {{ clientNameMap[(row as any).proxyClientId || 0] || '-' }}
             </template>
           </el-table-column>
+          <el-table-column prop="name" label="规则名称" width="300" />
+          <el-table-column prop="serverPort" label="端口" width="140" />
+          <el-table-column prop="clientAddress" label="转发地址" min-width="320" />
           <el-table-column label="启用状态" width="140">
             <template #default="{ row }">
               <TagEnableFlag :value="row.enableFlag" />
@@ -79,7 +79,7 @@
       @close="closeAddRuleModal">
       <el-form :model="newRule" :rules="ruleFormRules" ref="addRuleFormRef" label-position="top">
         <el-form-item label="客户端" prop="proxyClientId">
-          <el-select v-model="newRule.proxyClientId" placeholder="请选择客户端" class="w-full">
+          <el-select v-model="newRule.proxyClientId" filterable placeholder="请选择客户端" class="w-full">
             <el-option label="请选择客户端" :value="undefined" />
             <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
