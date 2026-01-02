@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <!-- 总流量 -->
+      <!-- 总上行流量 -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
           <div class="p-2 bg-blue-100 rounded-lg">
@@ -47,13 +47,13 @@
             </svg>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">总流量</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.totalTraffic) }}</p>
+            <p class="text-sm font-medium text-gray-600">总上行流量</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.totalUpload) }}</p>
           </div>
         </div>
       </div>
 
-      <!-- 活跃连接 -->
+      <!-- 总下行流量 -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
           <div class="p-2 bg-purple-100 rounded-lg">
@@ -62,8 +62,8 @@
             </svg>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">活跃连接</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ stats.activeConnections }}</p>
+            <p class="text-sm font-medium text-gray-600">总下行流量</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.totalDownload) }}</p>
           </div>
         </div>
       </div>
@@ -75,11 +75,22 @@
         <div class="p-6 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900">流量排行</h2>
-            <select v-model="trafficPeriod" class="text-sm border border-gray-300 rounded-md px-3 py-1">
-              <option value="day">按天</option>
-              <option value="week">按周</option>
-              <option value="month">按月</option>
-            </select>
+            <div class="flex space-x-2">
+              <button
+                v-for="p in periods"
+                :key="p.value"
+                @click="changeRankingPeriod(p.value)"
+                :style="trafficPeriod === p.value ? { backgroundColor: 'var(--el-color-primary)', color: '#fff' } : {}"
+                :class="[
+                  'px-3 py-1 text-sm rounded-md transition-colors',
+                  trafficPeriod === p.value
+                    ? 'text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                {{ p.label }}
+              </button>
+            </div>
           </div>
         </div>
         <div class="p-6">
@@ -144,15 +155,20 @@ import type { DashboardStats, TrafficRanking, RecentActivity, TrafficTrend } fro
 import { getDashboardStats, getTrafficRanking, getTrafficTrend, getRecentActivities } from '@/api/dashboard'
 
 // 响应式数据
-const stats = ref({
+const stats = ref<DashboardStats>({
   onlineClients: 0,
   offlineClients: 0,
-  totalTraffic: 0,
-  activeConnections: 0
+  totalUpload: 0,
+  totalDownload: 0
 })
 
 const trafficPeriod = ref('day')
 const trendPeriod = ref('day')
+const periods = [
+  { label: '按天', value: 'day' as const },
+  { label: '按周', value: 'week' as const },
+  { label: '按月', value: 'month' as const }
+]
 
 const trafficTrendData = ref<TrafficTrend[]>([])
 const loading = ref({
@@ -178,6 +194,11 @@ const handlePeriodChange = (period: string) => {
   loadTrafficTrendData()
 }
 
+const changeRankingPeriod = async (period: 'day'|'week'|'month') => {
+  trafficPeriod.value = period
+  await loadTrafficRanking()
+}
+
 // 加载流量趋势数据
 const loadTrafficTrendData = async () => {
   loading.value.trafficTrend = true
@@ -190,11 +211,15 @@ const loadTrafficTrendData = async () => {
   }
 }
 
+const loadTrafficRanking = async () => {
+  trafficRanking.value = await getTrafficRanking(trafficPeriod.value as 'day'|'week'|'month')
+}
+
 // 加载数据
 const loadDashboardData = async () => {
   try {
     stats.value = await getDashboardStats()
-    trafficRanking.value = await getTrafficRanking(trafficPeriod.value as 'day'|'week'|'month')
+    await loadTrafficRanking()
     recentActivities.value = await getRecentActivities()
     await loadTrafficTrendData()
   } catch (error) {

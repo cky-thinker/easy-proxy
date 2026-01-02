@@ -43,25 +43,21 @@ public class DashboardController {
                 if ("online".equalsIgnoreCase(String.valueOf(c.getStatus()))) online++; else offline++;
             }
 
-            List<ProxyClientRule> allRules = proxyClientRuleService.getAllProxyClientRules(null, null, null);
-            int activeConnections = 0;
-            for (ProxyClientRule r : allRules) {
-                if (Boolean.TRUE.equals(r.getEnableFlag())) activeConnections++;
-            }
-
-            String sumSql = "SELECT COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) FROM ts_day_report";
+            String sumSql = "SELECT COALESCE(SUM(upward_traffic_bytes), 0), COALESCE(SUM(downward_traffic_bytes), 0) FROM ts_day_report";
             String[] res = BeanContext.getTrafficStatisticDayReportDao().getDao()
                     .queryRaw(sumSql).getFirstResult();
-            long totalTraffic = 0L;
-            if (res != null && res.length > 0 && res[0] != null) {
-                totalTraffic = Long.parseLong(res[0]);
+            long totalUpload = 0L;
+            long totalDownload = 0L;
+            if (res != null && res.length > 1) {
+                if (res[0] != null) totalUpload = Long.parseLong(res[0]);
+                if (res[1] != null) totalDownload = Long.parseLong(res[1]);
             }
 
             Map<String, Object> data = new HashMap<>();
             data.put("onlineClients", online);
             data.put("offlineClients", offline);
-            data.put("totalTraffic", totalTraffic);
-            data.put("activeConnections", activeConnections);
+            data.put("totalUpload", totalUpload);
+            data.put("totalDownload", totalDownload);
 
             ResponseUtil.success(ctx, data);
         } catch (Exception e) {

@@ -1,16 +1,17 @@
 <template>
   <div class="traffic-chart">
-    <div class="chart-header mb-4">
+    <div class="chart-header mb-4 flex items-center justify-between">
       <h3 class="text-lg font-semibold text-gray-900">流量趋势</h3>
       <div class="flex space-x-2">
         <button
           v-for="period in periods"
           :key="period.value"
           @click="selectedPeriod = period.value"
+          :style="selectedPeriod === period.value ? { backgroundColor: 'var(--el-color-primary)', color: '#fff' } : {}"
           :class="[
             'px-3 py-1 text-sm rounded-md transition-colors',
             selectedPeriod === period.value
-              ? 'bg-indigo-600 text-white'
+              ? 'text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           ]"
         >
