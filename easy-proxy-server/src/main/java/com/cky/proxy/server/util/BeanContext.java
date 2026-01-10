@@ -96,6 +96,8 @@ public class BeanContext {
             initializeDao();
             // 初始化所有表
             initializeAllTables();
+            // 数据库迁移
+            migrateDatabase();
             // 初始化默认数据
             initializeDefaultData();
             log.info("数据库初始化完成");
@@ -114,6 +116,22 @@ public class BeanContext {
         trafficStatisticClientRuleReportDao = new TsReportDao();
         trafficStatisticDayReportDao = new TsDayReportDao();
         trafficStatisticHourReportDao = new TsHourReportDao();
+    }
+
+    /**
+     * 数据库迁移
+     */
+    private void migrateDatabase() {
+        try {
+            // 添加 limit_conn 和 limit_rate 字段
+            String sqlConn = "ALTER TABLE proxy_client_rule ADD COLUMN IF NOT EXISTS limit_conn INTEGER";
+            proxyClientRuleDao.getDao().executeRaw(sqlConn);
+            String sqlRate = "ALTER TABLE proxy_client_rule ADD COLUMN IF NOT EXISTS limit_rate INTEGER";
+            proxyClientRuleDao.getDao().executeRaw(sqlRate);
+            log.info("数据库迁移完成");
+        } catch (Exception e) {
+            log.warn("数据库迁移异常 (可能是字段已存在): " + e.getMessage());
+        }
     }
 
     /**

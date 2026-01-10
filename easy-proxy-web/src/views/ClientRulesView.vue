@@ -93,6 +93,12 @@
         <el-form-item label="客户端地址" prop="clientAddress">
           <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
         </el-form-item>
+        <el-form-item label="连接数限制" prop="limitConn">
+          <el-input v-model.number="newRule.limitConn" placeholder="最大连接数 (0或空不限制)" class="w-full" type="number" />
+        </el-form-item>
+        <el-form-item label="带宽限制 (KB/s)" prop="limitRate">
+          <el-input v-model.number="newRule.limitRate" placeholder="带宽限制 KB/s (0或空不限制)" class="w-full" type="number" />
+        </el-form-item>
         <el-form-item>
           <el-checkbox v-model="newRule.enableFlag">启用</el-checkbox>
         </el-form-item>
@@ -117,6 +123,12 @@
         </el-form-item>
         <el-form-item label="客户端地址" prop="clientAddress">
           <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
+        </el-form-item>
+        <el-form-item label="连接数限制" prop="limitConn">
+          <el-input v-model.number="editRule.limitConn" placeholder="最大连接数 (0或空不限制)" class="w-full" type="number" />
+        </el-form-item>
+        <el-form-item label="带宽限制 (KB/s)" prop="limitRate">
+          <el-input v-model.number="editRule.limitRate" placeholder="带宽限制 KB/s (0或空不限制)" class="w-full" type="number" />
         </el-form-item>
         <el-form-item>
           <el-checkbox v-model="editRule.enableFlag">启用</el-checkbox>
@@ -166,12 +178,14 @@ const queryForm = reactive<{ nameQuery: string; portQuery?: number; clientFilter
 
 // 新增规则模态与表单
 const showAddRuleModal = ref(false)
-const newRule = ref<{ name: string; serverPort?: number; clientAddress: string; enableFlag: boolean; proxyClientId?: number }>({
+const newRule = ref<{ name: string; serverPort?: number; clientAddress: string; enableFlag: boolean; proxyClientId?: number; limitConn?: number; limitRate?: number }>({
   name: '',
   serverPort: undefined,
   clientAddress: '',
   enableFlag: true,
-  proxyClientId: undefined
+  proxyClientId: undefined,
+  limitConn: undefined,
+  limitRate: undefined
 })
 
 const openAddRuleModal = () => {
@@ -180,7 +194,9 @@ const openAddRuleModal = () => {
     serverPort: undefined,
     clientAddress: '',
     enableFlag: true,
-    proxyClientId: queryForm.clientFilter
+    proxyClientId: queryForm.clientFilter,
+    limitConn: undefined,
+    limitRate: undefined
   }
   showAddRuleModal.value = true
 }
@@ -251,7 +267,9 @@ const editRule = ref<ProxyRule>({
   serverPort: undefined,
   clientAddress: '',
   enableFlag: true,
-  proxyClientId: undefined
+  proxyClientId: undefined,
+  limitConn: undefined,
+  limitRate: undefined
 })
 
 const openEditRuleModal = (rule: ProxyRule) => {
@@ -261,7 +279,9 @@ const openEditRuleModal = (rule: ProxyRule) => {
     serverPort: rule.serverPort,
     clientAddress: rule.clientAddress,
     enableFlag: rule.enableFlag,
-    proxyClientId: rule.proxyClientId
+    proxyClientId: rule.proxyClientId,
+    limitConn: rule.limitConn,
+    limitRate: rule.limitRate
   }
   showEditRuleModal.value = true
 }
@@ -320,8 +340,8 @@ const saveRule = async () => {
   const clientId = newRule.value.proxyClientId ?? queryForm.clientFilter
   if (!clientId) { showToast('请先选择客户端', 'error'); return }
   try {
-    const { name, serverPort, clientAddress, enableFlag } = newRule.value
-    await addClientRule(clientId, { name, serverPort: serverPort!, clientAddress, enableFlag })
+    const { name, serverPort, clientAddress, enableFlag, limitConn, limitRate } = newRule.value
+    await addClientRule(clientId, { name, serverPort: serverPort!, clientAddress, enableFlag, limitConn, limitRate })
     showAddRuleModal.value = false
     await reload()
     showToast('新增成功', 'success')
@@ -334,10 +354,10 @@ const saveRule = async () => {
 const saveEditRule = async () => {
   const valid = await editRuleFormRef.value?.validate?.()
   if (valid !== true) return
-  const { id, name, serverPort, clientAddress, enableFlag, proxyClientId } = editRule.value
+  const { id, name, serverPort, clientAddress, enableFlag, proxyClientId, limitConn, limitRate } = editRule.value
   if (!id) { showToast('规则ID缺失', 'error'); return }
   try {
-    await updateClientRule(proxyClientId || 0, id, { name, serverPort: serverPort!, clientAddress, enableFlag })
+    await updateClientRule(proxyClientId || 0, id, { name, serverPort: serverPort!, clientAddress, enableFlag, limitConn, limitRate })
     showEditRuleModal.value = false
     await reload()
     showToast('保存成功', 'success')

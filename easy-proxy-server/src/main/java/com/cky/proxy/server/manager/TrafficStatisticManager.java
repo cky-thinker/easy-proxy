@@ -45,6 +45,13 @@ public class TrafficStatisticManager {
         final Integer ruleId;
         final AtomicLong upload = new AtomicLong(0);
         final AtomicLong download = new AtomicLong(0);
+        
+        // Active connections
+        final AtomicLong activeConnections = new AtomicLong(0);
+        
+        // Rate limiting
+        final AtomicLong currentSecondBytes = new AtomicLong(0);
+        volatile long lastResetTime = System.currentTimeMillis();
 
         TrafficStats(Integer clientId, Integer ruleId) {
             this.clientId = clientId;
@@ -57,13 +64,17 @@ public class TrafficStatisticManager {
      */
     public static void addConnection(String userId, Integer clientId, Integer ruleId) {
         connectionMap.put(userId, new TrafficContext(clientId, ruleId));
+        getStats(ruleId, clientId).activeConnections.incrementAndGet();
     }
 
     /**
      * 移除连接上下文
      */
     public static void removeConnection(String userId) {
-        connectionMap.remove(userId);
+        TrafficContext ctx = connectionMap.remove(userId);
+        if (ctx != null) {
+            getStats(ctx).activeConnections.decrementAndGet();
+        }
     }
 
     /**
@@ -72,6 +83,39 @@ public class TrafficStatisticManager {
     public static Integer getRuleId(String userId) {
         TrafficContext ctx = connectionMap.get(userId);
         return ctx != null ? ctx.ruleId : null;
+    }
+
+    /**
+     * 获取规则的当前活动连接数
+     */
+    public static long getActiveConnections(Integer ruleId) {
+        TrafficStats stats = statsMap.get(ruleId);
+        return stats == null ? 0 : stats.activeConnections.get();
+    }
+
+    /**
+     * 检查是否超过带宽限制
+     * @param ruleId 规则ID
+     * @param limitRateKB 限制速率(KB/s)
+     * @param bytes 当前传输字节数
+     * @return true if exceeded
+     */
+    public static boolean isRateExceeded(Integer ruleId, int limitRateKB, int bytes) {
+        if (limitRateKB <= 0) return false;
+        TrafficStats stats = statsMap.get(ruleId);
+        if (stats == null) return false;
+        
+        long now = System.currentTimeMillis();
+        long limitBytes = limitRateKB * 1024L;
+        
+        synchronized (stats) {
+            if (now - stats.lastResetTime >= 1000) {
+                stats.currentSecondBytes.set(0);
+                stats.lastResetTime = now;
+            }
+            long current = stats.currentSecondBytes.addAndGet(bytes);
+            return current > limitBytes;
+        }
     }
 
     /**
@@ -96,6 +140,10 @@ public class TrafficStatisticManager {
 
     private static TrafficStats getStats(TrafficContext ctx) {
         return statsMap.computeIfAbsent(ctx.ruleId, k -> new TrafficStats(ctx.clientId, ctx.ruleId));
+    }
+
+    private static TrafficStats getStats(Integer ruleId, Integer clientId) {
+        return statsMap.computeIfAbsent(ruleId, k -> new TrafficStats(clientId, ruleId));
     }
 
     /**

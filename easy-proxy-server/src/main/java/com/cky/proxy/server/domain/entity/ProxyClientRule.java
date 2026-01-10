@@ -45,6 +45,16 @@ public class ProxyClientRule {
     @NotEmpty(groups = { AddGroup.class }, message = "客户端转发地址不能为空，格式为 ip:port")
     private String clientAddress;
     /**
+     * 连接数限制
+     */
+    @DatabaseField(columnName = "limit_conn")
+    private Integer limitConn;
+    /**
+     * 带宽限制 KB/s
+     */
+    @DatabaseField(columnName = "limit_rate")
+    private Integer limitRate;
+    /**
      * 启用标记
      */
     @DatabaseField(columnName = "enable_flag")

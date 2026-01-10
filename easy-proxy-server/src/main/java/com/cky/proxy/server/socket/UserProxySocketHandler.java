@@ -7,6 +7,7 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
 import org.slf4j.Logger;
@@ -31,6 +32,16 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
             return;
         }
 
+        // Check connection limit
+        if (proxyRule.getLimitConn() != null && proxyRule.getLimitConn() > 0) {
+            long activeConns = TrafficStatisticManager.getActiveConnections(proxyRule.getId());
+            if (activeConns >= proxyRule.getLimitConn()) {
+                log.warn("EP>>UserProxy>> Connection limit exceeded for rule {}: {}/{}", proxyRule.getName(), activeConns, proxyRule.getLimitConn());
+                userProxySocket.close();
+                return;
+            }
+        }
+
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
         UserSocketManager.online(proxyClientConfig.getToken(), userId, userProxySocket);
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
@@ -44,6 +55,14 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
 
     private Handler<Buffer> processRead(NetSocket userProxySocket, String userId) {
         return buffer -> {
+            // Check bandwidth limit
+            if (proxyRule.getLimitRate() != null && proxyRule.getLimitRate() > 0) {
+                if (TrafficStatisticManager.isRateExceeded(proxyRule.getId(), proxyRule.getLimitRate(), buffer.length())) {
+                    log.debug("EP>>UserProxy>> Rate limit exceeded, pausing socket");
+                    userProxySocket.pause();
+                    Vertx.currentContext().owner().setTimer(1000, id -> userProxySocket.resume());
+                }
+            }
             log.debug("EP>>UserProxy>> User socket read");
             NetSocket dataSocket = DataSocketManager.getDataSocket(userId);
             if (dataSocket == null) {

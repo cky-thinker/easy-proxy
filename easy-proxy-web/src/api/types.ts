@@ -6,6 +6,8 @@ export interface ProxyRule {
   serverPort?: number;
   clientAddress?: string;
   enableFlag?: boolean;
+  limitConn?: number;
+  limitRate?: number;
 }
 
 export interface PageQuery {
