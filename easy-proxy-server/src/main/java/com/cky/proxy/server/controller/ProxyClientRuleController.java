@@ -10,6 +10,7 @@ import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -20,10 +21,12 @@ import static com.cky.proxy.server.util.RequestUtil.getParamInt;
 
 public class ProxyClientRuleController {
     private final Router router;
+    private final Vertx vertx;
     private final ProxyClientRuleService proxyClientRuleService;
 
-    public ProxyClientRuleController(Router router) {
+    public ProxyClientRuleController(Router router, Vertx vertx) {
         this.router = router;
+        this.vertx = vertx;
         this.proxyClientRuleService = new ProxyClientRuleService();
         initRoutes();
     }
@@ -91,6 +94,10 @@ public class ProxyClientRuleController {
         // 保存到数据库
         ProxyClientRule newRule = proxyClientRuleService.addProxyClientRule(rule);
 
+        if (newRule != null) {
+            vertx.eventBus().publish("proxy.rule.updated", newRule.getId());
+        }
+
         // 返回成功响应
         ResponseUtil.success(ctx, newRule);
     }
@@ -103,6 +110,10 @@ public class ProxyClientRuleController {
         }
         ValidateUtil.validate(rule, UpdateGroup.class);
         ProxyClientRule existingRule = proxyClientRuleService.updateProxyClientRule(rule);
+
+        if (existingRule != null) {
+            vertx.eventBus().publish("proxy.rule.updated", existingRule.getId());
+        }
 
         // 返回成功响应
         ResponseUtil.success(ctx, existingRule);
@@ -122,6 +133,8 @@ public class ProxyClientRuleController {
             ResponseUtil.error(ctx, 404, "Proxy client rule not found");
             return;
         }
+
+        vertx.eventBus().publish("proxy.rule.deleted", id);
 
         // 返回成功响应
         ResponseUtil.success(ctx, null);

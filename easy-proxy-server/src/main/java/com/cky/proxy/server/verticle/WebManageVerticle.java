@@ -108,8 +108,8 @@ public class WebManageVerticle extends AbstractVerticle {
         });
 
         // 手动设置API路由
-        new ProxyClientController(baseRouter);
-        new ProxyClientRuleController(baseRouter);
+        new ProxyClientController(baseRouter, vertx);
+        new ProxyClientRuleController(baseRouter, vertx);
         new SysLogController(baseRouter);
         new TrafficStatisticController(baseRouter);
         new DashboardController(baseRouter);

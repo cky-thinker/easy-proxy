@@ -16,6 +16,7 @@ import com.cky.proxy.server.util.ValidateUtil;
 
 import cn.hutool.db.Page;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
@@ -23,11 +24,13 @@ import static com.cky.proxy.server.util.RequestUtil.getParamBool;
 
 public class ProxyClientController {
     private final Router router;
+    private final Vertx vertx;
     private final ProxyClientService proxyClientService;
     private final com.cky.proxy.server.service.ProxyClientRuleService proxyClientRuleService;
 
-    public ProxyClientController(Router router) {
+    public ProxyClientController(Router router, Vertx vertx) {
         this.router = router;
+        this.vertx = vertx;
         this.proxyClientService = new ProxyClientService();
         this.proxyClientRuleService = new com.cky.proxy.server.service.ProxyClientRuleService();
         initRoutes();
@@ -121,6 +124,9 @@ public class ProxyClientController {
         }
         ValidateUtil.validate(proxyClient, UpdateGroup.class);
         ProxyClient updated = proxyClientService.updateProxyClient(proxyClient);
+        if (updated != null) {
+            vertx.eventBus().publish("proxy.client.updated", updated.getId());
+        }
         ResponseUtil.success(ctx, updated);
     }
 
@@ -135,6 +141,7 @@ public class ProxyClientController {
             ResponseUtil.error(ctx, 404, "Proxy client not found");
             return;
         }
+        vertx.eventBus().publish("proxy.client.deleted", id);
         ResponseUtil.success(ctx, null);
     }
 }
