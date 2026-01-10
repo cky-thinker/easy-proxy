@@ -7,6 +7,7 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import io.vertx.core.AbstractVerticle;
@@ -49,6 +50,17 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 log.error("WebManage start fail!", res.cause());
             }
         });
+
+        // 启动流量统计定时任务 (每小时执行一次)
+        vertx.setPeriodic(3600000L, id -> {
+            TrafficStatisticManager.flush();
+        });
+    }
+
+    @Override
+    public void stop() {
+        log.info("Server stopping, flush traffic stats...");
+        TrafficStatisticManager.flush();
     }
 
     private void flushServerProxySocket() {

@@ -2,6 +2,7 @@ package com.cky.proxy.server.socket;
 
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.util.SocketUtil;
+import com.cky.proxy.server.manager.TrafficStatisticManager;
 
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -96,7 +97,9 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
         NetSocket userSocket = UserSocketManager.getProxySocket(userId);
         if (userSocket != null) {
             log.debug("EP>>ServerMng>> Process data success");
-            userSocket.write(Buffer.buffer(msg.getData()));
+            byte[] data = msg.getData();
+            TrafficStatisticManager.addDownload(userId, data.length);
+            userSocket.write(Buffer.buffer(data));
         } else {
             log.debug("EP>>ServerMng>> Process data fail");
         }

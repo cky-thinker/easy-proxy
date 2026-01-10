@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
+import com.cky.proxy.server.manager.TrafficStatisticManager;
 
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -32,6 +33,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
 
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
         UserSocketManager.online(proxyClientConfig.getToken(), userId, userProxySocket);
+        TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
         // reuse after client data connection create success
         log.debug("EP>>UserProxy>> User connected, Send connect msg");
         userProxySocket.pause();
@@ -50,6 +52,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
                 return;
             }
             byte[] data = buffer.getBytes();
+            TrafficStatisticManager.addUpload(userId, data.length);
             dataSocket.write(Message.createDataMsg(userId, data));
         };
     }
@@ -61,6 +64,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
             if (mngSocket != null) {
                 mngSocket.write(Message.createDisConnectMsg(userId));
                 UserSocketManager.offline(userId);
+                TrafficStatisticManager.removeConnection(userId);
             } else {
                 log.debug("EP>>UserProxy>> Mng proxy is null");
             }
