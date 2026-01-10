@@ -1,6 +1,6 @@
 <template>
-  <div class="traffic-chart">
-    <div class="chart-header mb-4 flex items-center justify-between">
+  <div class="traffic-chart h-full flex flex-col">
+    <div class="chart-header mb-4 flex items-center justify-between flex-none">
       <h3 class="text-lg font-semibold text-gray-900">流量趋势</h3>
       <div class="flex space-x-2">
         <button
@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="chart-container w-full h-64" ref="chartContainer"></div>
+    <div class="chart-container w-full flex-1 min-h-0" ref="chartContainer"></div>
   </div>
 </template>
 

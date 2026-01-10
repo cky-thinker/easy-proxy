@@ -119,8 +119,8 @@
       </div>
 
       <!-- 实时流量趋势 -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="p-6">
+      <div class="bg-white rounded-lg shadow flex flex-col">
+        <div class="p-6 flex-1 h-0 min-h-[300px]">
           <TrafficChart 
             :data="trafficTrendData" 
             :loading="loading.trafficTrend"
