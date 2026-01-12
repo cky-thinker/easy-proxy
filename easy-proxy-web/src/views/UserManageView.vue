@@ -11,7 +11,7 @@
     </div>
 
     <!-- 搜索与操作 -->
-    <div class="bg-white rounded-lg mb-6 p-4">
+    <div class="bg-white rounded-lg mb-6 pt-4 pl-6">
       <el-form :model="queryForm" inline label-position="left">
         <el-form-item label="搜索">
           <el-input v-model="queryForm.searchQuery" placeholder="搜索用户名或邮箱..." clearable>
@@ -48,7 +48,7 @@
 
     <!-- 账号列表 -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto p-6">
         <el-table :data="users" v-loading="loading">
           <el-table-column label="用户信息" min-width="320">
             <template #default="{ row }">

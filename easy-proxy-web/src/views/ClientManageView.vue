@@ -9,7 +9,7 @@
     </div>
 
     <!-- 搜索与操作 -->
-    <div class="bg-white rounded-lg mb-6 p-4">
+    <div class="bg-white rounded-lg mb-6 pt-4 pl-6">
       <el-form :model="queryForm" inline label-position="left">
         <el-form-item label="搜索">
           <el-input v-model="queryForm.searchQuery" clearable placeholder="名称或TOKEN">
@@ -48,7 +48,7 @@
 
     <!-- 客户端列表 -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto p-6">
         <el-table :data="clients" v-loading="loading">
           <el-table-column prop="name" label="客户端名称" width="300" />
           <el-table-column prop="token" label="TOKEN" min-width="320" />

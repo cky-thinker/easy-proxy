@@ -9,7 +9,7 @@
     </div>
 
     <!-- 搜索和筛选 -->
-    <div class="bg-white rounded-lg mb-6 p-4">
+    <div class="bg-white rounded-lg mb-6 pt-4 pl-6">
       <el-form inline label-position="left">
         <el-form-item label="搜索">
           <el-input v-model="queryForm.nameQuery" clearable placeholder="规则名称">
@@ -48,7 +48,7 @@
 
     <!-- 规则列表 -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto p-6">
         <el-table :data="rules" v-loading="loading" :empty-text="'暂无符合条件的规则'">
           <el-table-column label="客户端" width="200">
             <template #default="{ row }">
