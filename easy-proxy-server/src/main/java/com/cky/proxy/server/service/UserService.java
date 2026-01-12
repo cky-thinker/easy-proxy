@@ -178,9 +178,45 @@ public class UserService {
     }
 
     public SysUser updateUser(SysUser user) {
-        user.setUpdateTime(new Date());
-        userDao.updateById(user);
-        return userDao.selectById(user.getId());
+        if (user == null || user.getId() == null) {
+            throw new RuntimeException("请求体缺少 id");
+        }
+        SysUser db = userDao.selectById(user.getId());
+        if (db == null) {
+            throw new RuntimeException("账号不存在");
+        }
+
+        // 唯一性校验：用户名、手机号、邮箱（仅当传入且与原值不同时）
+        if (StrUtil.isNotBlank(user.getUsername()) && !StrUtil.equals(user.getUsername(), db.getUsername())) {
+            boolean exists = !userDao.selectList(qb -> {
+                qb.where().eq("username", user.getUsername()).and().ne("id", user.getId());
+            }).isEmpty();
+            if (exists) throw new RuntimeException("账号已存在");
+        }
+        if (StrUtil.isNotBlank(user.getMobile()) && !StrUtil.equals(user.getMobile(), db.getMobile())) {
+            boolean exists = !userDao.selectList(qb -> {
+                qb.where().eq("mobile", user.getMobile()).and().ne("id", user.getId());
+            }).isEmpty();
+            if (exists) throw new RuntimeException("手机号已存在");
+        }
+        if (StrUtil.isNotBlank(user.getEmail()) && !StrUtil.equals(user.getEmail(), db.getEmail())) {
+            boolean exists = !userDao.selectList(qb -> {
+                qb.where().eq("email", user.getEmail()).and().ne("id", user.getId());
+            }).isEmpty();
+            if (exists) throw new RuntimeException("邮箱已存在");
+        }
+
+        // 只更新基础字段，不允许通过此接口更新密码、创建时间等
+        if (user.getUsername() != null) db.setUsername(user.getUsername());
+        if (user.getMobile() != null) db.setMobile(user.getMobile());
+        if (user.getEmail() != null) db.setEmail(user.getEmail());
+        if (user.getRole() != null) db.setRole(user.getRole());
+        if (user.getAvatar() != null) db.setAvatar(user.getAvatar());
+        if (user.getEnableFlag() != null) db.setEnableFlag(user.getEnableFlag());
+
+        db.setUpdateTime(new Date());
+        userDao.updateById(db);
+        return userDao.selectById(db.getId());
     }
 
     public boolean deleteUser(Integer id) {
