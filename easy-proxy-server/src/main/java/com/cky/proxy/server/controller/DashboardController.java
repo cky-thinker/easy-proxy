@@ -76,7 +76,7 @@ public class DashboardController {
             else if ("month".equals(period)) { cal.add(java.util.Calendar.DAY_OF_MONTH, -30); }
             java.util.Date start = cal.getTime();
 
-            String sql = "SELECT proxy_client_id, COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) AS total FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY proxy_client_id ORDER BY total DESC LIMIT 10";
+            String sql = "SELECT proxy_client_id, COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) AS total FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY proxy_client_id ORDER BY total DESC LIMIT 5";
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String[] params = new String[] { sdf.format(start), sdf.format(end) };
             var res = BeanContext.getTsDayReportDao().getDao().queryRaw(sql, params);

@@ -65,7 +65,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="规则" width="100">
+          <el-table-column label="规则" width="150">
             <template #default="{ row }">
               <div class="flex items-center space-x-2">
                 <span>{{ row.proxyRules?.length || 0 }}条</span>

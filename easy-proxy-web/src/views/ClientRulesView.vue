@@ -56,7 +56,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="name" label="规则名称" width="300" />
-          <el-table-column prop="serverPort" label="端口" width="140" />
+          <el-table-column prop="serverPort" label="服务端口" width="140" />
           <el-table-column prop="clientAddress" label="转发地址" min-width="320" />
           <el-table-column label="启用状态" width="140">
             <template #default="{ row }">
@@ -70,10 +70,10 @@
           </el-table-column>
         </el-table>
       </div>
-      <!-- 分页组件：切换为 Element Plus el-pagination -->
-      <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage + 1" :page-size="pageSize"
-        :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
     </div>
+    <!-- 分页组件：切换为 Element Plus el-pagination -->
+    <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage + 1" :page-size="pageSize"
+      :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
     <!-- 新增规则模态框（使用 Element Plus el-dialog 替代） -->
     <el-dialog v-model="showAddRuleModal" title="新增规则" width="600px" :close-on-click-modal="false"
       @close="closeAddRuleModal">
@@ -90,7 +90,7 @@
         <el-form-item label="服务端口" prop="serverPort">
           <el-input v-model="newRule.serverPort" placeholder="服务端口" class="w-full" />
         </el-form-item>
-        <el-form-item label="客户端地址" prop="clientAddress">
+        <el-form-item label="转发地址" prop="clientAddress">
           <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
         </el-form-item>
         <el-form-item label="连接数限制" prop="limitConn">
@@ -112,16 +112,16 @@
     <el-dialog v-model="showEditRuleModal" title="编辑规则" width="600px" :close-on-click-modal="false"
       @close="closeEditRuleModal">
       <el-form :model="editRule" :rules="ruleFormRulesEdit" ref="editRuleFormRef" label-position="top">
+        <el-form-item label="客户端">
+          <el-input :model-value="clientNameMap[editRule.proxyClientId || 0] || '-'" disabled class="w-full" />
+        </el-form-item>
         <el-form-item label="规则名称" prop="name">
           <el-input v-model="editRule.name" placeholder="规则名称" class="w-full" />
         </el-form-item>
         <el-form-item label="服务端口" prop="serverPort">
           <el-input v-model="editRule.serverPort" class="w-full" />
         </el-form-item>
-        <el-form-item label="客户端">
-          <el-input :model-value="clientNameMap[editRule.proxyClientId || 0] || '-'" disabled class="w-full" />
-        </el-form-item>
-        <el-form-item label="客户端地址" prop="clientAddress">
+        <el-form-item label="转发地址" prop="clientAddress">
           <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
         </el-form-item>
         <el-form-item label="连接数限制" prop="limitConn">
