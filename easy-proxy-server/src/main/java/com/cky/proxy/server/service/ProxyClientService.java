@@ -62,16 +62,33 @@ public class ProxyClientService {
      * 更新代理客户端
      */
     public ProxyClient updateProxyClient(ProxyClient proxyClient) {
+        if (proxyClient == null || proxyClient.getId() == null) {
+            throw new RuntimeException("请求体缺少 id");
+        }
         ProxyClient existingClient = proxyClientDao.selectById(proxyClient.getId());
         if (existingClient == null) {
             return null;
         }
 
-        if (proxyClient.getName() != null) {
+        // name 唯一性
+        if (proxyClient.getName() != null && !proxyClient.getName().equals(existingClient.getName())) {
+            boolean exists = !proxyClientDao.selectList(qb -> {
+                qb.where().eq("name", proxyClient.getName()).and().ne("id", proxyClient.getId());
+            }).isEmpty();
+            if (exists) throw new RuntimeException("客户端名称已存在");
             existingClient.setName(proxyClient.getName());
         }
-        if (proxyClient.getToken() != null) {
-            existingClient.setToken(proxyClient.getToken());
+        // token 格式 + 唯一性
+        if (proxyClient.getToken() != null && !proxyClient.getToken().equals(existingClient.getToken())) {
+            String token = proxyClient.getToken();
+            if (!token.matches("^[0-9a-fA-F]{64}$")) {
+                throw new RuntimeException("Token 必须为64位十六进制字符串");
+            }
+            boolean exists = !proxyClientDao.selectList(qb -> {
+                qb.where().eq("token", token).and().ne("id", proxyClient.getId());
+            }).isEmpty();
+            if (exists) throw new RuntimeException("Token 已存在");
+            existingClient.setToken(token);
         }
         if (proxyClient.getEnableFlag() != null) {
             existingClient.setEnableFlag(proxyClient.getEnableFlag());

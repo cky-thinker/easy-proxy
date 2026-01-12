@@ -12,6 +12,7 @@ import cn.hutool.db.Page;
 
 public class ProxyClientRuleService {
     private final ProxyClientRuleDao proxyClientRuleDao = BeanContext.getProxyClientRuleDao();
+    private final com.cky.proxy.server.dao.ProxyClientDao proxyClientDao = BeanContext.getProxyClientDao();
 
     public List<ProxyClientRule> getProxyClientRules(Integer proxyClientId) {
         return proxyClientRuleDao.selectList(qb -> {
@@ -84,22 +85,63 @@ public class ProxyClientRuleService {
      * 更新代理客户端规则
      */
     public ProxyClientRule updateProxyClientRule(ProxyClientRule rule) {
+        if (rule == null || rule.getId() == null) {
+            throw new RuntimeException("请求体缺少 id");
+        }
         ProxyClientRule existingRule = proxyClientRuleDao.selectById(rule.getId());
         if (existingRule == null) {
             return null;
         }
 
-        if (rule.getName() != null) {
+        // 若传入且变更 proxyClientId
+        if (rule.getProxyClientId() != null && !rule.getProxyClientId().equals(existingRule.getProxyClientId())) {
+            throw new RuntimeException("所属客户端不允许变更");
+        }
+
+        // name 唯一（在同一 proxyClientId 下）
+        if (rule.getName() != null && !rule.getName().equals(existingRule.getName())) {
+            Integer pid = rule.getProxyClientId() != null ? rule.getProxyClientId() : existingRule.getProxyClientId();
+            boolean exists = !proxyClientRuleDao.selectList(qb -> {
+                qb.where().eq("proxy_client_id", pid).and().eq("name", rule.getName()).and().ne("id", rule.getId());
+            }).isEmpty();
+            if (exists) throw new RuntimeException("同客户端下规则名称已存在");
             existingRule.setName(rule.getName());
         }
-        if (rule.getProxyClientId() != null) {
-            existingRule.setProxyClientId(rule.getProxyClientId());
+
+        // serverPort 校验：范围 + 全局唯一
+        if (rule.getServerPort() != null && !rule.getServerPort().equals(existingRule.getServerPort())) {
+            int port = rule.getServerPort();
+            if (port < 1 || port > 65535) throw new RuntimeException("服务端口范围为 1-65535");
+            boolean exists = !proxyClientRuleDao.selectList(qb -> {
+                qb.where().eq("server_port", port).and().ne("id", rule.getId());
+            }).isEmpty();
+            if (exists) throw new RuntimeException("服务端口已被占用");
+            existingRule.setServerPort(port);
         }
-        if (rule.getServerPort() != null) {
-            existingRule.setServerPort(rule.getServerPort());
+
+        // clientAddress 基础格式校验：host:port（端口范围 1-65535）
+        if (rule.getClientAddress() != null && !rule.getClientAddress().equals(existingRule.getClientAddress())) {
+            String ca = rule.getClientAddress();
+            int idx = ca.lastIndexOf(":");
+            if (idx <= 0 || idx >= ca.length() - 1) throw new RuntimeException("客户端地址格式应为 host:port");
+            String portStr = ca.substring(idx + 1);
+            try {
+                int p = Integer.parseInt(portStr);
+                if (p < 1 || p > 65535) throw new RuntimeException("客户端地址端口范围为 1-65535");
+            } catch (NumberFormatException ex) {
+                throw new RuntimeException("客户端地址端口格式不正确");
+            }
+            existingRule.setClientAddress(ca);
         }
-        if (rule.getClientAddress() != null) {
-            existingRule.setClientAddress(rule.getClientAddress());
+
+        // limitConn / limitRate 非负
+        if (rule.getLimitConn() != null) {
+            if (rule.getLimitConn() < 0) throw new RuntimeException("连接数限制不能为负数");
+            existingRule.setLimitConn(rule.getLimitConn());
+        }
+        if (rule.getLimitRate() != null) {
+            if (rule.getLimitRate() < 0) throw new RuntimeException("带宽限制不能为负数");
+            existingRule.setLimitRate(rule.getLimitRate());
         }
         if (rule.getEnableFlag() != null) {
             existingRule.setEnableFlag(rule.getEnableFlag());
