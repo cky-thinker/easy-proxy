@@ -22,6 +22,15 @@ public class SysLogService {
         this.sysLogDao = BeanContext.getSysLogDao();
     }
 
+    private void validateForCreate(SysLog sysLog) {
+        if (sysLog.getLogType() == null || sysLog.getLogType().isEmpty()) {
+            throw new RuntimeException("日志类型不能为空");
+        }
+        if (sysLog.getLogContent() == null || sysLog.getLogContent().isEmpty()) {
+            throw new RuntimeException("日志内容不能为空");
+        }
+    }
+
     /**
      * 分页查询系统日志
      */
@@ -56,6 +65,7 @@ public class SysLogService {
      * 添加系统日志
      */
     public SysLog addSysLog(SysLog sysLog) {
+        validateForCreate(sysLog);
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
         return sysLog;

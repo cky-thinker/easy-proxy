@@ -46,6 +46,67 @@ public class UserService {
         this.jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
     }
 
+    // ===== 私有校验方法 =====
+    private void validateUniqueUserFields(String username, String mobile, String email, Integer excludeId) {
+        if (username != null) {
+            boolean exists = !userDao.selectList(qb -> {
+                if (excludeId == null) {
+                    qb.where().eq("username", username);
+                } else {
+                    qb.where().eq("username", username).and().ne("id", excludeId);
+                }
+            }).isEmpty();
+            if (exists) throw new RuntimeException("账号已存在");
+        }
+        if (mobile != null && !mobile.isEmpty()) {
+            boolean exists = !userDao.selectList(qb -> {
+                if (excludeId == null) {
+                    qb.where().eq("mobile", mobile);
+                } else {
+                    qb.where().eq("mobile", mobile).and().ne("id", excludeId);
+                }
+            }).isEmpty();
+            if (exists) throw new RuntimeException("手机号已存在");
+        }
+        if (email != null && !email.isEmpty()) {
+            boolean exists = !userDao.selectList(qb -> {
+                if (excludeId == null) {
+                    qb.where().eq("email", email);
+                } else {
+                    qb.where().eq("email", email).and().ne("id", excludeId);
+                }
+            }).isEmpty();
+            if (exists) throw new RuntimeException("邮箱已存在");
+        }
+    }
+
+    private void validatePassword(String password, boolean required) {
+        if (required && (password == null || password.isEmpty())) {
+            throw new RuntimeException("密码不能为空");
+        }
+    }
+
+    private void validateRole(String role) {
+        if (role == null || role.isEmpty()) return;
+        if (!"admin".equals(role) && !"user".equals(role) && !"viewer".equals(role)) {
+            throw new RuntimeException("角色不合法");
+        }
+    }
+
+    private void validateForCreate(SysUser user) {
+        validatePassword(user.getPassword(), true);
+        validateRole(user.getRole());
+        validateUniqueUserFields(user.getUsername(), user.getMobile(), user.getEmail(), null);
+    }
+
+    private void validateForUpdate(SysUser existing, SysUser patch) {
+        String newUsername = patch.getUsername() != null && !patch.getUsername().equals(existing.getUsername()) ? patch.getUsername() : null;
+        String newMobile = patch.getMobile() != null && !patch.getMobile().equals(existing.getMobile()) ? patch.getMobile() : null;
+        String newEmail = patch.getEmail() != null && !patch.getEmail().equals(existing.getEmail()) ? patch.getEmail() : null;
+        validateUniqueUserFields(newUsername, newMobile, newEmail, patch.getId());
+        if (patch.getRole() != null) validateRole(patch.getRole());
+    }
+
     public UserInfo login(LoginReq loginReq) {
         try {
             // 基础校验
@@ -170,9 +231,10 @@ public class UserService {
     }
 
     public SysUser createUser(SysUser user) {
+        validateForCreate(user);
+
         user.setCreateTime(new Date());
-        if (user.getEnableFlag() == null)
-            user.setEnableFlag(Boolean.TRUE);
+        if (user.getEnableFlag() == null) user.setEnableFlag(Boolean.TRUE);
         userDao.insert(user);
         return user;
     }
@@ -185,26 +247,7 @@ public class UserService {
         if (db == null) {
             throw new RuntimeException("账号不存在");
         }
-
-        // 唯一性校验：用户名、手机号、邮箱（仅当传入且与原值不同时）
-        if (StrUtil.isNotBlank(user.getUsername()) && !StrUtil.equals(user.getUsername(), db.getUsername())) {
-            boolean exists = !userDao.selectList(qb -> {
-                qb.where().eq("username", user.getUsername()).and().ne("id", user.getId());
-            }).isEmpty();
-            if (exists) throw new RuntimeException("账号已存在");
-        }
-        if (StrUtil.isNotBlank(user.getMobile()) && !StrUtil.equals(user.getMobile(), db.getMobile())) {
-            boolean exists = !userDao.selectList(qb -> {
-                qb.where().eq("mobile", user.getMobile()).and().ne("id", user.getId());
-            }).isEmpty();
-            if (exists) throw new RuntimeException("手机号已存在");
-        }
-        if (StrUtil.isNotBlank(user.getEmail()) && !StrUtil.equals(user.getEmail(), db.getEmail())) {
-            boolean exists = !userDao.selectList(qb -> {
-                qb.where().eq("email", user.getEmail()).and().ne("id", user.getId());
-            }).isEmpty();
-            if (exists) throw new RuntimeException("邮箱已存在");
-        }
+        validateForUpdate(db, user);
 
         // 只更新基础字段，不允许通过此接口更新密码、创建时间等
         if (user.getUsername() != null) db.setUsername(user.getUsername());
