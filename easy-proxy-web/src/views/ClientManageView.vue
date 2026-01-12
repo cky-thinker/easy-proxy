@@ -191,6 +191,16 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info')
   else ElMessage.info(message)
 }
 
+const resetForm = () => {
+  clientFormRef.value?.clearValidate?.()
+  currentClient.value = {
+    name: '',
+    token: '',
+    enableFlag: true,
+    proxyRules: []
+  }
+}
+
 // 客户端操作
 const deleteClientAction = async (client: ProxyClientConfig) => {
   try {
@@ -249,15 +259,10 @@ const toggleClientEnableSwitch = async (client: ProxyClientConfig, targetStatus:
 
 // 打开新增客户端模态框
 const openAddModal = () => {
+  resetForm()
   showAddModal.value = true
   showEditModal.value = false
   showClientModal.value = true
-  currentClient.value = {
-    name: '',
-    token: '',
-    enableFlag: true,
-    proxyRules: []
-  }
 }
 
 // 打开编辑客户端模态框

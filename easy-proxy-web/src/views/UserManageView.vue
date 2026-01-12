@@ -240,6 +240,20 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info')
   else ElMessage.info(message)
 }
 
+const resetForm = () => {
+  userFormRef.value?.clearValidate?.()
+  currentUser.value = {
+    id: 0,
+    username: '',
+    email: '',
+    password: '',
+    role: 'user',
+    enableFlag: true,
+    createdAt: '',
+    permissions: {}
+  }
+}
+
 // 权限配置
 const permissions = ref<Record<string, Permission>>({
   dashboard: {
@@ -292,19 +306,10 @@ const getRoleText = (role: string): string => {
 
 // 账号操作
 const openAddModal = () => {
+  resetForm()
   showAddModal.value = true
   showEditModal.value = false
   showClientModal.value = true
-  currentUser.value = {
-    id: 0,
-    username: '',
-    email: '',
-    password: '',
-    role: 'user',
-    enableFlag: true,
-    createdAt: '',
-    permissions: {}
-  }
 }
 
 const editUser = (user: User) => {

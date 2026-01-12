@@ -189,15 +189,7 @@ const newRule = ref<{ name: string; serverPort?: number; clientAddress: string; 
 })
 
 const openAddRuleModal = () => {
-  newRule.value = {
-    name: '',
-    serverPort: undefined,
-    clientAddress: '',
-    enableFlag: true,
-    proxyClientId: queryForm.clientFilter,
-    limitConn: undefined,
-    limitRate: undefined
-  }
+  resetForm()
   showAddRuleModal.value = true
 }
 
@@ -209,6 +201,19 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info')
   if (type === 'success') ElMessage.success(message)
   else if (type === 'error') ElMessage.error(message)
   else ElMessage.info(message)
+}
+
+const resetForm = () => {
+  addRuleFormRef.value?.clearValidate?.()
+  newRule.value = {
+    name: '',
+    serverPort: undefined,
+    clientAddress: '',
+    enableFlag: true,
+    proxyClientId: queryForm.clientFilter,
+    limitConn: undefined,
+    limitRate: undefined
+  }
 }
 
 const reload = async () => {
