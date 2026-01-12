@@ -46,7 +46,7 @@ public class UserController {
         router.delete("/api/users").handler(this::deleteUser);
         router.post("/api/users/reset-password").handler(this::resetPassword);
         router.put("/api/users/enableFlag").handler(this::updateEnableFlag);
-        router.get("/api/permissions").handler(this::getPermissions);
+        router.get("/api/users/permissions").handler(this::getPermissions);
     }
 
     private void loginUser(RoutingContext ctx) {

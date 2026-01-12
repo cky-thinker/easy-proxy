@@ -86,7 +86,7 @@
           <el-table-column label="操作" width="350" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" text @click="editUser(row)">编辑</el-button>
-              <el-button type="primary" text @click="showPermissionsModal(row)">权限</el-button>
+              <!-- <el-button type="primary" text @click="showPermissionsModal(row)">权限</el-button> -->
               <el-button :type="row.enableFlag ? 'warning' : 'success'" text @click="toggleUserStatus(row)">
                 {{ row.enableFlag ? '禁用' : '激活' }}
               </el-button>

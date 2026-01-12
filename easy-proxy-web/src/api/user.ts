@@ -23,7 +23,7 @@ export const getUsers = async (params: {
 
 // 获取单个账号详情
 export const getUser = async (id: number): Promise<User> => {
-  const response = await apiClient.get<ApiResponse<User>>(`/api/users/${id}`)
+  const response = await apiClient.get<ApiResponse<User>>(`/api/users/detail`, { params: { id } })
   return response.data.data
 }
 
@@ -35,23 +35,20 @@ export const createUser = async (accountData: CreateUserRequest): Promise<User> 
 
 // 更新账号
 export const updateUser = async (accountData: UpdateUserRequest): Promise<User> => {
-  const response = await apiClient.put<ApiResponse<User>>(`/api/users/${accountData.id}`, accountData)
+  const response = await apiClient.put<ApiResponse<User>>(`/api/users`, accountData)
   return response.data.data
 }
 
 // 删除账号
 export const deleteUser = async (id: number): Promise<void> => {
-  await apiClient.delete(`/api/users/${id}`)
+  await apiClient.delete(`/api/users`, { params: { id } })
 }
 
-// 批量删除账号
-export const deleteUsers = async (ids: number[]): Promise<void> => {
-  await apiClient.post('/api/users/batch-delete', { ids })
-}
+// 批量删除账号（后端暂未提供，按需新增）
 
 // 重置账号密码
 export const resetUserPassword = async (id: number, newPassword: string): Promise<void> => {
-  await apiClient.post(`/api/users/${id}/reset-password`, { password: newPassword })
+  await apiClient.post(`/api/users/reset-password`, { id, password: newPassword })
 }
 
 // 切换账号状态
@@ -62,21 +59,10 @@ export const toggleUserEnableFlag = async (id: number, enableFlag: boolean): Pro
 
 // 获取权限列表
 export const getPermissions = async (): Promise<Permission[]> => {
-  const response = await apiClient.get<ApiResponse<Permission[]>>('/api/permissions')
+  const response = await apiClient.get<ApiResponse<Permission[]>>('/api/users/permissions')
   return response.data.data
 }
 
-// 更新账号权限
-export const updateUserPermissions = async (id: number, permissions: Record<string, boolean>): Promise<User> => {
-  const response = await apiClient.patch<ApiResponse<User>>(`/api/users/${id}/permissions`, { permissions })
-  return response.data.data
-}
+// 更新账号权限（后端暂未提供，按需新增）
 
-// 搜索账号
-export const searchUsers = async (query: string, filters?: { role?: string, status?: string }, page: number = 1, pageSize: number = 10): Promise<PageResult<User>> => {
-  const params = new URLSearchParams({ q: query, page: String(page), pageSize: String(pageSize) })
-  if (filters?.role) params.append('role', filters.role)
-  if (filters?.status) params.append('status', filters.status)
-  const response = await apiClient.get<ApiResponse<PageResult<User>>>(`/api/users/search?${params.toString()}`)
-  return response.data.data
-}
+// 搜索账号（请使用 getUsers 携带 q 与 enableFlag 参数实现）
