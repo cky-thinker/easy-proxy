@@ -79,6 +79,8 @@ public class ProxyClientService {
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
 
+        EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, proxyClient.getId());
+
         return proxyClient;
     }
 

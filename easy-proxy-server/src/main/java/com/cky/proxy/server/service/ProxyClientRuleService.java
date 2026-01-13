@@ -9,6 +9,7 @@ import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.SysLog;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.EventBusUtil;
 
 import cn.hutool.db.Page;
 
@@ -92,6 +93,8 @@ public class ProxyClientRuleService {
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
         
+        EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, rule.getId());
+        
         return rule;
     }
 
@@ -137,6 +140,8 @@ public class ProxyClientRuleService {
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
         
+        EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, existingRule.getId());
+        
         return existingRule;
     }
 
@@ -157,6 +162,8 @@ public class ProxyClientRuleService {
         sysLog.setLogContent("删除规则: " + existingRule.getName());
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
+        
+        EventBusUtil.publish(EventBusUtil.DB_RULE_DELETE, id);
         
         return true;
     }
