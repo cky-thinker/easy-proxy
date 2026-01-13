@@ -1,25 +1,24 @@
 package com.cky.proxy.server.service;
 
-import cn.hutool.db.Page;
+import java.util.Date;
+import java.util.List;
 
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.dao.SysLogDao;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.SysLog;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 
-import java.util.Date;
-import java.util.List;
+import cn.hutool.db.Page;
 
 public class ProxyClientService {
     private final ProxyClientDao proxyClientDao = BeanContext.getProxyClientDao();
     private final ProxyClientRuleDao proxyClientRuleDao = BeanContext.getProxyClientRuleDao();
     private final SysLogDao sysLogDao = BeanContext.getSysLogDao();
-
-    
 
     public List<ProxyClient> getProxyClients() {
         return proxyClientDao.selectList(qb -> {
@@ -29,7 +28,8 @@ public class ProxyClientService {
     /**
      * 分页查询代理客户端，支持 name、status、enableFlag 条件
      */
-    public PageResult<ProxyClient> getProxyClientsPageable(Page hutoolPage, String name, String status, Boolean enableFlag) {
+    public PageResult<ProxyClient> getProxyClientsPageable(Page hutoolPage, String name, String status,
+            Boolean enableFlag) {
         return proxyClientDao.selectPage(
                 hutoolPage,
                 where -> {
@@ -39,12 +39,14 @@ public class ProxyClientService {
                         hasWhere = true;
                     }
                     if (status != null && !status.isEmpty()) {
-                        if (hasWhere) where.and();
+                        if (hasWhere)
+                            where.and();
                         where.eq("status", status);
                         hasWhere = true;
                     }
                     if (enableFlag != null) {
-                        if (hasWhere) where.and();
+                        if (hasWhere)
+                            where.and();
                         where.eq("enable_flag", enableFlag);
                     }
                 });
@@ -64,9 +66,19 @@ public class ProxyClientService {
         validateForCreate(proxyClient);
 
         proxyClient.setCreateTime(new Date());
-        if (proxyClient.getEnableFlag() == null) proxyClient.setEnableFlag(Boolean.TRUE);
-        if (proxyClient.getStatus() == null) proxyClient.setStatus("offline");
+        if (proxyClient.getEnableFlag() == null)
+            proxyClient.setEnableFlag(Boolean.TRUE);
+        if (proxyClient.getStatus() == null)
+            proxyClient.setStatus("offline");
         proxyClientDao.insert(proxyClient);
+
+        // 记录日志
+        SysLog sysLog = new SysLog();
+        sysLog.setLogType("CLIENT_ADD");
+        sysLog.setLogContent("添加客户端: " + proxyClient.getName());
+        sysLog.setCreateTime(new Date());
+        sysLogDao.insert(sysLog);
+
         return proxyClient;
     }
 
@@ -82,30 +94,30 @@ public class ProxyClientService {
             return null;
         }
         validateForUpdate(existingClient, proxyClient);
-        
-        boolean needPublish = false;
+
         if (proxyClient.getName() != null && !proxyClient.getName().equals(existingClient.getName())) {
             existingClient.setName(proxyClient.getName());
         }
         if (proxyClient.getToken() != null && !proxyClient.getToken().equals(existingClient.getToken())) {
             existingClient.setToken(proxyClient.getToken());
-            needPublish = true;
         }
         if (proxyClient.getEnableFlag() != null) {
-            if (!proxyClient.getEnableFlag().equals(existingClient.getEnableFlag())) {
-                needPublish = true;
-            }
             existingClient.setEnableFlag(proxyClient.getEnableFlag());
         }
         existingClient.setUpdateBy("admin");
         existingClient.setUpdateTime(new Date());
 
         proxyClientDao.updateById(existingClient);
-        
-        if (needPublish) {
-            EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, existingClient.getId());
-        }
-        
+
+        EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, existingClient.getId());
+
+        // 记录日志
+        SysLog sysLog = new SysLog();
+        sysLog.setLogType("CLIENT_UPDATE");
+        sysLog.setLogContent("更新客户端: " + existingClient.getName());
+        sysLog.setCreateTime(new Date());
+        sysLogDao.insert(sysLog);
+
         return existingClient;
     }
 
@@ -115,28 +127,26 @@ public class ProxyClientService {
     public boolean deleteProxyClient(Integer id) {
         ProxyClient existingClient = proxyClientDao.selectById(id);
         if (existingClient == null) {
-            return false;
+            throw new RuntimeException("客户端不存在");
         }
 
-        try {
-            // 级联删除规则
-            proxyClientRuleDao.getDao().executeRaw("DELETE FROM proxy_client_rule WHERE proxy_client_id = ?", id.toString());
-        } catch (java.sql.SQLException e) {
-            throw new RuntimeException("删除关联规则失败", e);
+        List<ProxyClientRule> rules = proxyClientRuleDao.selectByProxyClientId(id);
+        if (!rules.isEmpty()) {
+            throw new RuntimeException("客户端仍有关联规则，无法删除");
         }
 
         proxyClientDao.deleteById(id);
-        
+
         // 发布删除事件
         EventBusUtil.publish(EventBusUtil.DB_CLIENT_DELETE, id);
-        
+
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("CLIENT_DELETE");
         sysLog.setLogContent("删除客户端: " + existingClient.getName());
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
-        
+
         return true;
     }
 
@@ -145,21 +155,29 @@ public class ProxyClientService {
      */
     public ProxyClient updateClientStatus(String token, String status) {
         ProxyClient client = proxyClientDao.selectByToken(token);
-        if (client != null) {
-            client.setStatus(status);
-            client.setUpdateTime(new Date());
-            proxyClientDao.updateById(client);
-            
-            EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, client.getId());
-            
-            return client;
+        if (client == null) {
+            throw new RuntimeException("客户端不存在");
         }
-        return null;
+        client.setStatus(status);
+        client.setUpdateTime(new Date());
+        proxyClientDao.updateById(client);
+
+        EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, client.getId());
+        
+        // 记录日志
+        SysLog sysLog = new SysLog();
+        sysLog.setLogType("CLIENT_STATUS");
+        sysLog.setLogContent("客户端状态更新: " + client.getName() + " -> " + status);
+        sysLog.setCreateTime(new Date());
+        sysLogDao.insert(sysLog);
+        
+        return client;
     }
 
     // ===== 私有校验方法 =====
     private void validateNameUnique(String name, Integer excludeId) {
-        if (name == null) return;
+        if (name == null)
+            return;
         boolean exists = !proxyClientDao.selectList(qb -> {
             if (excludeId == null) {
                 qb.where().eq("name", name);
@@ -167,18 +185,21 @@ public class ProxyClientService {
                 qb.where().eq("name", name).and().ne("id", excludeId);
             }
         }).isEmpty();
-        if (exists) throw new RuntimeException("客户端名称已存在");
+        if (exists)
+            throw new RuntimeException("客户端名称已存在");
     }
 
     private void validateTokenFormat(String token) {
-        if (token == null) return;
+        if (token == null)
+            return;
         if (!token.matches("^[0-9a-fA-F]{64}$")) {
             throw new RuntimeException("Token 必须为64位十六进制字符串");
         }
     }
 
     private void validateTokenUnique(String token, Integer excludeId) {
-        if (token == null) return;
+        if (token == null)
+            return;
         boolean exists = !proxyClientDao.selectList(qb -> {
             if (excludeId == null) {
                 qb.where().eq("token", token);
@@ -186,7 +207,8 @@ public class ProxyClientService {
                 qb.where().eq("token", token).and().ne("id", excludeId);
             }
         }).isEmpty();
-        if (exists) throw new RuntimeException("Token 已存在");
+        if (exists)
+            throw new RuntimeException("Token 已存在");
     }
 
     private void validateForCreate(ProxyClient client) {
