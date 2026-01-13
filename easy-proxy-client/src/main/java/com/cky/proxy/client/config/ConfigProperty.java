@@ -1,5 +1,7 @@
 package com.cky.proxy.client.config;
 
+import java.io.File;
+
 import com.cky.proxy.common.util.PathUtil;
 
 import cn.hutool.core.io.FileUtil;
@@ -24,7 +26,7 @@ public class ConfigProperty {
             synchronized (ConfigProperty.class) {
                 if (instance == null) {
                     String jarFilePath = PathUtil.getJarFilePath(ConfigProperty.class);
-                    String configFilePath = jarFilePath.substring(0, jarFilePath.lastIndexOf("/")) + "/config.yaml";
+                    String configFilePath = jarFilePath.substring(0, jarFilePath.lastIndexOf(File.separator)) + File.separator + "config.yaml";
                     if (FileUtil.exist(configFilePath)) {
                         instance = YamlUtil.loadByPath(configFilePath, ConfigProperty.class);
                     } else {

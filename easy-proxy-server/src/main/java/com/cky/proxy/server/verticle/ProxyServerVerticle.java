@@ -7,6 +7,7 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
@@ -45,7 +46,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
         Integer proxyPort = server.getProxyPort();
         log.info("Server starting {}", proxyPort);
         vertx.createNetServer()
-                .connectHandler(new ServerMngSocketHandler())
+                .connectHandler(new ServerMngSocketHandler(vertx))
                 .listen(proxyPort)
                 .onFailure(t -> log.error("Server start failed", t));
         // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
@@ -73,19 +74,19 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void registerEventConsumers() {
-        vertx.eventBus().consumer("proxy.rule.updated", msg -> {
+        EventBusUtil.subscribe(EventBusUtil.DB_RULE_UPDATE, msg -> {
             Integer ruleId = (Integer) msg.body();
             updateRuleServer(ruleId);
         });
-        vertx.eventBus().consumer("proxy.rule.deleted", msg -> {
+        EventBusUtil.subscribe(EventBusUtil.DB_RULE_DELETE, msg -> {
             Integer ruleId = (Integer) msg.body();
             stopRuleServer(ruleId, null);
         });
-        vertx.eventBus().consumer("proxy.client.updated", msg -> {
+        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_UPDATE, msg -> {
             Integer clientId = (Integer) msg.body();
             updateClientServers(clientId);
         });
-        vertx.eventBus().consumer("proxy.client.deleted", msg -> {
+        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_DELETE, msg -> {
             Integer clientId = (Integer) msg.body();
             stopClientServers(clientId);
         });

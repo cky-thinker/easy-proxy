@@ -10,6 +10,7 @@ import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
+import com.cky.proxy.server.util.EventBusUtil;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -95,7 +96,7 @@ public class ProxyClientRuleController {
         ProxyClientRule newRule = proxyClientRuleService.addProxyClientRule(rule);
 
         if (newRule != null) {
-            vertx.eventBus().publish("proxy.rule.updated", newRule.getId());
+            EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, newRule.getId());
         }
 
         // 返回成功响应
@@ -112,7 +113,7 @@ public class ProxyClientRuleController {
         ProxyClientRule existingRule = proxyClientRuleService.updateProxyClientRule(rule);
 
         if (existingRule != null) {
-            vertx.eventBus().publish("proxy.rule.updated", existingRule.getId());
+            EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, existingRule.getId());
         }
 
         // 返回成功响应
@@ -134,7 +135,7 @@ public class ProxyClientRuleController {
             return;
         }
 
-        vertx.eventBus().publish("proxy.rule.deleted", id);
+        EventBusUtil.publish(EventBusUtil.DB_RULE_DELETE, id);
 
         // 返回成功响应
         ResponseUtil.success(ctx, null);

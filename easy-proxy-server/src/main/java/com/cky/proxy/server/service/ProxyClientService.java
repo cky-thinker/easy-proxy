@@ -150,4 +150,18 @@ public class ProxyClientService {
         proxyClientDao.deleteById(id);
         return true;
     }
+
+    /**
+     * 更新客户端在线状态
+     */
+    public ProxyClient updateClientStatus(String token, String status) {
+        ProxyClient client = proxyClientDao.selectByToken(token);
+        if (client != null) {
+            client.setStatus(status);
+            client.setUpdateTime(new Date());
+            proxyClientDao.updateById(client);
+            return client;
+        }
+        return null;
+    }
 }

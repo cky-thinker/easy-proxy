@@ -1,19 +1,34 @@
 package com.cky.proxy.server.socket;
 
-import com.cky.proxy.common.domain.Message;
-import com.cky.proxy.common.util.SocketUtil;
-import com.cky.proxy.server.manager.TrafficStatisticManager;
+import java.util.Set;
 
-import io.vertx.core.Handler;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import com.cky.proxy.common.domain.Message;
+import com.cky.proxy.common.util.SocketUtil;
+import com.cky.proxy.server.dao.ProxyClientDao;
+import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.manager.TrafficStatisticManager;
+import com.cky.proxy.server.service.ProxyClientService;
+import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.EventBusUtil;
+
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetSocket;
 
 public class ServerMngSocketHandler implements Handler<NetSocket> {
     private static final Logger log = LoggerFactory.getLogger(ServerMngSocketHandler.class);
+    private final ProxyClientDao proxyClientDao = BeanContext.getProxyClientDao();
+    private final ProxyClientService proxyClientService = new ProxyClientService();
+    private final Vertx vertx;
+
+    public ServerMngSocketHandler(Vertx vertx) {
+        this.vertx = vertx;
+    }
+
     @Override
     public void handle(NetSocket sMngSocket) {
         handleRead(sMngSocket);
@@ -54,6 +69,19 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
                 log.info("EP>>ServerMng>> Server mng socket closed {}", SocketUtil.getSocketName(socket));
                 // remove all related user sockets and data sockets
                 String token = MngSocketManager.offline(socket);
+
+                // Update offline status
+                if (token != null) {
+                    try {
+                        ProxyClient client = proxyClientService.updateClientStatus(token, "offline");
+                        if (client != null) {
+                            EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, client);
+                        }
+                    } catch (Exception e) {
+                        log.error("EP>>ServerMng>> Update offline status error", e);
+                    }
+                }
+
                 Set<String> userIds = UserSocketManager.getOnlineUsers(token);
                 if (userIds != null) {
                     for (String userId : userIds) {
@@ -69,9 +97,37 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
     private void processAuth(Message msg, NetSocket sMngSocket) {
         log.debug("EP>>ServerMng>> Process auth");
         String token = msg.getToken();
+
+        try {
+            ProxyClient client = proxyClientDao.selectByToken(token);
+
+            if (client == null) {
+                log.warn("EP>>ServerMng>> Client not found for token: {}", token);
+                sMngSocket.close();
+                return;
+            }
+
+            if (!Boolean.TRUE.equals(client.getEnableFlag())) {
+                log.warn("EP>>ServerMng>> Client {} is disabled", client.getName());
+                sMngSocket.close();
+                return;
+            }
+
+            // Update online status
+            client = proxyClientService.updateClientStatus(token, "online");
+            if (client != null) {
+                EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, client);
+            }
+        } catch (Exception e) {
+            log.error("EP>>ServerMng>> Process auth error", e);
+            sMngSocket.close();
+            return;
+        }
+
         NetSocket existedMngSocket = MngSocketManager.getMngSocket(token);
         if (existedMngSocket != null) {
-            log.info("EP>>ServerMng>> Socket {} is connected, Can't connect again {}", SocketUtil.getSocketName(existedMngSocket), SocketUtil.getSocketName(sMngSocket));
+            log.info("EP>>ServerMng>> Socket {} is connected, Can't connect again {}",
+                    SocketUtil.getSocketName(existedMngSocket), SocketUtil.getSocketName(sMngSocket));
             sMngSocket.close();
         }
         MngSocketManager.online(token, sMngSocket);

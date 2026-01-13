@@ -1,6 +1,7 @@
 package com.cky.proxy.server;
 
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.verticle.ProxyServerVerticle;
 import com.cky.proxy.server.verticle.WebManageVerticle;
 
@@ -17,6 +18,7 @@ public class ProxyServer {
         initService.initializeDatabase();
 
         Vertx vertx = Vertx.vertx();
+        EventBusUtil.setup(vertx);
         vertx.exceptionHandler(t -> {
             log.error(t.getMessage(), t);
         });
