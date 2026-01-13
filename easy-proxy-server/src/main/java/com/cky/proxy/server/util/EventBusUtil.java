@@ -16,6 +16,8 @@ public class EventBusUtil {
     public static final String DB_CLIENT_DELETE = "db.client.delete";
     // 客户端更新
     public static final String DB_CLIENT_UPDATE = "db.client.update";
+    // 客户端新增
+    public static final String DB_CLIENT_ADD = "db.client.add";
     // 客户端启用
     public static final String DB_CLIENT_ENABLE = "db.client.enable";
     // 规则禁用
@@ -24,6 +26,8 @@ public class EventBusUtil {
     public static final String DB_RULE_DELETE = "db.rule.delete";
     // 规则更新
     public static final String DB_RULE_UPDATE = "db.rule.update";
+    // 规则新增
+    public static final String DB_RULE_ADD = "db.rule.add";
     // 规则启用
     public static final String DB_RULE_ENABLE = "db.rule.enable";
 

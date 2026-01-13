@@ -52,15 +52,6 @@ public class ProxyServerVerticle extends AbstractVerticle {
         // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
         flushServerProxySocket();
 
-        // 部署 Web 管理端 Verticle（提供 /health 与 /api/*）
-        vertx.deployVerticle(WebManageVerticle.class.getCanonicalName(), res -> {
-            if (res.succeeded()) {
-                log.info("WebManage start success!");
-            } else {
-                log.error("WebManage start fail!", res.cause());
-            }
-        });
-
         // 启动流量统计定时任务 (每小时执行一次)
         vertx.setPeriodic(3600000L, id -> {
             TrafficStatisticManager.flush();
@@ -78,6 +69,15 @@ public class ProxyServerVerticle extends AbstractVerticle {
             Integer ruleId = (Integer) msg.body();
             updateRuleServer(ruleId);
         });
+        
+        EventBusUtil.subscribe(EventBusUtil.DB_RULE_ADD, msg -> {
+            Integer ruleId = (Integer) msg.body();
+            updateRuleServer(ruleId);
+        });
+        EventBusUtil.subscribe(EventBusUtil.DB_RULE_DISABLE, msg -> {
+            Integer ruleId = (Integer) msg.body();
+            stopRuleServer(ruleId, null);
+        });
         EventBusUtil.subscribe(EventBusUtil.DB_RULE_DELETE, msg -> {
             Integer ruleId = (Integer) msg.body();
             stopRuleServer(ruleId, null);
@@ -85,6 +85,14 @@ public class ProxyServerVerticle extends AbstractVerticle {
         EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_UPDATE, msg -> {
             Integer clientId = (Integer) msg.body();
             updateClientServers(clientId);
+        });
+        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_ADD, msg -> {
+            Integer clientId = (Integer) msg.body();
+            updateClientServers(clientId);
+        });
+        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_DISABLE, msg -> {
+            Integer clientId = (Integer) msg.body();
+            stopClientServers(clientId);
         });
         EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_DELETE, msg -> {
             Integer clientId = (Integer) msg.body();
@@ -128,7 +136,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
-        NetServer server = vertx.createNetServer()
+        vertx.createNetServer()
                 .connectHandler(new UserProxySocketHandler(client, rule))
                 .listen(rule.getServerPort(), res -> {
                     if (res.succeeded()) {

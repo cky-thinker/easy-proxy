@@ -93,7 +93,7 @@ public class ProxyClientRuleService {
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
         
-        EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, rule.getId());
+        EventBusUtil.publish(EventBusUtil.DB_RULE_ADD, rule.getId());
         
         return rule;
     }
