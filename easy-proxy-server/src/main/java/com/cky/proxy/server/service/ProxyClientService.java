@@ -3,63 +3,23 @@ package com.cky.proxy.server.service;
 import cn.hutool.db.Page;
 
 import com.cky.proxy.server.dao.ProxyClientDao;
+import com.cky.proxy.server.dao.ProxyClientRuleDao;
+import com.cky.proxy.server.dao.SysLogDao;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.domain.entity.SysLog;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.EventBusUtil;
 
 import java.util.Date;
 import java.util.List;
 
 public class ProxyClientService {
     private final ProxyClientDao proxyClientDao = BeanContext.getProxyClientDao();
+    private final ProxyClientRuleDao proxyClientRuleDao = BeanContext.getProxyClientRuleDao();
+    private final SysLogDao sysLogDao = BeanContext.getSysLogDao();
 
-    // ===== 私有校验方法 =====
-    private void validateNameUnique(String name, Integer excludeId) {
-        if (name == null) return;
-        boolean exists = !proxyClientDao.selectList(qb -> {
-            if (excludeId == null) {
-                qb.where().eq("name", name);
-            } else {
-                qb.where().eq("name", name).and().ne("id", excludeId);
-            }
-        }).isEmpty();
-        if (exists) throw new RuntimeException("客户端名称已存在");
-    }
-
-    private void validateTokenFormat(String token) {
-        if (token == null) return;
-        if (!token.matches("^[0-9a-fA-F]{64}$")) {
-            throw new RuntimeException("Token 必须为64位十六进制字符串");
-        }
-    }
-
-    private void validateTokenUnique(String token, Integer excludeId) {
-        if (token == null) return;
-        boolean exists = !proxyClientDao.selectList(qb -> {
-            if (excludeId == null) {
-                qb.where().eq("token", token);
-            } else {
-                qb.where().eq("token", token).and().ne("id", excludeId);
-            }
-        }).isEmpty();
-        if (exists) throw new RuntimeException("Token 已存在");
-    }
-
-    private void validateForCreate(ProxyClient client) {
-        validateNameUnique(client.getName(), null);
-        validateTokenFormat(client.getToken());
-        validateTokenUnique(client.getToken(), null);
-    }
-
-    private void validateForUpdate(ProxyClient existing, ProxyClient patch) {
-        if (patch.getName() != null && !patch.getName().equals(existing.getName())) {
-            validateNameUnique(patch.getName(), patch.getId());
-        }
-        if (patch.getToken() != null && !patch.getToken().equals(existing.getToken())) {
-            validateTokenFormat(patch.getToken());
-            validateTokenUnique(patch.getToken(), patch.getId());
-        }
-    }
+    
 
     public List<ProxyClient> getProxyClients() {
         return proxyClientDao.selectList(qb -> {
@@ -122,19 +82,30 @@ public class ProxyClientService {
             return null;
         }
         validateForUpdate(existingClient, proxyClient);
+        
+        boolean needPublish = false;
         if (proxyClient.getName() != null && !proxyClient.getName().equals(existingClient.getName())) {
             existingClient.setName(proxyClient.getName());
         }
         if (proxyClient.getToken() != null && !proxyClient.getToken().equals(existingClient.getToken())) {
             existingClient.setToken(proxyClient.getToken());
+            needPublish = true;
         }
         if (proxyClient.getEnableFlag() != null) {
+            if (!proxyClient.getEnableFlag().equals(existingClient.getEnableFlag())) {
+                needPublish = true;
+            }
             existingClient.setEnableFlag(proxyClient.getEnableFlag());
         }
         existingClient.setUpdateBy("admin");
         existingClient.setUpdateTime(new Date());
 
         proxyClientDao.updateById(existingClient);
+        
+        if (needPublish) {
+            EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, existingClient.getId());
+        }
+        
         return existingClient;
     }
 
@@ -147,7 +118,25 @@ public class ProxyClientService {
             return false;
         }
 
+        try {
+            // 级联删除规则
+            proxyClientRuleDao.getDao().executeRaw("DELETE FROM proxy_client_rule WHERE proxy_client_id = ?", id.toString());
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException("删除关联规则失败", e);
+        }
+
         proxyClientDao.deleteById(id);
+        
+        // 发布删除事件
+        EventBusUtil.publish(EventBusUtil.DB_CLIENT_DELETE, id);
+        
+        // 记录日志
+        SysLog sysLog = new SysLog();
+        sysLog.setLogType("CLIENT_DELETE");
+        sysLog.setLogContent("删除客户端: " + existingClient.getName());
+        sysLog.setCreateTime(new Date());
+        sysLogDao.insert(sysLog);
+        
         return true;
     }
 
@@ -160,8 +149,59 @@ public class ProxyClientService {
             client.setStatus(status);
             client.setUpdateTime(new Date());
             proxyClientDao.updateById(client);
+            
+            EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, client.getId());
+            
             return client;
         }
         return null;
+    }
+
+    // ===== 私有校验方法 =====
+    private void validateNameUnique(String name, Integer excludeId) {
+        if (name == null) return;
+        boolean exists = !proxyClientDao.selectList(qb -> {
+            if (excludeId == null) {
+                qb.where().eq("name", name);
+            } else {
+                qb.where().eq("name", name).and().ne("id", excludeId);
+            }
+        }).isEmpty();
+        if (exists) throw new RuntimeException("客户端名称已存在");
+    }
+
+    private void validateTokenFormat(String token) {
+        if (token == null) return;
+        if (!token.matches("^[0-9a-fA-F]{64}$")) {
+            throw new RuntimeException("Token 必须为64位十六进制字符串");
+        }
+    }
+
+    private void validateTokenUnique(String token, Integer excludeId) {
+        if (token == null) return;
+        boolean exists = !proxyClientDao.selectList(qb -> {
+            if (excludeId == null) {
+                qb.where().eq("token", token);
+            } else {
+                qb.where().eq("token", token).and().ne("id", excludeId);
+            }
+        }).isEmpty();
+        if (exists) throw new RuntimeException("Token 已存在");
+    }
+
+    private void validateForCreate(ProxyClient client) {
+        validateNameUnique(client.getName(), null);
+        validateTokenFormat(client.getToken());
+        validateTokenUnique(client.getToken(), null);
+    }
+
+    private void validateForUpdate(ProxyClient existing, ProxyClient patch) {
+        if (patch.getName() != null && !patch.getName().equals(existing.getName())) {
+            validateNameUnique(patch.getName(), patch.getId());
+        }
+        if (patch.getToken() != null && !patch.getToken().equals(existing.getToken())) {
+            validateTokenFormat(patch.getToken());
+            validateTokenUnique(patch.getToken(), patch.getId());
+        }
     }
 }
