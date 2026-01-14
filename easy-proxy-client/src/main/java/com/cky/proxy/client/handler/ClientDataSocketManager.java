@@ -8,6 +8,9 @@ import io.vertx.core.net.NetSocket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * client -> server 数据socket 业务
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class ClientDataSocketManager {

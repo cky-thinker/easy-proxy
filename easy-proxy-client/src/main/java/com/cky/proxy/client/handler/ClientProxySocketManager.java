@@ -11,6 +11,9 @@ import io.vertx.core.net.NetSocket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * client -> app 应用socket 业务
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class ClientProxySocketManager {

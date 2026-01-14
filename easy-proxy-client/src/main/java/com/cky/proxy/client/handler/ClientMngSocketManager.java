@@ -14,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * client -> server 管理socket 业务
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class ClientMngSocketManager {
@@ -63,7 +66,7 @@ public class ClientMngSocketManager {
             return;
         }
 
-        log.debug("EP>>ClientMng>> Create client proxy socket");
+        log.debug("EP>>ClientMng>> Create app proxy socket");
         vertx.createNetClient()
             .connect(address.getPort(), address.getIp())
             .onSuccess(proxySocket -> {
