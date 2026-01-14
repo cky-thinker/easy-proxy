@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 用户连接监听socket管理类
+ */
 public class UserSocketManager {
     // 服务端用户连接监听socket
     private final static Map<Integer, NetServer> userListenSocketMap = new ConcurrentHashMap<>();
@@ -19,18 +22,34 @@ public class UserSocketManager {
     private final static HashMap<String, String> onlineUserTokenMap = new HashMap<>();
 
 
-    // 规则监听socket
-    public static NetServer getRuleListenSocket(Integer ruleId) {
+    /**
+     * 根据规则ID获取用户连接监听socket
+     *
+     * @param ruleId 规则ID
+     * @return 用户连接监听socket
+     */
+    public static NetServer getUserListenSocket(Integer ruleId) {
         return userListenSocketMap.get(ruleId);
     }
 
-    // 规则监听socket
-    public static NetServer removeRuleListenSocket(Integer ruleId) {
+    /**
+     * 根据规则ID移除用户连接监听socket
+     *
+     * @param ruleId 规则ID
+     * @return 用户连接监听socket
+     */
+    public static NetServer removeUserListenSocket(Integer ruleId) {
         return userListenSocketMap.remove(ruleId);
     }
 
-    // 规则监听socket
-    public static NetServer addRuleListenSocket(Integer ruleId, NetServer netServer) {
+    /**
+     * 根据规则ID添加用户连接监听socket
+     *
+     * @param ruleId    规则ID
+     * @param netServer 用户连接监听socket
+     * @return 用户连接监听socket
+     */
+    public static NetServer addUserListenSocket(Integer ruleId, NetServer netServer) {
         return userListenSocketMap.put(ruleId, netServer);
     }
 
