@@ -1,4 +1,5 @@
 package com.cky.proxy.server.util;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
@@ -8,6 +9,10 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Date;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
@@ -29,23 +34,36 @@ public class SelfSignedCertGenerator {
     private static final String CERT_ALIAS = "easyproxy";
     private static final String CERT_PASSWORD = "easyproxy@2008"; // 生产环境建议通过环境变量传入
     private static final int KEY_SIZE = 2048;
-    private static final int VALIDITY_DAYS = 365; // 证书有效期1年
+    private static final int VALIDITY_DAYS = 3650; // 证书有效期10年
     private static final String CN = "localhost"; // 生产环境改为服务端实际域名/IP
 
     // 证书文件路径（jar包同级目录）
-    public static final String JKS_CERT_PATH = "ssl.jks";
-    public static final String PEM_CERT_PATH = "ssl.pem";
+    public static final String JKS_CERT_PATH = "cert.jks";
+    public static final String PEM_CERT_PATH = "cert.pem";
 
-    public static void main(String[] args) throws Exception {
-        SelfSignedCertGenerator.generateIfNotExists();
+    public static void main(String[] args) {
+        try {
+            generateIfNotExists();
+        } catch (Exception e) {
+            System.err.println("证书生成失败：" + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
      * 检查并生成证书：不存在则生成JKS证书+导出PEM公钥
      */
     public static void generateIfNotExists() throws Exception {
-        File jksFile = new File(JKS_CERT_PATH);
-        File pemFile = new File(PEM_CERT_PATH);
+        Path configDir = Paths.get("config");
+        if (!Files.exists(configDir)) {
+            Files.createDirectories(configDir);
+        }
+        Path target = configDir.resolve(JKS_CERT_PATH);
+        if (Files.exists(target)) {
+            return;
+        }
+        File jksFile = target.toFile();
+        File pemFile = configDir.resolve(PEM_CERT_PATH).toFile();
 
         // 证书已存在则跳过生成
         if (jksFile.exists() && pemFile.exists()) {
@@ -64,7 +82,7 @@ public class SelfSignedCertGenerator {
         // 3. 保存为JKS密钥库（服务端使用）
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, null);
-        keyStore.setKeyEntry(CERT_ALIAS, keyPair.getPrivate(), CERT_PASSWORD.toCharArray(), new Certificate[]{cert});
+        keyStore.setKeyEntry(CERT_ALIAS, keyPair.getPrivate(), CERT_PASSWORD.toCharArray(), new Certificate[] { cert });
         try (FileOutputStream fos = new FileOutputStream(jksFile)) {
             keyStore.store(fos, CERT_PASSWORD.toCharArray());
         }
@@ -89,7 +107,7 @@ public class SelfSignedCertGenerator {
                 subject, serial, from, to, subject, keyPair.getPublic());
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
-        GeneralName[] altNames = new GeneralName[]{};
+        GeneralName[] altNames = new GeneralName[] {};
         builder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(altNames));
 
         ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
@@ -103,7 +121,7 @@ public class SelfSignedCertGenerator {
     private static void exportCertToPem(X509Certificate cert, File pemFile) throws Exception {
         try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(pemFile))) {
             writer.write("-----BEGIN CERTIFICATE-----\n");
-            writer.write(Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(cert.getEncoded()));
+            writer.write(Base64.getMimeEncoder(64, new byte[] { '\n' }).encodeToString(cert.getEncoded()));
             writer.write("\n-----END CERTIFICATE-----\n");
         }
     }
