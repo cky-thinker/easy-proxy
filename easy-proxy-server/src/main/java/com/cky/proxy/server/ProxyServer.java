@@ -14,9 +14,8 @@ public class ProxyServer {
     private static final Logger log = LoggerFactory.getLogger(ProxyServer.class);
 
     public static void main(String[] args) {
-        // 初始化数据库表和数据
-        BeanContext beanContext = BeanContext.getInstance();
-        beanContext.init();
+        // 初始化对象管理器
+        BeanContext.getInstance().init();
         // 检查并生成证书：不存在则生成JKS证书+导出PEM公钥
         try {
             CertGenerator.generateIfNotExists();
@@ -25,7 +24,7 @@ public class ProxyServer {
         }
 
         Vertx vertx = Vertx.vertx();
-        EventBusUtil.setup(vertx);
+        EventBusUtil.init(vertx);
         vertx.exceptionHandler(t -> {
             log.error(t.getMessage(), t);
         });

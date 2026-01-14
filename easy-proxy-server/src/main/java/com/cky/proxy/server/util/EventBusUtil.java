@@ -39,7 +39,7 @@ public class EventBusUtil {
 
     private static Vertx vertx;
 
-    public static void setup(Vertx vertx) {
+    public static void init(Vertx vertx) {
         EventBusUtil.vertx = vertx;
     }
 

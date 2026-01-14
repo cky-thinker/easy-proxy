@@ -26,9 +26,12 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 自签名证书生成工具类：首次启动自动生成JKS证书和PEM公钥
  */
+@Slf4j
 public class CertGenerator {
     // 证书相关配置（可抽成配置文件）
     private static final String CERT_ALIAS = "easyproxy";
@@ -66,7 +69,7 @@ public class CertGenerator {
 
         // 证书已存在则跳过生成
         if (jksFile.exists() && pemFile.exists()) {
-            System.out.println("证书文件已存在，跳过自动生成");
+            log.info("证书文件已存在，跳过自动生成");
             return;
         }
 
@@ -85,11 +88,11 @@ public class CertGenerator {
         try (FileOutputStream fos = new FileOutputStream(jksFile)) {
             keyStore.store(fos, CERT_PASSWORD.toCharArray());
         }
-        System.out.println("JKS证书生成成功：" + jksFile.getAbsolutePath());
+        log.info("JKS证书生成成功：" + jksFile.getAbsolutePath());
 
         // 4. 导出PEM格式公钥证书（供客户端下载）
         exportCertToPem(cert, pemFile);
-        System.out.println("PEM公钥证书导出成功：" + pemFile.getAbsolutePath());
+        log.info("PEM公钥证书导出成功：" + pemFile.getAbsolutePath());
     }
 
     /**
