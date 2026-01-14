@@ -10,7 +10,7 @@ import com.cky.proxy.common.util.SocketUtil;
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.service.ProxyClientService;
-import com.cky.proxy.server.socket.manager.DataSocketManager;
+import com.cky.proxy.server.socket.manager.ClientDataSocketManager;
 import com.cky.proxy.server.socket.manager.ClientSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
@@ -62,11 +62,11 @@ public class ClientSocketHandler implements Handler<NetSocket> {
 
     private void handleClose(NetSocket socket) {
         socket.closeHandler(v -> {
-            if (DataSocketManager.isDataSocket(socket)) {
+            if (ClientDataSocketManager.isDataSocket(socket)) {
                 log.info("EP>>Client>> Data socket closed {}", SocketUtil.getSocketName(socket));
                 // remove related user sockets
-                String userId = DataSocketManager.getUserId(socket);
-                DataSocketManager.offline(userId);
+                String userId = ClientDataSocketManager.getUserId(socket);
+                ClientDataSocketManager.offline(userId);
                 RuleListenSocketManager.userConnectionClose(userId);
             } else {
                 log.info("EP>>Client>> Client socket closed {}", SocketUtil.getSocketName(socket));
@@ -88,7 +88,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                 Set<String> userIds = RuleListenSocketManager.getOnlineUsers(token);
                 if (userIds != null) {
                     for (String userId : userIds) {
-                        DataSocketManager.closeDataSocket(userId);
+                        ClientDataSocketManager.closeDataSocket(userId);
                         RuleListenSocketManager.userConnectionClose(userId);
                     }
                 }
@@ -140,7 +140,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
     private void processConnect(Message msg, NetSocket dataSocket) {
         log.debug("EP>>ServerMng>> Process connect");
         String userId = msg.getToken();
-        DataSocketManager.online(userId, dataSocket);
+        ClientDataSocketManager.online(userId, dataSocket);
         NetSocket userProxySocket = RuleListenSocketManager.getProxySocket(userId);
         if (userProxySocket != null) {
             userProxySocket.resume();
@@ -167,7 +167,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
     private void processDisconnect(Message msg) {
         log.debug("EP>>ServerMng>> Process disconnect");
         String userId = msg.getToken();
-        DataSocketManager.closeDataSocket(userId);
+        ClientDataSocketManager.closeDataSocket(userId);
         RuleListenSocketManager.userConnectionClose(userId);
     }
 }

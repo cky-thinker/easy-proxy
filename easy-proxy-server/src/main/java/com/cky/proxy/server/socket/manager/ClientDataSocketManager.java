@@ -5,7 +5,7 @@ import io.vertx.core.net.NetSocket;
 
 import java.util.HashMap;
 
-public class DataSocketManager {
+public class ClientDataSocketManager {
     private final static BiMap<String, NetSocket> userIdDataSocketMap = new BiMap<>(new HashMap<>());
 
     public static NetSocket getDataSocket(String userId) {
@@ -32,7 +32,7 @@ public class DataSocketManager {
         NetSocket dataSocket = getDataSocket(userId);
         if (dataSocket != null) {
             dataSocket.close();
-            DataSocketManager.offline(userId);
+            ClientDataSocketManager.offline(userId);
         }
     }
 }

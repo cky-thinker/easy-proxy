@@ -4,7 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
-import com.cky.proxy.server.socket.manager.DataSocketManager;
+import com.cky.proxy.server.socket.manager.ClientDataSocketManager;
 import com.cky.proxy.server.socket.manager.ClientSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
@@ -67,7 +67,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
                 }
             }
             log.debug("EP>>UserProxy>> User socket read");
-            NetSocket dataSocket = DataSocketManager.getDataSocket(userId);
+            NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
             if (dataSocket == null) {
                 log.error("EP>>UserProxy>> Can't found data socket by userId {}", userId);
                 userProxySocket.close();
