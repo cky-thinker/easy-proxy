@@ -4,6 +4,9 @@ import io.vertx.core.net.NetSocket;
 
 import java.util.HashMap;
 
+/**
+ * userId -> dataSocket 数据socket 上下文
+ */
 public class DataSocketContext {
     private static final HashMap<String, NetSocket> userIdSocketMap = new HashMap<>();
 

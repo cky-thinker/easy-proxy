@@ -5,6 +5,9 @@ import io.vertx.core.net.NetSocket;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * userId -> proxySocket 应用socket 上下文
+ */
 public class ProxySocketContext {
     private final static Map<String, NetSocket> userIdProxySocketMap = new HashMap<>();
 
