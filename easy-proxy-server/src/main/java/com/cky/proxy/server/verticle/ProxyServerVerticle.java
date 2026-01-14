@@ -7,10 +7,10 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.EventBusUtil;
-import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
+import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;

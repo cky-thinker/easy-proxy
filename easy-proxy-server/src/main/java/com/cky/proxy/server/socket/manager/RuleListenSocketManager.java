@@ -57,24 +57,24 @@ public class RuleListenSocketManager {
         return userIdUserSocketMap.get(userId);
     }
 
-    public static void online(String token, String userId, NetSocket userProxySocket) {
+    public static void userConnectionOnline(String token, String userId, NetSocket userProxySocket) {
         userIdUserSocketMap.put(userId, userProxySocket);
         tokenOnlineUsersMap.computeIfAbsent(token, t -> new ConcurrentHashSet<>());
         tokenOnlineUsersMap.get(token).add(userId);
         onlineUserTokenMap.put(userId, token);
     }
 
-    public static void offline(String userId) {
+    public static void userConnectionOffline(String userId) {
         userIdUserSocketMap.remove(userId);
         String token = onlineUserTokenMap.remove(userId);
         tokenOnlineUsersMap.get(token).remove(userId);
     }
 
-    public static void closeUserSocket(String userId) {
+    public static void userConnectionClose(String userId) {
         NetSocket userSocket = RuleListenSocketManager.getProxySocket(userId);
         if (userSocket != null) {
             userSocket.close();
-            RuleListenSocketManager.offline(userId);
+            RuleListenSocketManager.userConnectionOffline(userId);
         }
     }
 

@@ -9,11 +9,11 @@ import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.util.SocketUtil;
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
-import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.socket.manager.DataSocketManager;
 import com.cky.proxy.server.socket.manager.ClientSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
+import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 
@@ -67,7 +67,7 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
                 // remove related user sockets
                 String userId = DataSocketManager.getUserId(socket);
                 DataSocketManager.offline(userId);
-                RuleListenSocketManager.closeUserSocket(userId);
+                RuleListenSocketManager.userConnectionClose(userId);
             } else {
                 log.info("EP>>ServerMng>> Server mng socket closed {}", SocketUtil.getSocketName(socket));
                 // remove all related user sockets and data sockets
@@ -89,7 +89,7 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
                 if (userIds != null) {
                     for (String userId : userIds) {
                         DataSocketManager.closeDataSocket(userId);
-                        RuleListenSocketManager.closeUserSocket(userId);
+                        RuleListenSocketManager.userConnectionClose(userId);
                     }
                 }
             }
@@ -168,6 +168,6 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
         log.debug("EP>>ServerMng>> Process disconnect");
         String userId = msg.getToken();
         DataSocketManager.closeDataSocket(userId);
-        RuleListenSocketManager.closeUserSocket(userId);
+        RuleListenSocketManager.userConnectionClose(userId);
     }
 }

@@ -4,10 +4,10 @@ import cn.hutool.core.util.IdUtil;
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
-import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.manager.DataSocketManager;
 import com.cky.proxy.server.socket.manager.ClientSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
+import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -27,11 +27,11 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
     }
 
     @Override
-    public void handle(NetSocket userProxySocket) {
-        NetSocket mngSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
-        if (mngSocket == null) {
-            log.debug("EP>>UserProxy>> Can't found mng socket {}:{}", proxyClientConfig.getName(), proxyRule.getName());
-            userProxySocket.close();
+    public void handle(NetSocket userConnection) {
+        NetSocket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
+        if (clientSocket == null) {
+            log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(), proxyRule.getName());
+            userConnection.close();
             return;
         }
 
@@ -40,20 +40,20 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
             long activeConns = TrafficStatisticManager.getActiveConnections(proxyRule.getId());
             if (activeConns >= proxyRule.getLimitConn()) {
                 log.warn("EP>>UserProxy>> Connection limit exceeded for rule {}: {}/{}", proxyRule.getName(), activeConns, proxyRule.getLimitConn());
-                userProxySocket.close();
+                userConnection.close();
                 return;
             }
         }
 
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
-        RuleListenSocketManager.online(proxyClientConfig.getToken(), userId, userProxySocket);
+        RuleListenSocketManager.userConnectionOnline(proxyClientConfig.getToken(), userId, userConnection);
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
         // reuse after client data connection create success
         log.debug("EP>>UserProxy>> User connected, Send connect msg");
-        userProxySocket.pause();
-        mngSocket.write(Message.createConnectMsg(userId, proxyRule.getClientAddress()));
-        userProxySocket.handler(processRead(userProxySocket, userId));
-        userProxySocket.closeHandler(processClose(userId));
+        userConnection.pause();
+        clientSocket.write(Message.createConnectMsg(userId, proxyRule.getClientAddress()));
+        userConnection.handler(processRead(userConnection, userId));
+        userConnection.closeHandler(processClose(userId));
     }
 
     private Handler<Buffer> processRead(NetSocket userProxySocket, String userId) {
@@ -82,10 +82,10 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
     private Handler<Void> processClose(String userId) {
         return v -> {
             log.debug("EP>>UserProxy>> User proxy socket closed");
-            NetSocket mngSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
-            if (mngSocket != null) {
-                mngSocket.write(Message.createDisConnectMsg(userId));
-                RuleListenSocketManager.offline(userId);
+            NetSocket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
+            if (clientSocket != null) {
+                clientSocket.write(Message.createDisConnectMsg(userId));
+                RuleListenSocketManager.userConnectionOffline(userId);
                 TrafficStatisticManager.removeConnection(userId);
             } else {
                 log.debug("EP>>UserProxy>> Mng proxy is null");

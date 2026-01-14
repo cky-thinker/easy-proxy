@@ -1,4 +1,4 @@
-package com.cky.proxy.server.manager;
+package com.cky.proxy.server.socket.manager;
 
 import cn.hutool.core.date.DateUtil;
 import com.cky.proxy.server.dao.TsDayReportDao;
