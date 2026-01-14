@@ -22,31 +22,31 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
 
-public class ServerMngSocketHandler implements Handler<NetSocket> {
-    private static final Logger log = LoggerFactory.getLogger(ServerMngSocketHandler.class);
+public class ClientSocketHandler implements Handler<NetSocket> {
+    private static final Logger log = LoggerFactory.getLogger(ClientSocketHandler.class);
     private final ProxyClientDao proxyClientDao = BeanContext.getProxyClientDao();
     private final ProxyClientService proxyClientService = new ProxyClientService();
     private final Vertx vertx;
 
-    public ServerMngSocketHandler(Vertx vertx) {
+    public ClientSocketHandler(Vertx vertx) {
         this.vertx = vertx;
     }
 
     @Override
-    public void handle(NetSocket sMngSocket) {
-        handleRead(sMngSocket);
-        handleClose(sMngSocket);
+    public void handle(NetSocket clientSocket) {
+        handleRead(clientSocket);
+        handleClose(clientSocket);
     }
 
-    private void handleRead(NetSocket sMngSocket) {
-        Message.decodeMsg(sMngSocket, msg -> {
+    private void handleRead(NetSocket clientSocket) {
+        Message.decodeMsg(clientSocket, msg -> {
             log.debug("EP>>ServerMng>> Read msg {}", msg.getType());
             switch (msg.getType()) {
                 case Message.AUTH:
-                    processAuth(msg, sMngSocket);
+                    processAuth(msg, clientSocket);
                     break;
                 case Message.CONNECT:
-                    processConnect(msg, sMngSocket);
+                    processConnect(msg, clientSocket);
                     break;
                 case Message.DATA:
                     processData(msg);
@@ -63,13 +63,13 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
     private void handleClose(NetSocket socket) {
         socket.closeHandler(v -> {
             if (DataSocketManager.isDataSocket(socket)) {
-                log.info("EP>>ServerMng>> Data mng socket closed {}", SocketUtil.getSocketName(socket));
+                log.info("EP>>Client>> Data socket closed {}", SocketUtil.getSocketName(socket));
                 // remove related user sockets
                 String userId = DataSocketManager.getUserId(socket);
                 DataSocketManager.offline(userId);
                 RuleListenSocketManager.userConnectionClose(userId);
             } else {
-                log.info("EP>>ServerMng>> Server mng socket closed {}", SocketUtil.getSocketName(socket));
+                log.info("EP>>Client>> Client socket closed {}", SocketUtil.getSocketName(socket));
                 // remove all related user sockets and data sockets
                 String token = ClientSocketManager.offline(socket);
 

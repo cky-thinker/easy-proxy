@@ -7,7 +7,7 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.EventBusUtil;
-import com.cky.proxy.server.socket.ServerMngSocketHandler;
+import com.cky.proxy.server.socket.ClientSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
@@ -35,7 +35,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
         Integer proxyPort = server.getProxyPort();
         log.info("Server starting {}", proxyPort);
         vertx.createNetServer()
-                .connectHandler(new ServerMngSocketHandler(vertx))
+                .connectHandler(new ClientSocketHandler(vertx))
                 .listen(proxyPort)
                 .onFailure(t -> log.error("Server start failed", t));
         // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
