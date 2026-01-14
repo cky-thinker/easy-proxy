@@ -26,9 +26,12 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTableConfig;
 import com.j256.ormlite.table.TableUtils;
 
+import lombok.Data;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Data
 public class BeanContext {
     private static final Logger log = LoggerFactory.getLogger(BeanContext.class);
 
@@ -91,6 +94,14 @@ public class BeanContext {
 
     public static TsHourReportDao getTsHourReportDao() {
         return instance.trafficStatisticHourReportDao;
+    }
+
+    public static ProxyClientService getProxyClientService() {
+        return instance.proxyClientService;
+    }
+
+    public static ProxyClientRuleService getProxyClientRuleService() {
+        return instance.proxyClientRuleService;
     }
 
     /**

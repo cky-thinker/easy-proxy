@@ -25,6 +25,10 @@ public class ProxyClientService {
         });
     }
 
+    public ProxyClient selectByToken(String token) {
+        return proxyClientDao.selectByToken(token);
+    }
+
     /**
      * 分页查询代理客户端，支持 name、status、enableFlag 条件
      */
@@ -165,14 +169,14 @@ public class ProxyClientService {
         proxyClientDao.updateById(client);
 
         EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, client.getId());
-        
+
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("CLIENT_STATUS");
         sysLog.setLogContent("客户端状态更新: " + client.getName() + " -> " + status);
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
-        
+
         return client;
     }
 

@@ -1,14 +1,15 @@
 package com.cky.proxy.server.socket.manager;
 
-import cn.hutool.core.map.BiMap;
-import io.vertx.core.impl.ConcurrentHashSet;
-import io.vertx.core.net.NetServer;
-import io.vertx.core.net.NetSocket;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import cn.hutool.core.map.BiMap;
+import io.vertx.core.impl.ConcurrentHashSet;
+import io.vertx.core.net.NetServer;
+import io.vertx.core.net.NetSocket;
 
 /**
  * 规则监听socket管理类
@@ -18,9 +19,7 @@ public class RuleListenSocketManager {
     private final static Map<Integer, NetServer> ruleListenSocketMap = new ConcurrentHashMap<>();
     // 服务端用户连接socket
     private final static BiMap<String, NetSocket> userIdUserSocketMap = new BiMap<>(new HashMap<>());
-    private final static HashMap<String, Set<String>> tokenOnlineUsersMap = new HashMap<>();
-    private final static HashMap<String, String> onlineUserTokenMap = new HashMap<>();
-
+    private final static BiMap<String, String> userIdRuleIdMap = new BiMap<>(new HashMap<>());
 
     /**
      * 根据规则ID获取用户连接监听socket
@@ -57,28 +56,25 @@ public class RuleListenSocketManager {
         return userIdUserSocketMap.get(userId);
     }
 
-    public static void userConnectionOnline(String token, String userId, NetSocket userProxySocket) {
+    public static void userConnectionOnline(Integer ruleId, String userId, NetSocket userProxySocket) {
         userIdUserSocketMap.put(userId, userProxySocket);
-        tokenOnlineUsersMap.computeIfAbsent(token, t -> new ConcurrentHashSet<>());
-        tokenOnlineUsersMap.get(token).add(userId);
-        onlineUserTokenMap.put(userId, token);
+        userIdRuleIdMap.put(userId, ruleId.toString());
     }
 
     public static void userConnectionOffline(String userId) {
         userIdUserSocketMap.remove(userId);
-        String token = onlineUserTokenMap.remove(userId);
-        tokenOnlineUsersMap.get(token).remove(userId);
+        userIdRuleIdMap.remove(userId);
     }
 
     public static void userConnectionClose(String userId) {
-        NetSocket userSocket = RuleListenSocketManager.getProxySocket(userId);
+        NetSocket userSocket = getProxySocket(userId);
         if (userSocket != null) {
             userSocket.close();
-            RuleListenSocketManager.userConnectionOffline(userId);
+            userConnectionOffline(userId);
         }
     }
 
-    public static Set<String> getOnlineUsers(String token) {
-        return tokenOnlineUsersMap.get(token);
+    public static Set<String> getOnlineUsers(Integer ruleId) {
+        return userIdRuleIdMap.values().stream().filter(value -> value.equals(ruleId.toString())).collect(Collectors.toSet());
     }
 }

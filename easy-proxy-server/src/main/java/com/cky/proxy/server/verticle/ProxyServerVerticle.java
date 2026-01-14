@@ -1,6 +1,7 @@
 package com.cky.proxy.server.verticle;
 
 import java.util.List;
+import java.util.Set;
 
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.config.ServerProperty;
@@ -10,6 +11,7 @@ import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.socket.ClientSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
+import com.cky.proxy.server.socket.manager.ClientDataSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.CertGenerator;
@@ -20,6 +22,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
+import io.vertx.core.net.NetSocket;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -39,13 +42,14 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 .setPort(proxyPort)
                 .setSsl(true)
                 .setUseAlpn(true)
-                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.JKS_CERT_PATH).setPassword(CertGenerator.getCertPassword()));
+                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.JKS_CERT_PATH)
+                        .setPassword(CertGenerator.getCertPassword()));
         vertx.createNetServer(options)
                 .connectHandler(new ClientSocketHandler(vertx))
                 .listen(proxyPort)
                 .onFailure(t -> log.error("Server start failed", t))
                 .onSuccess(v -> log.info("Server started on port {}", proxyPort));
-        
+
         initRuleServers();
 
         // 启动流量统计定时任务 (每小时执行一次)
@@ -113,6 +117,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void stopRuleServer(Integer ruleId, Runnable completionHandler) {
+        // 关闭规则端口监听
         NetServer server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
         if (server == null) {
             return;
@@ -127,6 +132,23 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 completionHandler.run();
             }
         });
+        
+        // TODO 根据规则关闭用户连接通道
+        Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
+        if (userIds != null) {
+            for (String userId : userIds) {
+                NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+                if (dataSocket != null) {
+                    dataSocket.close();
+                }
+                ClientDataSocketManager.closeDataSocket(userId);
+                NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
+                if (proxySocket != null) {
+                    proxySocket.close();
+                }
+                RuleListenSocketManager.userConnectionClose(userId);
+            }
+        }
     }
 
     private void updateRuleServer(Integer ruleId) {

@@ -46,7 +46,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         }
 
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
-        RuleListenSocketManager.userConnectionOnline(proxyClientConfig.getToken(), userId, userConnection);
+        RuleListenSocketManager.userConnectionOnline(proxyRule.getId(), userId, userConnection);
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
         // reuse after client data connection create success
         log.debug("EP>>UserProxy>> User connected, Send connect msg");

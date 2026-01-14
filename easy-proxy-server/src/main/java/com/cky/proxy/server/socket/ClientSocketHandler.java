@@ -1,5 +1,6 @@
 package com.cky.proxy.server.socket;
 
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -7,8 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.util.SocketUtil;
-import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.domain.entity.ProxyClientRule;
+import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.socket.manager.ClientDataSocketManager;
 import com.cky.proxy.server.socket.manager.ClientSocketManager;
@@ -17,6 +19,7 @@ import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 
+import cn.hutool.core.util.StrUtil;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -24,8 +27,8 @@ import io.vertx.core.net.NetSocket;
 
 public class ClientSocketHandler implements Handler<NetSocket> {
     private static final Logger log = LoggerFactory.getLogger(ClientSocketHandler.class);
-    private final ProxyClientDao proxyClientDao = BeanContext.getProxyClientDao();
-    private final ProxyClientService proxyClientService = new ProxyClientService();
+    private final ProxyClientService proxyClientService = BeanContext.getProxyClientService();
+    private final ProxyClientRuleService proxyRuleService = BeanContext.getProxyClientRuleService();
     private final Vertx vertx;
 
     public ClientSocketHandler(Vertx vertx) {
@@ -72,24 +75,38 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                 log.info("EP>>Client>> Client socket closed {}", SocketUtil.getSocketName(socket));
                 // remove all related user sockets and data sockets
                 String token = ClientSocketManager.offline(socket);
-
                 // Update offline status
-                if (token != null) {
-                    try {
-                        ProxyClient client = proxyClientService.updateClientStatus(token, "offline");
-                        if (client != null) {
-                            EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, client);
-                        }
-                    } catch (Exception e) {
-                        log.error("EP>>ServerMng>> Update offline status error", e);
-                    }
+                if (StrUtil.isBlank(token)) {
+                    log.warn("EP>>ServerMng>> Client token is blank");
+                    return;
                 }
 
-                Set<String> userIds = RuleListenSocketManager.getOnlineUsers(token);
-                if (userIds != null) {
-                    for (String userId : userIds) {
-                        ClientDataSocketManager.closeDataSocket(userId);
-                        RuleListenSocketManager.userConnectionClose(userId);
+                try {
+                    ProxyClient client = proxyClientService.updateClientStatus(token, "offline");
+                    if (client != null) {
+                        EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, client);
+                    }
+                } catch (Exception e) {
+                    log.error("EP>>ServerMng>> Update offline status error", e);
+                }
+                
+                List<ProxyClientRule> rules = proxyRuleService.getAllProxyClientRules(token, null, null);
+                // TODO 根据规则关闭用户连接通道
+                for (ProxyClientRule rule : rules) {
+                    Set<String> userIds = RuleListenSocketManager.getOnlineUsers(rule.getId());
+                    if (userIds != null) {
+                        for (String userId : userIds) {
+                            NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+                            if(dataSocket != null) {
+                                dataSocket.close();
+                            }
+                            ClientDataSocketManager.closeDataSocket(userId);
+                            NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
+                            if(proxySocket != null) {
+                                proxySocket.close();
+                            }
+                            RuleListenSocketManager.userConnectionClose(userId);
+                        }
                     }
                 }
             }
@@ -102,7 +119,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
         String token = msg.getToken();
 
         try {
-            ProxyClient client = proxyClientDao.selectByToken(token);
+            ProxyClient client = proxyClientService.selectByToken(token);
 
             if (client == null) {
                 log.warn("EP>>ServerMng>> Client not found for token: {}", token);
