@@ -6,8 +6,8 @@ import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.manager.DataSocketManager;
-import com.cky.proxy.server.socket.manager.MngSocketManager;
-import com.cky.proxy.server.socket.manager.UserSocketManager;
+import com.cky.proxy.server.socket.manager.ClientSocketManager;
+import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -28,7 +28,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
 
     @Override
     public void handle(NetSocket userProxySocket) {
-        NetSocket mngSocket = MngSocketManager.getMngSocket(proxyClientConfig.getToken());
+        NetSocket mngSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
         if (mngSocket == null) {
             log.debug("EP>>UserProxy>> Can't found mng socket {}:{}", proxyClientConfig.getName(), proxyRule.getName());
             userProxySocket.close();
@@ -46,7 +46,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         }
 
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
-        UserSocketManager.online(proxyClientConfig.getToken(), userId, userProxySocket);
+        RuleListenSocketManager.online(proxyClientConfig.getToken(), userId, userProxySocket);
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
         // reuse after client data connection create success
         log.debug("EP>>UserProxy>> User connected, Send connect msg");
@@ -82,10 +82,10 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
     private Handler<Void> processClose(String userId) {
         return v -> {
             log.debug("EP>>UserProxy>> User proxy socket closed");
-            NetSocket mngSocket = MngSocketManager.getMngSocket(proxyClientConfig.getToken());
+            NetSocket mngSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
             if (mngSocket != null) {
                 mngSocket.write(Message.createDisConnectMsg(userId));
-                UserSocketManager.offline(userId);
+                RuleListenSocketManager.offline(userId);
                 TrafficStatisticManager.removeConnection(userId);
             } else {
                 log.debug("EP>>UserProxy>> Mng proxy is null");

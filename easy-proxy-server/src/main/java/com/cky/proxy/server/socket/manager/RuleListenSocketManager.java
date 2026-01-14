@@ -11,9 +11,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 用户连接监听socket管理类
+ * 规则监听socket管理类
  */
-public class UserSocketManager {
+public class RuleListenSocketManager {
     // 服务端规则监听socket
     private final static Map<Integer, NetServer> ruleListenSocketMap = new ConcurrentHashMap<>();
     // 服务端用户连接socket
@@ -71,10 +71,10 @@ public class UserSocketManager {
     }
 
     public static void closeUserSocket(String userId) {
-        NetSocket userSocket = UserSocketManager.getProxySocket(userId);
+        NetSocket userSocket = RuleListenSocketManager.getProxySocket(userId);
         if (userSocket != null) {
             userSocket.close();
-            UserSocketManager.offline(userId);
+            RuleListenSocketManager.offline(userId);
         }
     }
 

@@ -10,7 +10,7 @@ import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
-import com.cky.proxy.server.socket.manager.UserSocketManager;
+import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -106,7 +106,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void stopRuleServer(Integer ruleId, Runnable completionHandler) {
-        NetServer server = UserSocketManager.removeRuleListenSocket(ruleId);
+        NetServer server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
         if (server == null) {
             return;
         }
@@ -142,7 +142,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 .listen(rule.getServerPort(), res -> {
                     if (res.succeeded()) {
                         log.info("Listening for rule {} on port {}", rule.getName(), rule.getServerPort());
-                        UserSocketManager.addRuleListenSocket(rule.getId(), res.result());
+                        RuleListenSocketManager.addRuleListenSocket(rule.getId(), res.result());
                     } else {
                         log.error("Failed listening for rule {}", rule.getName(), res.cause());
                     }

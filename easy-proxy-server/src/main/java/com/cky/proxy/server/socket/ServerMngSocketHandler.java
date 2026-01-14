@@ -12,8 +12,8 @@ import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.socket.manager.DataSocketManager;
-import com.cky.proxy.server.socket.manager.MngSocketManager;
-import com.cky.proxy.server.socket.manager.UserSocketManager;
+import com.cky.proxy.server.socket.manager.ClientSocketManager;
+import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 
@@ -67,11 +67,11 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
                 // remove related user sockets
                 String userId = DataSocketManager.getUserId(socket);
                 DataSocketManager.offline(userId);
-                UserSocketManager.closeUserSocket(userId);
+                RuleListenSocketManager.closeUserSocket(userId);
             } else {
                 log.info("EP>>ServerMng>> Server mng socket closed {}", SocketUtil.getSocketName(socket));
                 // remove all related user sockets and data sockets
-                String token = MngSocketManager.offline(socket);
+                String token = ClientSocketManager.offline(socket);
 
                 // Update offline status
                 if (token != null) {
@@ -85,11 +85,11 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
                     }
                 }
 
-                Set<String> userIds = UserSocketManager.getOnlineUsers(token);
+                Set<String> userIds = RuleListenSocketManager.getOnlineUsers(token);
                 if (userIds != null) {
                     for (String userId : userIds) {
                         DataSocketManager.closeDataSocket(userId);
-                        UserSocketManager.closeUserSocket(userId);
+                        RuleListenSocketManager.closeUserSocket(userId);
                     }
                 }
             }
@@ -127,13 +127,13 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
             return;
         }
 
-        NetSocket existedMngSocket = MngSocketManager.getMngSocket(token);
+        NetSocket existedMngSocket = ClientSocketManager.getClientSocket(token);
         if (existedMngSocket != null) {
             log.info("EP>>ServerMng>> Socket {} is connected, Can't connect again {}",
                     SocketUtil.getSocketName(existedMngSocket), SocketUtil.getSocketName(sMngSocket));
             sMngSocket.close();
         }
-        MngSocketManager.online(token, sMngSocket);
+        ClientSocketManager.online(token, sMngSocket);
         log.debug("EP>>ServerMng>> Process auth success");
     }
 
@@ -141,7 +141,7 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
         log.debug("EP>>ServerMng>> Process connect");
         String userId = msg.getToken();
         DataSocketManager.online(userId, dataSocket);
-        NetSocket userProxySocket = UserSocketManager.getProxySocket(userId);
+        NetSocket userProxySocket = RuleListenSocketManager.getProxySocket(userId);
         if (userProxySocket != null) {
             userProxySocket.resume();
             log.debug("EP>>ServerMng>> Process connect success");
@@ -153,7 +153,7 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
     private void processData(Message msg) {
         log.debug("EP>>ServerMng>> Process data");
         String userId = msg.getToken();
-        NetSocket userSocket = UserSocketManager.getProxySocket(userId);
+        NetSocket userSocket = RuleListenSocketManager.getProxySocket(userId);
         if (userSocket != null) {
             log.debug("EP>>ServerMng>> Process data success");
             byte[] data = msg.getData();
@@ -168,6 +168,6 @@ public class ServerMngSocketHandler implements Handler<NetSocket> {
         log.debug("EP>>ServerMng>> Process disconnect");
         String userId = msg.getToken();
         DataSocketManager.closeDataSocket(userId);
-        UserSocketManager.closeUserSocket(userId);
+        RuleListenSocketManager.closeUserSocket(userId);
     }
 }
