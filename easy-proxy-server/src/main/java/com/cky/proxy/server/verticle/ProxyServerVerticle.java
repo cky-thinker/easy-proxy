@@ -1,56 +1,52 @@
 package com.cky.proxy.server.verticle;
 
+import java.util.List;
+
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.config.ServerProperty;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
-import com.cky.proxy.server.util.EventBusUtil;
-import com.cky.proxy.server.util.CertGenerator;
 import com.cky.proxy.server.socket.ClientSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
+import com.cky.proxy.server.util.CertGenerator;
+import com.cky.proxy.server.util.EventBusUtil;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-
 import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetServerOptions;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ProxyServerVerticle extends AbstractVerticle {
-    private static final Logger log = LoggerFactory.getLogger(ProxyServerVerticle.class);
     private ProxyClientService proxyClientService;
     private ProxyClientRuleService proxyClientRuleService;
 
     @Override
     public void start(Promise<Void> startPromise) {
-        // 注册事件监听
-        registerEventConsumers();
+        // 注册事件订阅
+        eventBusSubscribe();
 
         ServerProperty server = ConfigProperty.getInstance().getServer();
         Integer proxyPort = server.getProxyPort();
-        log.info("Server starting {}", proxyPort);
+        log.info("Init client server {}", proxyPort);
         NetServerOptions options = new NetServerOptions()
-                .setPort(8888)
+                .setPort(proxyPort)
                 .setSsl(true)
                 .setUseAlpn(true)
-                .setKeyCertOptions(
-                        new JksOptions()
-                                .setPath(CertGenerator.JKS_CERT_PATH)
-                                .setPassword(CertGenerator.getCertPassword())
-                );
+                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.JKS_CERT_PATH).setPassword(CertGenerator.getCertPassword()));
         vertx.createNetServer(options)
                 .connectHandler(new ClientSocketHandler(vertx))
                 .listen(proxyPort)
-                .onFailure(t -> log.error("Server start failed", t));
-        initServerProxySocket();
+                .onFailure(t -> log.error("Server start failed", t))
+                .onSuccess(v -> log.info("Server started on port {}", proxyPort));
+        
+        initRuleServers();
 
         // 启动流量统计定时任务 (每小时执行一次)
         vertx.setPeriodic(3600000L, id -> {
@@ -64,7 +60,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
         TrafficStatisticManager.flush();
     }
 
-    private void initServerProxySocket() {
+    private void initRuleServers() {
         List<ProxyClient> proxyClients = proxyClientService.getProxyClients();
         for (ProxyClient proxyClient : proxyClients) {
             if (Boolean.TRUE.equals(proxyClient.getEnableFlag())) {
@@ -80,7 +76,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
         }
     }
 
-    private void registerEventConsumers() {
+    private void eventBusSubscribe() {
         EventBusUtil.subscribe(EventBusUtil.DB_RULE_UPDATE, msg -> {
             Integer ruleId = (Integer) msg.body();
             updateRuleServer(ruleId);
