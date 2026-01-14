@@ -7,4 +7,5 @@ public class ServerProperty {
     private String ip;
     private int port;
     private String token;
+    private String certPath;
 }

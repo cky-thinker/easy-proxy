@@ -6,6 +6,8 @@ import com.cky.proxy.client.context.MngSocketContext;
 import com.cky.proxy.client.handler.ClientMngSocketManager;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.PemTrustOptions;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -13,6 +15,7 @@ public class MainVerticle extends AbstractVerticle {
     private String serverIp;
     private Integer serverPort;
     private String token;
+    private String certPath;
     private int waitTime = 1000;
 
     @Override
@@ -21,12 +24,17 @@ public class MainVerticle extends AbstractVerticle {
         serverIp = server.getIp();
         serverPort = server.getPort();
         token = server.getToken();
+        certPath = server.getCertPath();
         connectMngServer();
     }
 
     private void connectMngServer() {
         log.debug("EP>>ClientMng>> Connect mng server");
-        vertx.createNetClient()
+        NetClientOptions options = new NetClientOptions()
+                .setSsl(true)
+                .setTrustOptions(new PemTrustOptions().addCertPath(certPath));
+
+        vertx.createNetClient(options)
                 .connect(serverPort, serverIp)
                 .onSuccess((mngSocket) -> {
                     log.debug("EP>>ClientMng>> Connect success");

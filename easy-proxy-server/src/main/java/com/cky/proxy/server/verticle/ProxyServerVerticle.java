@@ -7,6 +7,7 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.EventBusUtil;
+import com.cky.proxy.server.util.SelfSignedCertGenerator;
 import com.cky.proxy.server.socket.ClientSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
@@ -19,7 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.NetServer;
+import io.vertx.core.net.NetServerOptions;
 
 public class ProxyServerVerticle extends AbstractVerticle {
     private static final Logger log = LoggerFactory.getLogger(ProxyServerVerticle.class);
@@ -34,7 +37,16 @@ public class ProxyServerVerticle extends AbstractVerticle {
         ServerProperty server = ConfigProperty.getInstance().getServer();
         Integer proxyPort = server.getProxyPort();
         log.info("Server starting {}", proxyPort);
-        vertx.createNetServer()
+        NetServerOptions options = new NetServerOptions()
+                .setPort(8888)
+                .setSsl(true)
+                .setUseAlpn(true)
+                .setKeyCertOptions(
+                        new JksOptions()
+                                .setPath(SelfSignedCertGenerator.JKS_CERT_PATH)
+                                .setPassword(SelfSignedCertGenerator.getCertPassword())
+                );
+        vertx.createNetServer(options)
                 .connectHandler(new ClientSocketHandler(vertx))
                 .listen(proxyPort)
                 .onFailure(t -> log.error("Server start failed", t));
