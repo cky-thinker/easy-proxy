@@ -11,6 +11,9 @@ import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.service.ProxyClientService;
+import com.cky.proxy.server.socket.manager.DataSocketManager;
+import com.cky.proxy.server.socket.manager.MngSocketManager;
+import com.cky.proxy.server.socket.manager.UserSocketManager;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 

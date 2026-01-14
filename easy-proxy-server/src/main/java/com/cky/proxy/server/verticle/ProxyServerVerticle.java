@@ -10,7 +10,7 @@ import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
-import com.cky.proxy.server.socket.UserSocketManager;
+import com.cky.proxy.server.socket.manager.UserSocketManager;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;

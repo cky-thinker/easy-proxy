@@ -5,6 +5,9 @@ import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
+import com.cky.proxy.server.socket.manager.DataSocketManager;
+import com.cky.proxy.server.socket.manager.MngSocketManager;
+import com.cky.proxy.server.socket.manager.UserSocketManager;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;

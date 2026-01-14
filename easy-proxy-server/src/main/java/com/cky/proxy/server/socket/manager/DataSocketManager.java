@@ -1,4 +1,4 @@
-package com.cky.proxy.server.socket;
+package com.cky.proxy.server.socket.manager;
 
 import cn.hutool.core.map.BiMap;
 import io.vertx.core.net.NetSocket;
