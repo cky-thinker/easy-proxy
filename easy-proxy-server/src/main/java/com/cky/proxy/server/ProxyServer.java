@@ -14,8 +14,8 @@ public class ProxyServer {
 
     public static void main(String[] args) {
         // 初始化数据库表和数据
-        BeanContext initService = BeanContext.getInstance();
-        initService.initializeDatabase();
+        BeanContext beanContext = BeanContext.getInstance();
+        beanContext.init();
 
         Vertx vertx = Vertx.vertx();
         EventBusUtil.setup(vertx);

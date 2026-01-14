@@ -17,6 +17,8 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.SysUser;
 import com.cky.proxy.server.domain.entity.SysLog;
 import com.cky.proxy.server.domain.entity.TsReport;
+import com.cky.proxy.server.service.ProxyClientRuleService;
+import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.domain.entity.TsDayReport;
 import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.j256.ormlite.jdbc.db.H2DatabaseType;
@@ -41,6 +43,10 @@ public class BeanContext {
     private TsReportDao trafficStatisticClientRuleReportDao;
     private TsDayReportDao trafficStatisticDayReportDao;
     private TsHourReportDao trafficStatisticHourReportDao;
+
+    // 服务实例
+    private ProxyClientService proxyClientService;
+    private ProxyClientRuleService proxyClientRuleService;
 
     private BeanContext() {
     }
@@ -90,10 +96,12 @@ public class BeanContext {
     /**
      * 初始化所有数据库表
      */
-    public void initializeDatabase() {
+    public void init() {
         try {
             // 初始化Dao
             initializeDao();
+            // 初始化服务
+            initializeService();
             // 初始化所有表
             initializeAllTables();
             // 数据库迁移
@@ -105,6 +113,11 @@ public class BeanContext {
             log.error("数据库初始化失败", e);
             throw new RuntimeException("数据库初始化失败: " + e.getMessage(), e);
         }
+    }
+
+    private void initializeService() {
+        proxyClientService = new ProxyClientService();
+        proxyClientRuleService = new ProxyClientRuleService();
     }
 
     private void initializeDao() {

@@ -34,7 +34,7 @@ public class DbInitTest {
         db.setPassword("test");
         com.cky.proxy.server.config.ConfigProperty.getInstance().setDb(db);
         // 初始化数据库连接
-        beanContext.initializeDatabase();
+        beanContext.init();
         ProxyClientDao clientDao = BeanContext.getProxyClientDao();
         ProxyClientRuleDao ruleDao = BeanContext.getProxyClientRuleDao();
         TsReportDao reportDao = BeanContext.getTsReportDao();

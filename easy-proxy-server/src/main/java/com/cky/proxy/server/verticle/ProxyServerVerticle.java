@@ -6,11 +6,12 @@ import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
-import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.manager.TrafficStatisticManager;
 import com.cky.proxy.server.socket.ServerMngSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
+import com.cky.proxy.server.socket.UserSocketManager;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import org.slf4j.Logger;
@@ -19,26 +20,14 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import io.vertx.core.net.NetServer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ProxyServerVerticle extends AbstractVerticle {
     private static final Logger log = LoggerFactory.getLogger(ProxyServerVerticle.class);
     private ProxyClientService proxyClientService;
     private ProxyClientRuleService proxyClientRuleService;
-    private final Map<Integer, NetServer> netServerMap = new ConcurrentHashMap<>();
-    private final Map<Integer, Integer> ruleToClientMap = new ConcurrentHashMap<>();
 
     @Override
     public void start(Promise<Void> startPromise) {
-        // 初始化数据库与默认数据，确保 BeanContext 就绪
-        BeanContext initService = BeanContext.getInstance();
-        initService.initializeDatabase();
-
-        // 延后初始化依赖 BeanContext 的服务
-        proxyClientService = new ProxyClientService();
-        proxyClientRuleService = new ProxyClientRuleService();
-
         // 注册事件监听
         registerEventConsumers();
 
@@ -50,7 +39,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 .listen(proxyPort)
                 .onFailure(t -> log.error("Server start failed", t));
         // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
-        flushServerProxySocket();
+        initServerProxySocket();
 
         // 启动流量统计定时任务 (每小时执行一次)
         vertx.setPeriodic(3600000L, id -> {
@@ -64,12 +53,28 @@ public class ProxyServerVerticle extends AbstractVerticle {
         TrafficStatisticManager.flush();
     }
 
+    private void initServerProxySocket() {
+        List<ProxyClient> proxyClients = proxyClientService.getProxyClients();
+        for (ProxyClient proxyClient : proxyClients) {
+            if (Boolean.TRUE.equals(proxyClient.getEnableFlag())) {
+                log.debug("EP>> Init client {} ", proxyClient.getName());
+                List<ProxyClientRule> proxyClientRules = proxyClientRuleService
+                        .getProxyClientRules(proxyClient.getId());
+                for (ProxyClientRule proxyRule : proxyClientRules) {
+                    if (Boolean.TRUE.equals(proxyRule.getEnableFlag())) {
+                        startServerForRule(proxyClient, proxyRule);
+                    }
+                }
+            }
+        }
+    }
+
     private void registerEventConsumers() {
         EventBusUtil.subscribe(EventBusUtil.DB_RULE_UPDATE, msg -> {
             Integer ruleId = (Integer) msg.body();
             updateRuleServer(ruleId);
         });
-        
+
         EventBusUtil.subscribe(EventBusUtil.DB_RULE_ADD, msg -> {
             Integer ruleId = (Integer) msg.body();
             updateRuleServer(ruleId);
@@ -101,24 +106,20 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void stopRuleServer(Integer ruleId, Runnable completionHandler) {
-        NetServer server = netServerMap.remove(ruleId);
-        ruleToClientMap.remove(ruleId);
-        if (server != null) {
-            server.close(res -> {
-                if (res.succeeded()) {
-                    log.info("Stopped server for rule {}", ruleId);
-                } else {
-                    log.error("Failed to stop server for rule {}", ruleId, res.cause());
-                }
-                if (completionHandler != null) {
-                    completionHandler.run();
-                }
-            });
-        } else {
+        NetServer server = UserSocketManager.removeRuleListenSocket(ruleId);
+        if (server == null) {
+            return;
+        }
+        server.close(res -> {
+            if (res.succeeded()) {
+                log.info("Stopped server for rule {}", ruleId);
+            } else {
+                log.error("Failed to stop server for rule {}", ruleId, res.cause());
+            }
             if (completionHandler != null) {
                 completionHandler.run();
             }
-        }
+        });
     }
 
     private void updateRuleServer(Integer ruleId) {
@@ -140,11 +141,10 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 .connectHandler(new UserProxySocketHandler(client, rule))
                 .listen(rule.getServerPort(), res -> {
                     if (res.succeeded()) {
-                        log.info("Started server for rule {} on port {}", rule.getName(), rule.getServerPort());
-                        netServerMap.put(rule.getId(), res.result());
-                        ruleToClientMap.put(rule.getId(), client.getId());
+                        log.info("Listening for rule {} on port {}", rule.getName(), rule.getServerPort());
+                        UserSocketManager.addRuleListenSocket(rule.getId(), res.result());
                     } else {
-                        log.error("Failed to start server for rule {}", rule.getName(), res.cause());
+                        log.error("Failed listening for rule {}", rule.getName(), res.cause());
                     }
                 });
         log.debug("EP>> Init rule {} {} -> {}", rule.getName(), rule.getServerPort(), rule.getClientAddress());
@@ -152,7 +152,9 @@ public class ProxyServerVerticle extends AbstractVerticle {
 
     private void updateClientServers(Integer clientId) {
         ProxyClient client = proxyClientService.getProxyClientById(clientId);
-        if (client == null) return;
+        if (client == null) {
+            return;
+        }
         List<ProxyClientRule> rules = proxyClientRuleService.getProxyClientRules(clientId);
         if (!Boolean.TRUE.equals(client.getEnableFlag())) {
             for (ProxyClientRule rule : rules) {
@@ -166,26 +168,9 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void stopClientServers(Integer clientId) {
-        for (Map.Entry<Integer, Integer> entry : ruleToClientMap.entrySet()) {
-            if (entry.getValue().equals(clientId)) {
-                stopRuleServer(entry.getKey(), null);
-            }
-        }
+        proxyClientRuleService.getProxyClientRules(clientId).forEach(rule -> {
+            stopRuleServer(rule.getId(), null);
+        });
     }
 
-    private void flushServerProxySocket() {
-        List<ProxyClient> proxyClients = proxyClientService.getProxyClients();
-        for (ProxyClient proxyClient : proxyClients) {
-            if (Boolean.TRUE.equals(proxyClient.getEnableFlag())) {
-                log.debug("EP>> Init client {} ", proxyClient.getName());
-                List<ProxyClientRule> proxyClientRules = proxyClientRuleService
-                        .getProxyClientRules(proxyClient.getId());
-                for (ProxyClientRule proxyRule : proxyClientRules) {
-                    if (Boolean.TRUE.equals(proxyRule.getEnableFlag())) {
-                        startServerForRule(proxyClient, proxyRule);
-                    }
-                }
-            }
-        }
-    }
 }
