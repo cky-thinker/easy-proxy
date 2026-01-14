@@ -6,6 +6,7 @@ import lombok.Data;
 public class ServerProperty {
     private String ip;
     private int port;
+    private int webPort;
     private String token;
     private String certPath;
 }

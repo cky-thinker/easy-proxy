@@ -29,7 +29,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 /**
  * 自签名证书生成工具类：首次启动自动生成JKS证书和PEM公钥
  */
-public class SelfSignedCertGenerator {
+public class CertGenerator {
     // 证书相关配置（可抽成配置文件）
     private static final String CERT_ALIAS = "easyproxy";
     private static final String CERT_PASSWORD = "easyproxy@2008"; // 生产环境建议通过环境变量传入
@@ -41,13 +41,12 @@ public class SelfSignedCertGenerator {
     public static final String JKS_CERT_PATH = "cert.jks";
     public static final String PEM_CERT_PATH = "cert.pem";
 
-    public static void main(String[] args) {
-        try {
-            generateIfNotExists();
-        } catch (Exception e) {
-            System.err.println("证书生成失败：" + e.getMessage());
-            e.printStackTrace();
-        }
+    public static String getJksCertPath() {
+        return Paths.get("config").resolve(CertGenerator.JKS_CERT_PATH).toFile().getAbsolutePath();
+    }
+
+    public static String getPemCertPath() {
+        return Paths.get("config").resolve(CertGenerator.PEM_CERT_PATH).toFile().getAbsolutePath();
     }
 
     /**

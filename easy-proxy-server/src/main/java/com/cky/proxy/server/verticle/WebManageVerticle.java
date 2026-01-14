@@ -19,6 +19,10 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import com.cky.proxy.server.util.CertGenerator;
 
 public class WebManageVerticle extends AbstractVerticle {
     private static final Logger log = LoggerFactory.getLogger(WebManageVerticle.class);
@@ -56,6 +60,25 @@ public class WebManageVerticle extends AbstractVerticle {
             ctx.response()
                     .putHeader("content-type", "application/json")
                     .end(new JsonObject().put("status", "UP").encode());
+        });
+
+        // 证书下载端点（公开，无需认证）
+        baseRouter.get("/cert.pem").handler(ctx -> {
+            try {
+                Path pemPath = Paths.get(CertGenerator.getPemCertPath());
+                if (!Files.exists(pemPath)) {
+                    ctx.response().setStatusCode(404).end("cert.pem not found");
+                    return;
+                }
+                byte[] content = Files.readAllBytes(pemPath);
+                ctx.response()
+                        .putHeader("Content-Type", "application/x-pem-file")
+                        .putHeader("Cache-Control", "no-store")
+                        .end(io.vertx.core.buffer.Buffer.buffer(content));
+            } catch (Exception e) {
+                log.error("Serve cert.pem failed", e);
+                ctx.response().setStatusCode(500).end("serve cert error");
+            }
         });
 
         // 添加全局错误处理

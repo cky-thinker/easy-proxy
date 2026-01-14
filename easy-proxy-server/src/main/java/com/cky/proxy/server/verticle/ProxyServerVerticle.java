@@ -7,7 +7,7 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.EventBusUtil;
-import com.cky.proxy.server.util.SelfSignedCertGenerator;
+import com.cky.proxy.server.util.CertGenerator;
 import com.cky.proxy.server.socket.ClientSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
@@ -43,14 +43,13 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 .setUseAlpn(true)
                 .setKeyCertOptions(
                         new JksOptions()
-                                .setPath(SelfSignedCertGenerator.JKS_CERT_PATH)
-                                .setPassword(SelfSignedCertGenerator.getCertPassword())
+                                .setPath(CertGenerator.JKS_CERT_PATH)
+                                .setPassword(CertGenerator.getCertPassword())
                 );
         vertx.createNetServer(options)
                 .connectHandler(new ClientSocketHandler(vertx))
                 .listen(proxyPort)
                 .onFailure(t -> log.error("Server start failed", t));
-        // TODO SSL https://vertx.io/docs/vertx-core/java/#ssl
         initServerProxySocket();
 
         // 启动流量统计定时任务 (每小时执行一次)

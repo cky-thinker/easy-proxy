@@ -1,5 +1,5 @@
 server:
   ip: 127.0.0.1
   port: 10090
+  webPort: 10091
   token: 4cc44cfc5be049b6818d87eab6725e40
-  certPath: ssl.pem

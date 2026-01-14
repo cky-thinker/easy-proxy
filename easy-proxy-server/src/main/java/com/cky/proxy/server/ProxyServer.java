@@ -2,7 +2,7 @@ package com.cky.proxy.server;
 
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
-import com.cky.proxy.server.util.SelfSignedCertGenerator;
+import com.cky.proxy.server.util.CertGenerator;
 import com.cky.proxy.server.verticle.ProxyServerVerticle;
 import com.cky.proxy.server.verticle.WebManageVerticle;
 
@@ -19,9 +19,9 @@ public class ProxyServer {
         beanContext.init();
         // 检查并生成证书：不存在则生成JKS证书+导出PEM公钥
         try {
-            SelfSignedCertGenerator.generateIfNotExists();
+            CertGenerator.generateIfNotExists();
         } catch (Exception e) {
-            log.error("generate self signed cert fail!", e);
+            log.error("generate cert fail!", e);
         }
 
         Vertx vertx = Vertx.vertx();
