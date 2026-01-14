@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * 用户连接监听socket管理类
  */
 public class UserSocketManager {
-    // 服务端用户连接监听socket
-    private final static Map<Integer, NetServer> userListenSocketMap = new ConcurrentHashMap<>();
+    // 服务端规则监听socket
+    private final static Map<Integer, NetServer> ruleListenSocketMap = new ConcurrentHashMap<>();
     // 服务端用户连接socket
     private final static BiMap<String, NetSocket> userIdUserSocketMap = new BiMap<>(new HashMap<>());
     private final static HashMap<String, Set<String>> tokenOnlineUsersMap = new HashMap<>();
@@ -28,8 +28,8 @@ public class UserSocketManager {
      * @param ruleId 规则ID
      * @return 用户连接监听socket
      */
-    public static NetServer getUserListenSocket(Integer ruleId) {
-        return userListenSocketMap.get(ruleId);
+    public static NetServer getRuleListenSocket(Integer ruleId) {
+        return ruleListenSocketMap.get(ruleId);
     }
 
     /**
@@ -38,8 +38,8 @@ public class UserSocketManager {
      * @param ruleId 规则ID
      * @return 用户连接监听socket
      */
-    public static NetServer removeUserListenSocket(Integer ruleId) {
-        return userListenSocketMap.remove(ruleId);
+    public static NetServer removeRuleListenSocket(Integer ruleId) {
+        return ruleListenSocketMap.remove(ruleId);
     }
 
     /**
@@ -49,8 +49,8 @@ public class UserSocketManager {
      * @param netServer 用户连接监听socket
      * @return 用户连接监听socket
      */
-    public static NetServer addUserListenSocket(Integer ruleId, NetServer netServer) {
-        return userListenSocketMap.put(ruleId, netServer);
+    public static NetServer addRuleListenSocket(Integer ruleId, NetServer netServer) {
+        return ruleListenSocketMap.put(ruleId, netServer);
     }
 
     public static NetSocket getProxySocket(String userId) {
