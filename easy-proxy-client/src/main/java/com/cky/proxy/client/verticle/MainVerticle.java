@@ -4,6 +4,8 @@ import com.cky.proxy.client.config.ConfigProperty;
 import com.cky.proxy.client.config.ServerProperty;
 import com.cky.proxy.client.context.MngSocketContext;
 import com.cky.proxy.client.handler.ClientMngSocketManager;
+import com.cky.proxy.client.util.CertDownloader;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.net.NetClientOptions;
@@ -15,7 +17,6 @@ public class MainVerticle extends AbstractVerticle {
     private String serverIp;
     private Integer serverPort;
     private String token;
-    private String certPath;
     private int waitTime = 1000;
 
     @Override
@@ -24,7 +25,6 @@ public class MainVerticle extends AbstractVerticle {
         serverIp = server.getIp();
         serverPort = server.getPort();
         token = server.getToken();
-        certPath = server.getCertPath();
         connectMngServer();
     }
 
@@ -32,7 +32,7 @@ public class MainVerticle extends AbstractVerticle {
         log.debug("EP>>ClientMng>> Connect mng server");
         NetClientOptions options = new NetClientOptions()
                 .setSsl(true)
-                .setTrustOptions(new PemTrustOptions().addCertPath(certPath));
+                .setTrustOptions(new PemTrustOptions().addCertPath(CertDownloader.getPemCertPath()));
 
         vertx.createNetClient(options)
                 .connect(serverPort, serverIp)

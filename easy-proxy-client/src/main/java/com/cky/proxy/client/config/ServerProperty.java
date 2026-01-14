@@ -8,5 +8,4 @@ public class ServerProperty {
     private int port;
     private int webPort;
     private String token;
-    private String certPath;
 }

@@ -4,11 +4,14 @@ import com.cky.proxy.client.context.DataSocketContext;
 import com.cky.proxy.client.context.MngSocketContext;
 import com.cky.proxy.client.context.ProxySocketContext;
 import com.cky.proxy.client.domain.Address;
+import com.cky.proxy.client.util.CertDownloader;
 import com.cky.proxy.common.domain.Message;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
+import io.vertx.core.net.PemTrustOptions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,14 +70,17 @@ public class ClientMngSocketManager {
         }
 
         log.debug("EP>>ClientMng>> Create app proxy socket");
-        vertx.createNetClient()
-            .connect(address.getPort(), address.getIp())
-            .onSuccess(proxySocket -> {
-                new ClientProxySocketManager(vertx, userId, proxySocket).init();
-            }).onFailure(e -> {
-                log.error("EP>>ClientMng>> Proxy socket '{}' connect fail, {}", proxyAddress, e.getMessage());
-                mngSocket.write(Message.createDisConnectMsg(userId));
-            });
+        NetClientOptions options = new NetClientOptions()
+                .setSsl(true)
+                .setTrustOptions(new PemTrustOptions().addCertPath(CertDownloader.getPemCertPath()));
+        vertx.createNetClient(options)
+                .connect(address.getPort(), address.getIp())
+                .onSuccess(proxySocket -> {
+                    new ClientProxySocketManager(vertx, userId, proxySocket).init();
+                }).onFailure(e -> {
+                    log.error("EP>>ClientMng>> Proxy socket '{}' connect fail, {}", proxyAddress, e.getMessage());
+                    mngSocket.write(Message.createDisConnectMsg(userId));
+                });
     }
 
     private void processDisconnect(Message msg) {
