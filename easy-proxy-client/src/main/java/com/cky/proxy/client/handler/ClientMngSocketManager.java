@@ -72,7 +72,6 @@ public class ClientMngSocketManager {
         log.debug("EP>>ClientMng>> Create app proxy socket");
         NetClientOptions options = new NetClientOptions()
                 .setSsl(true)
-                .setHostnameVerificationAlgorithm("")
                 .setTrustOptions(new PemTrustOptions().addCertPath(CertDownloader.getPemCertPath()));
         vertx.createNetClient(options)
                 .connect(address.getPort(), address.getIp())

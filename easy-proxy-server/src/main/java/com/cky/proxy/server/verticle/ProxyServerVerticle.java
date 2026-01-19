@@ -134,7 +134,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
             }
         });
         
-        // TODO 根据规则关闭用户连接通道
+        // TODO 根据规则关闭用户连接通道 Repeat
         Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
         if (userIds != null) {
             for (String userId : userIds) {

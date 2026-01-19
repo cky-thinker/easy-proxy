@@ -115,10 +115,8 @@ public class BeanContext {
             initializeService();
             // 初始化所有表
             initializeAllTables();
-            // 数据库迁移
-            migrateDatabase();
             // 初始化默认数据
-            initializeDefaultData();
+            initializeData();
             log.info("数据库初始化完成");
         } catch (SQLException e) {
             log.error("数据库初始化失败", e);
@@ -203,18 +201,28 @@ public class BeanContext {
     }
 
     /**
-     * 初始化默认数据
+     * 初始化数据
      */
-    private void initializeDefaultData() throws SQLException {
+    private void initializeData() throws SQLException {
         try {
             // 检查是否需要创建默认管理员用户
             initializeDefaultAdminUser();
-
+            // 初始化客户端状态
+            initializeClientOffline();
         } catch (SQLException e) {
             log.error("初始化默认数据失败", e);
             log.info("初始化默认数据失败: " + e.getMessage());
             throw e;
         }
+    }
+
+    private void initializeClientOffline() {
+        List<ProxyClient> proxyClients = getProxyClientDao().selectList(qb -> {
+        });
+        proxyClients.forEach(client -> {
+            client.setStatus("offline");
+            getProxyClientDao().updateById(client);
+        });
     }
 
     /**
