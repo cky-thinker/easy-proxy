@@ -2,4 +2,4 @@ server:
   ip: 127.0.0.1
   port: 10090
   webPort: 10091
-  token: 4cc44cfc5be049b6818d87eab6725e40
+  token: 41cf63cdd04880c9728d2c305d82d57a550f634f0176c3aeb5b5fbf2efc8c30d

@@ -169,13 +169,6 @@ public class ProxyClientRuleService {
     }
 
     // ===== 私有校验方法 =====
-    private void validateProxyClientExists(Integer proxyClientId) {
-        if (proxyClientId == null) throw new RuntimeException("代理客户端ID不能为空");
-        if (proxyClientRuleDao.selectById(proxyClientId) == null) {
-            throw new RuntimeException("目标客户端不存在");
-        }
-    }
-
     private void validateRuleNameUnique(Integer proxyClientId, String name, Integer excludeId) {
         if (name == null) return;
         boolean exists = !proxyClientRuleDao.selectList(qb -> {
@@ -220,7 +213,6 @@ public class ProxyClientRuleService {
     }
 
     private void validateForCreate(ProxyClientRule rule) {
-        validateProxyClientExists(rule.getProxyClientId());
         validateRuleNameUnique(rule.getProxyClientId(), rule.getName(), null);
         validateServerPortRangeAndUnique(rule.getServerPort(), null);
         validateClientAddress(rule.getClientAddress());

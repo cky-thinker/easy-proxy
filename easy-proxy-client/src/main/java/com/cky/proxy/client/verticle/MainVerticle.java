@@ -32,6 +32,7 @@ public class MainVerticle extends AbstractVerticle {
         log.debug("EP>>ClientMng>> Connect mng server");
         NetClientOptions options = new NetClientOptions()
                 .setSsl(true)
+                .setHostnameVerificationAlgorithm("")
                 .setTrustOptions(new PemTrustOptions().addCertPath(CertDownloader.getPemCertPath()));
 
         vertx.createNetClient(options)
