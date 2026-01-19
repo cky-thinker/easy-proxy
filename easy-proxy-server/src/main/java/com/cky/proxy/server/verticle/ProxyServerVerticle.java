@@ -14,6 +14,7 @@ import com.cky.proxy.server.socket.UserProxySocketHandler;
 import com.cky.proxy.server.socket.manager.ClientDataSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.CertGenerator;
 import com.cky.proxy.server.util.EventBusUtil;
 
@@ -27,8 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ProxyServerVerticle extends AbstractVerticle {
-    private ProxyClientService proxyClientService;
-    private ProxyClientRuleService proxyClientRuleService;
+    private ProxyClientService proxyClientService = BeanContext.getProxyClientService();
+    private ProxyClientRuleService proxyClientRuleService = BeanContext.getProxyClientRuleService();
 
     @Override
     public void start(Promise<Void> startPromise) {
@@ -42,7 +43,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 .setPort(proxyPort)
                 .setSsl(true)
                 .setUseAlpn(true)
-                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.JKS_CERT_PATH)
+                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.getJksCertPath())
                         .setPassword(CertGenerator.getCertPassword()));
         vertx.createNetServer(options)
                 .connectHandler(new ClientSocketHandler(vertx))
@@ -166,7 +167,13 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
-        vertx.createNetServer()
+        NetServerOptions options = new NetServerOptions()
+                .setPort(rule.getServerPort())
+                .setSsl(true)
+                .setUseAlpn(true)
+                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.getJksCertPath())
+                        .setPassword(CertGenerator.getCertPassword()));
+        vertx.createNetServer(options)
                 .connectHandler(new UserProxySocketHandler(client, rule))
                 .listen(rule.getServerPort(), res -> {
                     if (res.succeeded()) {
