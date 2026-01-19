@@ -84,7 +84,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                 try {
                     ProxyClient client = proxyClientService.updateClientStatus(token, "offline");
                     if (client != null) {
-                        EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, client);
+                        EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, client.getId());
                     }
                 } catch (Exception e) {
                     log.error("EP>>ServerMng>> Update offline status error", e);
@@ -136,7 +136,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
             // Update online status
             client = proxyClientService.updateClientStatus(token, "online");
             if (client != null) {
-                EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, client);
+                EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, client.getId());
             }
         } catch (Exception e) {
             log.error("EP>>ServerMng>> Process auth error", e);

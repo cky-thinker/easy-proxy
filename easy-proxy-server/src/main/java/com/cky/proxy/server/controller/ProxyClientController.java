@@ -10,6 +10,7 @@ import com.cky.proxy.server.consts.AddGroup;
 import com.cky.proxy.server.consts.UpdateGroup;
 import com.cky.proxy.server.domain.dto.ExtendedProxyClient;
 import com.cky.proxy.server.domain.dto.PageResult;
+import com.cky.proxy.server.domain.dto.SseEvent;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientService;
@@ -62,10 +63,21 @@ public class ProxyClientController {
     }
 
     private void initEventBus() {
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, sendSseEvent(EventBusUtil.SOCKET_CLIENT_ONLINE));
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, updateProxyClientStatus(EventBusUtil.SOCKET_CLIENT_ONLINE));
+        
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, sendSseEvent(EventBusUtil.SOCKET_CLIENT_OFFLINE));
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, updateProxyClientStatus(EventBusUtil.SOCKET_CLIENT_OFFLINE));
+    }
+
+    private Handler<Message<Object>> sendSseEvent(String eventType) {
         Handler<Message<Object>> handler = msg -> {
             Object body = msg.body();
             if (body != null) {
-                String json = JsonUtil.toJson(body);
+                SseEvent eventBody = new SseEvent();
+                eventBody.setEventType(eventType);
+                eventBody.setData(body);
+                String json = JsonUtil.toJson(eventBody);
                 String event = "data: " + json + "\n\n";
                 for (HttpServerResponse resp : sseConnections) {
                     try {
@@ -77,8 +89,20 @@ public class ProxyClientController {
                 }
             }
         };
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, handler);
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, handler);
+        return handler;
+    }
+
+    private Handler<Message<Integer>> updateProxyClientStatus(String eventType) {
+        Handler<Message<Integer>> handler = msg -> {
+            Integer proxyClientId = msg.body();
+            if (eventType.equals(EventBusUtil.SOCKET_CLIENT_ONLINE)) {
+                proxyClientService.updateClientStatus(proxyClientId, "online");
+            } else if (eventType.equals(EventBusUtil.SOCKET_CLIENT_OFFLINE)) {
+                // 客户端下线
+                proxyClientService.updateClientStatus(proxyClientId, "offline");
+            }
+        };
+        return handler;
     }
 
     private void subscribeStatus(RoutingContext ctx) {
