@@ -1,6 +1,7 @@
 package com.cky.proxy.server.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.security.*;
@@ -61,27 +62,52 @@ public class CertGenerator {
             Files.createDirectories(configDir);
         }
         Path target = configDir.resolve(JKS_CERT_PATH);
-        if (Files.exists(target)) {
-            return;
-        }
         File jksFile = target.toFile();
         File pemFile = configDir.resolve(PEM_CERT_PATH).toFile();
 
-        // 证书已存在则跳过生成
-        if (jksFile.exists() && pemFile.exists()) {
-            log.info("证书文件已存在，跳过自动生成");
+        boolean needGenerate = false;
+        X509Certificate existingCert = null;
+
+        if (jksFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(jksFile)) {
+                KeyStore ks = KeyStore.getInstance("JKS");
+                ks.load(fis, CERT_PASSWORD.toCharArray());
+                Certificate c = ks.getCertificate(CERT_ALIAS);
+                if (c instanceof X509Certificate x509) {
+                    existingCert = x509;
+                    if (new Date().after(x509.getNotAfter())) {
+                        needGenerate = true;
+                        log.info("证书已过期，重新生成");
+                    }
+                } else {
+                    needGenerate = true;
+                    log.info("证书不存在或无效，重新生成");
+                }
+            } catch (Exception e) {
+                needGenerate = true;
+                log.warn("读取现有证书失败，重新生成: " + e.getMessage());
+            }
+        } else {
+            needGenerate = true;
+            log.info("证书不存在，自动生成");
+        }
+
+        if (!needGenerate && !pemFile.exists() && existingCert != null) {
+            exportCertToPem(existingCert, pemFile);
+            log.info("PEM公钥证书导出成功：" + pemFile.getAbsolutePath());
             return;
         }
 
-        // 1. 生成密钥对
+        if (!needGenerate) {
+            return;
+        }
+
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(KEY_SIZE, new SecureRandom());
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-        // 2. 创建X509证书（自签名）
         X509Certificate cert = generateX509Cert(keyPair);
 
-        // 3. 保存为JKS密钥库（服务端使用）
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, null);
         keyStore.setKeyEntry(CERT_ALIAS, keyPair.getPrivate(), CERT_PASSWORD.toCharArray(), new Certificate[] { cert });
@@ -90,7 +116,6 @@ public class CertGenerator {
         }
         log.info("JKS证书生成成功：" + jksFile.getAbsolutePath());
 
-        // 4. 导出PEM格式公钥证书（供客户端下载）
         exportCertToPem(cert, pemFile);
         log.info("PEM公钥证书导出成功：" + pemFile.getAbsolutePath());
     }
