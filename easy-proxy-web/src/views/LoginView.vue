@@ -144,7 +144,7 @@ const handleLogin = async () => {
 // 组件挂载时获取验证码
 onMounted(async () => {
   // 先获取服务端配置
-  await authStore.fetchServerConfig();
+  await authStore.fetchLoginConfig();
   // 若开启验证码，则加载一次验证码
   if (captchaEnabled.value) {
     await refreshCaptcha();

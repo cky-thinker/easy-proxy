@@ -33,10 +33,10 @@ public class UserController {
 
     private void initRoutes() {
         // 生成验证码图片
-        router.get("/api/sys/captchaImage").handler(this::captchaImage);
+        router.get("/api/open/captchaImage").handler(this::captchaImage);
         // 用户登录
-        router.post("/api/sys/loginUser").handler(this::loginUser);
-        router.get("/api/sys/config").handler(this::getConfig);
+        router.post("/api/open/loginUser").handler(this::loginUser);
+        router.get("/api/open/loginConfig").handler(this::getConfig);
 
         // 用户管理路由
         router.get("/api/users").handler(this::getUsersPageable);

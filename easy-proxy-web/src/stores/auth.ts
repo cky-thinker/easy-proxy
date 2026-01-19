@@ -2,7 +2,7 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { UserInfo, LoginRequest } from '@/api/types';
 import { loginUser, logoutUser, getCaptchaImage } from '@/api/auth';
-import { getServerConfig } from '@/api/config';
+import { getLoginConfig } from '@/api/config';
 import type { ServerConfig } from '@/api/types';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -27,8 +27,8 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   // 获取服务端配置
-  const fetchServerConfig = async (): Promise<ServerConfig> => {
-    const cfg = await getServerConfig();
+  const fetchLoginConfig = async (): Promise<ServerConfig> => {
+    const cfg = await getLoginConfig();
     serverConfig.value = cfg;
     return cfg;
   };
@@ -80,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
     
     // 方法
     initAuth,
-    fetchServerConfig,
+    fetchLoginConfig: fetchLoginConfig,
     login,
     logout,
     fetchCaptcha,

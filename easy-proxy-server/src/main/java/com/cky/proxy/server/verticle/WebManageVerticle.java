@@ -56,14 +56,14 @@ public class WebManageVerticle extends AbstractVerticle {
         baseRouter.route().handler(BodyHandler.create());
 
         // 健康检查端点
-        baseRouter.get("/health").handler(ctx -> {
+        baseRouter.get("/api/open/health").handler(ctx -> {
             ctx.response()
                     .putHeader("content-type", "application/json")
                     .end(new JsonObject().put("status", "UP").encode());
         });
 
         // 证书下载端点（公开，无需认证）
-        baseRouter.get("/cert.pem").handler(ctx -> {
+        baseRouter.get("/api/open/cert.pem").handler(ctx -> {
             try {
                 Path pemPath = Paths.get(CertGenerator.getPemCertPath());
                 if (!Files.exists(pemPath)) {
@@ -94,7 +94,9 @@ public class WebManageVerticle extends AbstractVerticle {
                 statusCode = statusCode == -1 ? 400 : statusCode;
                 StringBuilder sb = new StringBuilder();
                 cve.getConstraintViolations().forEach(v -> {
-                    if (!sb.isEmpty()) sb.append("; ");
+                    if (!sb.isEmpty()) {
+                        sb.append("; ");
+                    }
                     sb.append(v.getPropertyPath()).append(": ").append(v.getMessage());
                 });
                 errorMessage = sb.toString();
@@ -104,13 +106,13 @@ public class WebManageVerticle extends AbstractVerticle {
             }
 
             JsonObject res = new JsonObject()
-                .put("code", statusCode)
-                .put("msg", errorMessage);
+                    .put("code", statusCode)
+                    .put("msg", errorMessage);
 
             ctx.response()
-                .setStatusCode(statusCode)
-                .putHeader("Content-Type", "application/json;charset=UTF-8")
-                .end(res.encode());
+                    .setStatusCode(statusCode)
+                    .putHeader("Content-Type", "application/json;charset=UTF-8")
+                    .end(res.encode());
         });
 
         // 添加JWT认证中间件到API路由
@@ -120,8 +122,7 @@ public class WebManageVerticle extends AbstractVerticle {
         baseRouter.route("/api/*").handler(ctx -> {
             // 排除不需要认证的路径
             String path = ctx.request().path();
-            if (path.equals("/api/sys/captchaImage") || path.equals("/api/sys/loginUser")|| path.equals("/api/sys/config") ||
-                    path.equals("/api") || path.equals("/health")) {
+            if (path.startsWith("/api/open/")) {
                 ctx.next();
                 return;
             }

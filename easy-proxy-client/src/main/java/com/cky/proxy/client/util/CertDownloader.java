@@ -25,11 +25,11 @@ public class CertDownloader {
         if (parent != null && !Files.exists(parent)) {
             Files.createDirectories(parent);
         }
-        if (!Files.exists(certPath)) {
-            String urlStr = "http://" + serverIp + ":" + webPort + "/cert.pem";
-            try (InputStream in = new URL(urlStr).openStream()) {
-                Files.copy(in, certPath, StandardCopyOption.REPLACE_EXISTING);
-            }
+        String urlStr = "http://" + serverIp + ":" + webPort + "/api/open/cert.pem";
+        try (InputStream in = new URL(urlStr).openStream()) {
+            Files.copy(in, certPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new Exception("Download cert failed", e);
         }
     }
 }
