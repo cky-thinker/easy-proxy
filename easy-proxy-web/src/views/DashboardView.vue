@@ -3,7 +3,7 @@
     <!-- 页面标题 -->
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900">总览</h1>
-      <p class="text-gray-600 mt-1">代理服务器运行状态和统计信息</p>
+      <p class="text-gray-600 mt-1">服务运行状态和统计信息</p>
     </div>
 
     <!-- 统计卡片 -->

@@ -186,7 +186,7 @@ public class DashboardController {
     private void getRecentActivities(RoutingContext ctx) {
         try {
             // 取最近10条系统日志
-            var page = new cn.hutool.db.Page(0, 10);
+            var page = new cn.hutool.db.Page(0, 5);
             var service = new com.cky.proxy.server.service.SysLogService();
             var result = service.getSysLogsPageable(page, null, null);
             java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();

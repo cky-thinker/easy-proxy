@@ -187,3 +187,4 @@ nbdist/
 
 *.db
 config/
+.trae/
