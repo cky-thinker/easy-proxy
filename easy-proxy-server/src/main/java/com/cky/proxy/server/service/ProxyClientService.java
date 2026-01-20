@@ -3,6 +3,7 @@ package com.cky.proxy.server.service;
 import java.util.Date;
 import java.util.List;
 
+import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.dao.SysLogDao;
@@ -14,9 +15,6 @@ import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 
 import cn.hutool.db.Page;
-import io.vertx.core.Handler;
-import io.vertx.core.eventbus.Message;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,7 +22,6 @@ public class ProxyClientService {
     private final ProxyClientDao proxyClientDao = BeanContext.getProxyClientDao();
     private final ProxyClientRuleDao proxyClientRuleDao = BeanContext.getProxyClientRuleDao();
     private final SysLogDao sysLogDao = BeanContext.getSysLogDao();
-
 
     /**
      * 查询所有代理客户端
@@ -176,12 +173,12 @@ public class ProxyClientService {
         client.setStatus(status);
         client.setUpdateTime(new Date());
         proxyClientDao.updateById(client);
-        log.info("EP>>ProxyClientService>> Update proxy client status, id: {}, status: {}", client.getId(), status);    
+        log.info("EP>>ProxyClientService>> Update proxy client status, id: {}, status: {}", client.getId(), status);
 
         // 记录日志
         SysLog sysLog = new SysLog();
-        sysLog.setLogType("CLIENT_STATUS");
-        sysLog.setLogContent("客户端状态更新: " + client.getName() + " -> " + status);
+        sysLog.setLogType("CLIENT_STATUS_CHANGE");
+        sysLog.setLogContent("客户端状态更新: [" + client.getName() + "] [" + OnlineStatus.valueOf(status).getDesc() + "]");
         sysLog.setCreateTime(new Date());
         sysLogDao.insert(sysLog);
 
@@ -199,7 +196,7 @@ public class ProxyClientService {
         client.setStatus(status);
         client.setUpdateTime(new Date());
         proxyClientDao.updateById(client);
-        log.info("EP>>ProxyClientService>> Update proxy client status, id: {}, status: {}", client.getId(), status);    
+        log.info("EP>>ProxyClientService>> Update proxy client status, id: {}, status: {}", client.getId(), status);
 
         // 记录日志
         SysLog sysLog = new SysLog();

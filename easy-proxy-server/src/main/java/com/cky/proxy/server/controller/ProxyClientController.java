@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.consts.AddGroup;
 import com.cky.proxy.server.consts.UpdateGroup;
 import com.cky.proxy.server.domain.dto.ExtendedProxyClient;
@@ -21,7 +22,6 @@ import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
 
 import cn.hutool.db.Page;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
@@ -65,12 +65,12 @@ public class ProxyClientController {
     private void initEventBus() {
         EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, (Message<Integer> msg) -> {
             Integer proxyClientId = msg.body();
-            proxyClientService.updateClientStatus(proxyClientId, "online");
+            proxyClientService.updateClientStatus(proxyClientId, OnlineStatus.online.name());
             sendSseEvent(EventBusUtil.SOCKET_CLIENT_ONLINE, proxyClientId.toString());
         });
         EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, (Message<Integer> msg) -> {
             Integer proxyClientId = msg.body();
-            proxyClientService.updateClientStatus(proxyClientId, "offline");
+            proxyClientService.updateClientStatus(proxyClientId, OnlineStatus.offline.name());
             sendSseEvent(EventBusUtil.SOCKET_CLIENT_OFFLINE, proxyClientId.toString());
         });
     }

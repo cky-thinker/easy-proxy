@@ -7,6 +7,7 @@ import com.j256.ormlite.table.TableUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.dao.ProxyClientDao;
 import com.cky.proxy.server.dao.ProxyClientRuleDao;
 import com.cky.proxy.server.dao.TsDayReportDao;
@@ -59,7 +60,7 @@ public class DbInitTest {
             ProxyClient c = new ProxyClient();
             c.setName(String.format("客户端-%03d", i));
             c.setToken(UUID.randomUUID().toString().replace("-", ""));
-            c.setStatus(i % 2 == 0 ? "offline" : "online");
+            c.setStatus(i % 2 == 0 ? OnlineStatus.offline.name() : OnlineStatus.online.name());
             c.setEnableFlag(i != 5);
             c.setCreateBy("test");
             c.setCreateTime(new Date());

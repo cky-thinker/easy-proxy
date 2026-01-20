@@ -6,6 +6,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.util.SocketUtil;
 import com.cky.proxy.server.domain.entity.ProxyClient;
@@ -89,7 +90,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                 } catch (Exception e) {
                     log.error("EP>>ServerMng>> Update offline status error", e);
                 }
-                
+
                 List<ProxyClientRule> rules = proxyRuleService.getAllProxyClientRules(token, null, null);
                 // TODO 根据规则关闭用户连接通道
                 for (ProxyClientRule rule : rules) {
@@ -97,12 +98,12 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                     if (userIds != null) {
                         for (String userId : userIds) {
                             NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
-                            if(dataSocket != null) {
+                            if (dataSocket != null) {
                                 dataSocket.close();
                             }
                             ClientDataSocketManager.closeDataSocket(userId);
                             NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
-                            if(proxySocket != null) {
+                            if (proxySocket != null) {
                                 proxySocket.close();
                             }
                             RuleListenSocketManager.userConnectionClose(userId);
@@ -134,7 +135,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
             }
 
             // Update online status
-            client = proxyClientService.updateClientStatus(token, "online");
+            client = proxyClientService.updateClientStatus(token, OnlineStatus.online.name());
             if (client != null) {
                 EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, client.getId());
             }

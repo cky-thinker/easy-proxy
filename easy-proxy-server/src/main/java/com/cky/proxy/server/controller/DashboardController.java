@@ -1,6 +1,6 @@
 package com.cky.proxy.server.controller;
 
-import com.cky.proxy.server.domain.dto.Result;
+import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.util.BeanContext;
@@ -40,7 +40,10 @@ public class DashboardController {
             List<ProxyClient> clients = proxyClientService.getProxyClients();
             int online = 0, offline = 0;
             for (ProxyClient c : clients) {
-                if ("online".equalsIgnoreCase(String.valueOf(c.getStatus()))) online++; else offline++;
+                if (OnlineStatus.online.name().equalsIgnoreCase(String.valueOf(c.getStatus())))
+                    online++;
+                else
+                    offline++;
             }
 
             String sumSql = "SELECT COALESCE(SUM(upward_traffic_bytes), 0), COALESCE(SUM(downward_traffic_bytes), 0) FROM ts_day_report";
@@ -49,8 +52,10 @@ public class DashboardController {
             long totalUpload = 0L;
             long totalDownload = 0L;
             if (res != null && res.length > 1) {
-                if (res[0] != null) totalUpload = Long.parseLong(res[0]);
-                if (res[1] != null) totalDownload = Long.parseLong(res[1]);
+                if (res[0] != null)
+                    totalUpload = Long.parseLong(res[0]);
+                if (res[1] != null)
+                    totalDownload = Long.parseLong(res[1]);
             }
 
             Map<String, Object> data = new HashMap<>();
@@ -68,12 +73,17 @@ public class DashboardController {
     private void getTrafficRanking(RoutingContext ctx) {
         try {
             String period = ctx.request().getParam("period");
-            if (period == null || period.isEmpty()) period = "day";
+            if (period == null || period.isEmpty())
+                period = "day";
             java.util.Calendar cal = java.util.Calendar.getInstance();
             java.util.Date end = cal.getTime();
-            if ("day".equals(period)) { cal.add(java.util.Calendar.DAY_OF_MONTH, -1); }
-            else if ("week".equals(period)) { cal.add(java.util.Calendar.DAY_OF_MONTH, -7); }
-            else if ("month".equals(period)) { cal.add(java.util.Calendar.DAY_OF_MONTH, -30); }
+            if ("day".equals(period)) {
+                cal.add(java.util.Calendar.DAY_OF_MONTH, -1);
+            } else if ("week".equals(period)) {
+                cal.add(java.util.Calendar.DAY_OF_MONTH, -7);
+            } else if ("month".equals(period)) {
+                cal.add(java.util.Calendar.DAY_OF_MONTH, -30);
+            }
             java.util.Date start = cal.getTime();
 
             String sql = "SELECT proxy_client_id, COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) AS total FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY proxy_client_id ORDER BY total DESC LIMIT 5";
@@ -92,7 +102,8 @@ public class DashboardController {
 
             // 将结果映射为排行项
             java.util.Map<Integer, ProxyClient> clientMap = new java.util.HashMap<>();
-            for (ProxyClient c : proxyClientService.getProxyClients()) clientMap.put(c.getId(), c);
+            for (ProxyClient c : proxyClientService.getProxyClients())
+                clientMap.put(c.getId(), c);
 
             for (String[] row : res.getResults()) {
                 Integer clientId = Integer.valueOf(row[0]);
@@ -104,7 +115,8 @@ public class DashboardController {
                 java.util.List<ProxyClientRule> rules = proxyClientRuleService.getProxyClientRules(clientId);
                 if (!rules.isEmpty()) {
                     String addr = rules.get(0).getClientAddress();
-                    if (addr != null && addr.contains(":")) ip = addr.split(":")[0];
+                    if (addr != null && addr.contains(":"))
+                        ip = addr.split(":")[0];
                 }
                 int connections = connMap.getOrDefault(clientId, 0);
                 java.util.Map<String, Object> item = new java.util.HashMap<>();
@@ -123,7 +135,8 @@ public class DashboardController {
     private void getTrafficTrend(RoutingContext ctx) {
         try {
             String period = ctx.request().getParam("period");
-            if (period == null || period.isEmpty()) period = "day";
+            if (period == null || period.isEmpty())
+                period = "day";
             java.util.Calendar cal = java.util.Calendar.getInstance();
             java.util.Date end = cal.getTime();
             java.util.Date start;
