@@ -63,46 +63,32 @@ public class ProxyClientController {
     }
 
     private void initEventBus() {
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, sendSseEvent(EventBusUtil.SOCKET_CLIENT_ONLINE));
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, updateProxyClientStatus(EventBusUtil.SOCKET_CLIENT_ONLINE));
-        
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, sendSseEvent(EventBusUtil.SOCKET_CLIENT_OFFLINE));
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, updateProxyClientStatus(EventBusUtil.SOCKET_CLIENT_OFFLINE));
-    }
-
-    private Handler<Message<Object>> sendSseEvent(String eventType) {
-        Handler<Message<Object>> handler = msg -> {
-            Object body = msg.body();
-            if (body != null) {
-                SseEvent eventBody = new SseEvent();
-                eventBody.setEventType(eventType);
-                eventBody.setData(body);
-                String json = JsonUtil.toJson(eventBody);
-                String event = "data: " + json + "\n\n";
-                for (HttpServerResponse resp : sseConnections) {
-                    try {
-                        resp.write(event);
-                    } catch (Exception e) {
-                        // Ignore write errors, connection might be closed
-                        sseConnections.remove(resp);
-                    }
-                }
-            }
-        };
-        return handler;
-    }
-
-    private Handler<Message<Integer>> updateProxyClientStatus(String eventType) {
-        Handler<Message<Integer>> handler = msg -> {
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, (Message<Integer> msg) -> {
             Integer proxyClientId = msg.body();
-            if (eventType.equals(EventBusUtil.SOCKET_CLIENT_ONLINE)) {
-                proxyClientService.updateClientStatus(proxyClientId, "online");
-            } else if (eventType.equals(EventBusUtil.SOCKET_CLIENT_OFFLINE)) {
-                // 客户端下线
-                proxyClientService.updateClientStatus(proxyClientId, "offline");
+            proxyClientService.updateClientStatus(proxyClientId, "online");
+            sendSseEvent(EventBusUtil.SOCKET_CLIENT_ONLINE, proxyClientId.toString());
+        });
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, (Message<Integer> msg) -> {
+            Integer proxyClientId = msg.body();
+            proxyClientService.updateClientStatus(proxyClientId, "offline");
+            sendSseEvent(EventBusUtil.SOCKET_CLIENT_OFFLINE, proxyClientId.toString());
+        });
+    }
+
+    private void sendSseEvent(String eventType, String data) {
+        SseEvent eventBody = new SseEvent();
+        eventBody.setEventType(eventType);
+        eventBody.setData(data);
+        String json = JsonUtil.toJson(eventBody);
+        String event = "data: " + json + "\n\n";
+        for (HttpServerResponse resp : sseConnections) {
+            try {
+                resp.write(event);
+            } catch (Exception e) {
+                // Ignore write errors, connection might be closed
+                sseConnections.remove(resp);
             }
-        };
-        return handler;
+        }
     }
 
     private void subscribeStatus(RoutingContext ctx) {
