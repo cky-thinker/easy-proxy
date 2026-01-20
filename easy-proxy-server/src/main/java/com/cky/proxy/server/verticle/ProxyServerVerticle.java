@@ -167,18 +167,15 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
-        NetServerOptions options = new NetServerOptions()
-                .setPort(rule.getServerPort())
-                .setSsl(true)
-                .setUseAlpn(true)
-                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.getJksCertPath())
-                        .setPassword(CertGenerator.getCertPassword()));
-        vertx.createNetServer(options)
+        vertx.createNetServer()
                 .connectHandler(new UserProxySocketHandler(client, rule))
-                .listen(rule.getServerPort(), res -> {
+                .exceptionHandler(e -> {
+                    log.error("Failed listening for rule {} on port {}", rule.getName(), rule.getServerPort(), e);
+                }).listen(rule.getServerPort(), res -> {
+                    NetServer serverSocket = res.result();
                     if (res.succeeded()) {
                         log.info("Listening for rule {} on port {}", rule.getName(), rule.getServerPort());
-                        RuleListenSocketManager.addRuleListenSocket(rule.getId(), res.result());
+                        RuleListenSocketManager.addRuleListenSocket(rule.getId(), serverSocket);
                     } else {
                         log.error("Failed listening for rule {}", rule.getName(), res.cause());
                     }
