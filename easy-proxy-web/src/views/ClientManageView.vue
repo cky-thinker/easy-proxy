@@ -4,7 +4,7 @@
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">客户端管理</h1>
-        <p class="text-gray-600 mt-1">管理代理客户端配置和状态</p>
+        <p class="text-gray-600 mt-1">管理客户端配置</p>
       </div>
     </div>
 

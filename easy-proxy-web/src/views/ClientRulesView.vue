@@ -4,7 +4,7 @@
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">规则管理</h1>
-        <p class="text-gray-600 mt-1">管理代理转发规则</p>
+        <p class="text-gray-600 mt-1">管理转发规则</p>
       </div>
     </div>
 

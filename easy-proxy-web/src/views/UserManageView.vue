@@ -6,7 +6,7 @@
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">账号管理</h1>
-        <p class="text-gray-600 mt-1">管理系统用户账号和权限</p>
+        <p class="text-gray-600 mt-1">管理系统账号和权限</p>
       </div>
     </div>
 
