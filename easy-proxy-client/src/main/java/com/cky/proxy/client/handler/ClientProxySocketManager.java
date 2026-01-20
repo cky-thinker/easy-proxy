@@ -34,7 +34,11 @@ public class ClientProxySocketManager {
 
         ServerProperty server = ConfigProperty.getInstance().getServer();
         log.debug("EP>>ClientProxy>> Create data socket");
-        vertx.createNetClient()
+        NetClientOptions options = new NetClientOptions()
+                .setSsl(true)
+                .setHostnameVerificationAlgorithm("")
+                .setTrustOptions(new PemTrustOptions().addCertPath(CertDownloader.getPemCertPath()));
+        vertx.createNetClient(options)
                 .connect(server.getPort(), server.getIp())
                 .onSuccess(dataSocket -> {
                     ClientDataSocketManager manager = new ClientDataSocketManager(userId, dataSocket, proxySocket);
