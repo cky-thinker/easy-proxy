@@ -16,6 +16,7 @@
     <properties>
         <java.version>17</java.version>
         <main.verticle>com.cky.proxy.server.verticle.ProxyServerVerticle</main.verticle>
+        <launcher.class>com.cky.proxy.server.ProxyServer</launcher.class>
     </properties>
     <dependencies>
         <dependency>
@@ -184,11 +185,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>${exec-maven-plugin.version}</version>
                 <configuration>
-                    <mainClass>io.vertx.core.Launcher</mainClass>
-                    <arguments>
-                        <argument>run</argument>
-                        <argument>${main.verticle}</argument>
-                    </arguments>
+                    <mainClass>${launcher.class}</mainClass>
                 </configuration>
             </plugin>
         </plugins>
