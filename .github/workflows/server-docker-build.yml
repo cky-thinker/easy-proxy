@@ -1,9 +1,14 @@
-name: Docker Build and Push
+name: Server Docker Build
 
 on:
   push:
     branches:
-      - main
+      - master
+    paths:
+      - 'easy-proxy-server/**'
+      - 'easy-proxy-client/**'
+      - 'easy-proxy-common/**'
+      - 'pom.xml'
     tags:
       - 'v*'
       - '*'
