@@ -46,11 +46,16 @@ public class TrafficStatisticManager {
         final AtomicLong upload = new AtomicLong(0);
         final AtomicLong download = new AtomicLong(0);
         
-        // Real-time speed
-        final AtomicLong speedUpload = new AtomicLong(0);
-        final AtomicLong speedDownload = new AtomicLong(0);
-        final AtomicLong tempUpload = new AtomicLong(0);
-        final AtomicLong tempDownload = new AtomicLong(0);
+        // Real-time speed (Passive)
+        // 记录上一秒完成时的速度
+        volatile long lastUploadSpeed = 0;
+        volatile long lastDownloadSpeed = 0;
+        // 当前秒正在累积的流量
+        final AtomicLong currentSecondUpload = new AtomicLong(0);
+        final AtomicLong currentSecondDownload = new AtomicLong(0);
+        // 上次更新时间戳
+        volatile long lastUploadTime = System.currentTimeMillis();
+        volatile long lastDownloadTime = System.currentTimeMillis();
 
         // Active connections
         final AtomicLong activeConnections = new AtomicLong(0);
@@ -132,7 +137,17 @@ public class TrafficStatisticManager {
         if (ctx != null) {
             TrafficStats stats = getStats(ctx);
             stats.upload.addAndGet(bytes);
-            stats.tempUpload.addAndGet(bytes);
+            
+            // 惰性更新速度计算
+            long now = System.currentTimeMillis();
+            synchronized (stats) {
+                if (now - stats.lastUploadTime >= 1000) {
+                    // 如果跨秒，将当前累计值作为上一秒的速度，并重置计数
+                    stats.lastUploadSpeed = stats.currentSecondUpload.getAndSet(0);
+                    stats.lastUploadTime = now;
+                }
+            }
+            stats.currentSecondUpload.addAndGet(bytes);
         }
     }
 
@@ -144,17 +159,16 @@ public class TrafficStatisticManager {
         if (ctx != null) {
             TrafficStats stats = getStats(ctx);
             stats.download.addAndGet(bytes);
-            stats.tempDownload.addAndGet(bytes);
-        }
-    }
-
-    /**
-     * 计算实时速度 (调用频率: 1秒)
-     */
-    public static void calculateSpeed() {
-        for (TrafficStats stats : statsMap.values()) {
-            stats.speedUpload.set(stats.tempUpload.getAndSet(0));
-            stats.speedDownload.set(stats.tempDownload.getAndSet(0));
+            
+            // 惰性更新速度计算
+            long now = System.currentTimeMillis();
+            synchronized (stats) {
+                if (now - stats.lastDownloadTime >= 1000) {
+                    stats.lastDownloadSpeed = stats.currentSecondDownload.getAndSet(0);
+                    stats.lastDownloadTime = now;
+                }
+            }
+            stats.currentSecondDownload.addAndGet(bytes);
         }
     }
 
@@ -163,7 +177,15 @@ public class TrafficStatisticManager {
      */
     public static long getUploadSpeed(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        return stats == null ? 0 : stats.speedUpload.get();
+        if (stats == null) return 0;
+        
+        long now = System.currentTimeMillis();
+        // 如果超过1.5秒没有流量更新，说明当前速度早已归零
+        // 这里的1500ms是一个容错值，避免因为轻微的调度延迟导致闪烁
+        if (now - stats.lastUploadTime > 1500) {
+            return 0;
+        }
+        return stats.lastUploadSpeed;
     }
 
     /**
@@ -171,7 +193,13 @@ public class TrafficStatisticManager {
      */
     public static long getDownloadSpeed(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        return stats == null ? 0 : stats.speedDownload.get();
+        if (stats == null) return 0;
+        
+        long now = System.currentTimeMillis();
+        if (now - stats.lastDownloadTime > 1500) {
+            return 0;
+        }
+        return stats.lastDownloadSpeed;
     }
 
     private static TrafficStats getStats(TrafficContext ctx) {
