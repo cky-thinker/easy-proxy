@@ -1,11 +1,15 @@
 package com.cky.proxy.server.config;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.yaml.YamlUtil;
+import lombok.Data;
+
 import com.cky.proxy.common.util.PathUtil;
 
 import java.io.File;
 
+@Data
 public class ConfigProperty {
     private static volatile ConfigProperty instance;
 
@@ -28,25 +32,48 @@ public class ConfigProperty {
                     } else {
                         instance = YamlUtil.loadByPath("config.yaml", ConfigProperty.class);
                     }
+                    if (instance != null) {
+                        instance.overrideWithEnv();
+                    }
                 }
             }
         }
         return instance;
     }
 
-    public ServerProperty getServer() {
-        return server;
-    }
+    private void overrideWithEnv() {
+        if (this.server == null) {
+            this.server = new ServerProperty();
+        }
 
-    public void setServer(ServerProperty server) {
-        this.server = server;
-    }
+        String proxyPort = System.getenv("SERVER_PROXY_PORT");
+        if (StrUtil.isNotBlank(proxyPort)) {
+            this.server.setProxyPort(Integer.parseInt(proxyPort));
+        }
 
-    public DatabaseProperty getDb() {
-        return db;
-    }
+        String webPort = System.getenv("SERVER_WEB_PORT");
+        if (StrUtil.isNotBlank(webPort)) {
+            this.server.setWebPort(Integer.parseInt(webPort));
+        }
 
-    public void setDb(DatabaseProperty db) {
-        this.db = db;
+        String captchaImageEnable = System.getenv("SERVER_CAPTCHA_IMAGE_ENABLE");
+        if (StrUtil.isNotBlank(captchaImageEnable)) {
+            this.server.setCaptchaImageEnable(Boolean.parseBoolean(captchaImageEnable));
+        }
+
+        String publicHost = System.getenv("SERVER_PUBLIC_HOST");
+        if (StrUtil.isNotBlank(publicHost)) {
+            this.server.setPublicHost(publicHost);
+        }
+
+        String certValidityDays = System.getenv("SERVER_CERT_VALIDITY_DAYS");
+        if (StrUtil.isNotBlank(certValidityDays)) {
+            this.server.setCertValidityDays(Integer.parseInt(certValidityDays));
+        }
+
+        String certPassword = System.getenv("SERVER_CERT_PASSWORD");
+        if (StrUtil.isNotBlank(certPassword)) {
+            this.server.setCertPassword(certPassword);
+        }
     }
 }

@@ -4,11 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +33,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import com.cky.proxy.server.config.ConfigProperty;
+import com.cky.proxy.server.config.ServerProperty;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -36,10 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CertGenerator {
     // 证书相关配置（可抽成配置文件）
     private static final String CERT_ALIAS = "easyproxy";
-    private static final String CERT_PASSWORD = "easyproxy@2008"; // 生产环境建议通过环境变量传入
     private static final int KEY_SIZE = 2048;
-    private static final int VALIDITY_DAYS = 3650; // 证书有效期10年
-    private static final String CN = "localhost"; // 生产环境改为服务端实际域名/IP
 
     // 证书文件路径（jar包同级目录）
     public static final String JKS_CERT_PATH = "cert.jks";
@@ -71,7 +77,7 @@ public class CertGenerator {
         if (jksFile.exists()) {
             try (FileInputStream fis = new FileInputStream(jksFile)) {
                 KeyStore ks = KeyStore.getInstance("JKS");
-                ks.load(fis, CERT_PASSWORD.toCharArray());
+                ks.load(fis, getCertPassword().toCharArray());
                 Certificate c = ks.getCertificate(CERT_ALIAS);
                 if (c instanceof X509Certificate x509) {
                     existingCert = x509;
@@ -110,9 +116,9 @@ public class CertGenerator {
 
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, null);
-        keyStore.setKeyEntry(CERT_ALIAS, keyPair.getPrivate(), CERT_PASSWORD.toCharArray(), new Certificate[] { cert });
+        keyStore.setKeyEntry(CERT_ALIAS, keyPair.getPrivate(), getCertPassword().toCharArray(), new Certificate[] { cert });
         try (FileOutputStream fos = new FileOutputStream(jksFile)) {
-            keyStore.store(fos, CERT_PASSWORD.toCharArray());
+            keyStore.store(fos, getCertPassword().toCharArray());
         }
         log.info("JKS证书生成成功：" + jksFile.getAbsolutePath());
 
@@ -125,20 +131,42 @@ public class CertGenerator {
      */
     private static X509Certificate generateX509Cert(KeyPair keyPair) throws Exception {
         long now = System.currentTimeMillis();
+        ServerProperty serverConfig = ConfigProperty.getInstance().getServer();
+        String publicHost = serverConfig.getPublicHost();
+        int certDays = serverConfig.getCertValidityDays();
         Date from = new Date(now);
-        Date to = new Date(now + VALIDITY_DAYS * 24L * 60L * 60L * 1000L);
+        Date to = new Date(now + certDays * 24L * 60L * 60L * 1000L);
         BigInteger serial = new BigInteger(64, new SecureRandom());
-        X500Name subject = new X500Name("CN=" + CN);
+        X500Name subject = new X500Name("CN=" + publicHost);
 
         JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
                 subject, serial, from, to, subject, keyPair.getPublic());
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
-        GeneralName[] altNames = new GeneralName[] {
-            new GeneralName(GeneralName.dNSName, CN),
-            new GeneralName(GeneralName.iPAddress, "127.0.0.1")
-        };
-        builder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(altNames));
+        
+        List<GeneralName> altNamesList = new ArrayList<>();
+        altNamesList.add(new GeneralName(GeneralName.dNSName, publicHost));
+        altNamesList.add(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
+
+        // 自动添加本机所有IP地址
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (addr instanceof Inet4Address) {
+                        altNamesList.add(new GeneralName(GeneralName.iPAddress, addr.getHostAddress()));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("获取本机IP失败，生成的证书可能无法用于局域网访问", e);
+        }
+
+        builder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(altNamesList.toArray(new GeneralName[0])));
 
         ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
         X509CertificateHolder holder = builder.build(signer);
@@ -160,6 +188,6 @@ public class CertGenerator {
      * 获取证书密码（供服务端配置SSL使用）
      */
     public static String getCertPassword() {
-        return CERT_PASSWORD;
+        return ConfigProperty.getInstance().getServer().getCertPassword();
     }
 }
