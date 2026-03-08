@@ -1,5 +1,6 @@
 package com.cky.proxy.server.verticle;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
@@ -53,16 +54,38 @@ public class ProxyServerVerticle extends AbstractVerticle {
 
         initRuleServers();
 
-        // 启动流量统计定时任务 (每小时执行一次)
-        vertx.setPeriodic(3600000L, id -> {
-            TrafficStatisticManager.flush();
-        });
+        // 启动流量统计定时任务 (每小时的59分59秒执行一次)
+        startTrafficStatisticsTask();
     }
 
     @Override
     public void stop() {
         log.info("Server stopping, flush traffic stats...");
         TrafficStatisticManager.flush();
+    }
+
+    private void startTrafficStatisticsTask() {
+        Calendar calendar = Calendar.getInstance();
+        long now = System.currentTimeMillis();
+        calendar.setTimeInMillis(now);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        long nextTime = calendar.getTimeInMillis();
+        if (nextTime <= now) {
+            nextTime += 3600000L;
+        }
+        long delay = nextTime - now;
+
+        log.info("Traffic statistics task will start in {} ms", delay);
+        vertx.setTimer(delay, id -> {
+            TrafficStatisticManager.flush();
+            // 之后每小时执行一次
+            vertx.setPeriodic(3600000L, timerId -> {
+                TrafficStatisticManager.flush();
+            });
+        });
     }
 
     private void initRuleServers() {
