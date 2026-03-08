@@ -52,3 +52,5 @@ echo "Pushing tag $VERSION..."
 git push origin "$VERSION"
 
 echo "Deployment successful! GitHub Action should be triggered."
+
+git checkout develop

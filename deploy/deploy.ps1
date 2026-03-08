@@ -69,3 +69,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Deployment successful! GitHub Action should be triggered."
+
+git checkout develop
