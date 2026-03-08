@@ -74,6 +74,12 @@ export interface DashboardStats {
   downloadSpeed: number;
 }
 
+// 规则实时流量接口
+export interface RuleRealtimeTraffic {
+  uploadSpeed: number;
+  downloadSpeed: number;
+}
+
 // 流量排行接口
 export interface TrafficRanking {
   name: string;

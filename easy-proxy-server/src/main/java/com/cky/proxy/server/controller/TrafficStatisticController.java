@@ -8,8 +8,12 @@ import com.cky.proxy.server.domain.entity.TsReport;
 import com.cky.proxy.server.domain.entity.TsDayReport;
 import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.cky.proxy.server.service.TrafficStatisticService;
+import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import cn.hutool.db.Page;
 import io.vertx.ext.web.Router;
@@ -34,6 +38,24 @@ public class TrafficStatisticController {
         router.get("/api/traffic/dayReport").handler(this::getDayReportsPageable);
         // 小时报告分页
         router.get("/api/traffic/hourReport").handler(this::getHourReportsPageable);
+        // 规则实时流量
+        router.get("/api/traffic/realtime").handler(this::getRealtimeTraffic);
+    }
+
+    private void getRealtimeTraffic(RoutingContext ctx) {
+        Integer proxyClientRuleId = RequestUtil.getParamInt(ctx, "proxyClientRuleId");
+        if (proxyClientRuleId == null) {
+            ResponseUtil.error(ctx, 400, "proxyClientRuleId is required");
+            return;
+        }
+        long uploadSpeed = TrafficStatisticManager.getUploadSpeed(proxyClientRuleId);
+        long downloadSpeed = TrafficStatisticManager.getDownloadSpeed(proxyClientRuleId);
+        
+        Map<String, Object> data = new HashMap<>();
+        data.put("uploadSpeed", uploadSpeed);
+        data.put("downloadSpeed", downloadSpeed);
+        
+        ResponseUtil.success(ctx, data);
     }
 
     private void getClientReportsPageable(RoutingContext ctx) {

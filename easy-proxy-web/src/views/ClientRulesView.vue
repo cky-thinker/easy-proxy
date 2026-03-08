@@ -63,9 +63,10 @@
               <TagEnableFlag :value="row.enableFlag" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="220" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" text @click="openEditRuleModal(row)">编辑</el-button>
+              <el-button type="info" text @click="openDetails(row)">详情</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -139,20 +140,45 @@
         <el-button type="primary" @click="saveEditRule">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 规则详情抽屉 -->
+    <el-drawer v-model="showDetailsDrawer" title="规则详情" size="600px" @close="closeDetailsDrawer">
+      <div class="p-4 space-y-6">
+        <!-- 实时流量 -->
+        <div class="bg-gray-50 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">实时流量</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded shadow-sm text-center">
+              <div class="text-gray-500 text-sm mb-1">上行速度</div>
+              <div class="text-xl font-bold text-blue-600">{{ formatSpeed(realtimeTraffic.uploadSpeed) }}</div>
+            </div>
+            <div class="bg-white p-4 rounded shadow-sm text-center">
+              <div class="text-gray-500 text-sm mb-1">下行速度</div>
+              <div class="text-xl font-bold text-green-600">{{ formatSpeed(realtimeTraffic.downloadSpeed) }}</div>
+            </div>
+          </div>
+        </div>
+        <!-- 流量趋势 -->
+        <div class="h-80">
+          <TrafficChart :data="trafficTrend" :loading="trendLoading" @period-change="handlePeriodChange" />
+        </div>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ExtendedProxyClientConfig } from '@/api/proxyClient'
 import { getAllClients } from '@/api/proxyClient'
-import { addClientRule, getClientRulesPage, updateClientRule } from '@/api/proxyClientRule'
-import type { ProxyRule } from '@/api/types'
+import { addClientRule, getClientRulesPage, updateClientRule, getRuleRealtimeTraffic, getRuleTrafficTrend } from '@/api/proxyClientRule'
+import type { ProxyRule, RuleRealtimeTraffic, TrafficTrend } from '@/api/types'
 
 
 import TagEnableFlag from '@/components/TagEnableFlag.vue'
+import TrafficChart from '@/components/TrafficChart.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const rules = ref<ProxyRule[]>([])
@@ -371,6 +397,76 @@ const saveEditRule = async () => {
     showToast('更新失败，请稍后重试', 'error')
   }
 }
+
+// 详情抽屉相关逻辑
+const showDetailsDrawer = ref(false)
+const currentRuleId = ref<number | undefined>(undefined)
+const realtimeTraffic = ref<RuleRealtimeTraffic>({ uploadSpeed: 0, downloadSpeed: 0 })
+const trafficTrend = ref<TrafficTrend[]>([])
+const trendLoading = ref(false)
+let timer: any = null
+
+const formatSpeed = (bytes: number) => {
+  if (!bytes) return '0 B/s'
+  const k = 1024
+  const sizes = ['B/s', 'KB/s', 'MB/s', 'GB/s', 'TB/s']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+const openDetails = (row: ProxyRule) => {
+  if (!row.id) return
+  currentRuleId.value = row.id
+  showDetailsDrawer.value = true
+  // Reset data
+  realtimeTraffic.value = { uploadSpeed: 0, downloadSpeed: 0 }
+  trafficTrend.value = []
+  
+  fetchRealtimeTraffic()
+  fetchTrend('day')
+  
+  // Start polling
+  if (timer) clearInterval(timer)
+  timer = setInterval(fetchRealtimeTraffic, 3000)
+}
+
+const closeDetailsDrawer = () => {
+  showDetailsDrawer.value = false
+  if (timer) clearInterval(timer)
+  timer = null
+  currentRuleId.value = undefined
+}
+
+const fetchRealtimeTraffic = async () => {
+  if (!currentRuleId.value) return
+  try {
+    const data = await getRuleRealtimeTraffic(currentRuleId.value)
+    realtimeTraffic.value = data
+  } catch (e) {
+    console.error('获取实时流量失败', e)
+  }
+}
+
+const handlePeriodChange = (period: 'day' | 'week' | 'month') => {
+  fetchTrend(period)
+}
+
+const fetchTrend = async (period: 'day' | 'week' | 'month') => {
+  if (!currentRuleId.value) return
+  trendLoading.value = true
+  try {
+    const data = await getRuleTrafficTrend(currentRuleId.value, period)
+    trafficTrend.value = data
+  } catch (e) {
+    console.error('获取流量趋势失败', e)
+  } finally {
+    trendLoading.value = false
+  }
+}
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
 
 <style scoped></style>
