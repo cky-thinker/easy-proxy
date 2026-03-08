@@ -6,7 +6,7 @@ import lombok.Data;
 public class ServerProperty {
     private int proxyPort;  
     private int webPort;
-    private boolean captchaImageEnable;
+    private Boolean captchaImageEnable;
     private String publicHost;
     private int certValidityDays;
     private String certPassword;

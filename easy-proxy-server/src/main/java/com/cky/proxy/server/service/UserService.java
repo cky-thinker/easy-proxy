@@ -114,7 +114,7 @@ public class UserService {
                 throw new RuntimeException("用户名和密码不能为空");
             }
             // 验证验证码
-            if (ConfigProperty.getInstance().getServer().getCaptchaImageEnable()) {
+            if (Boolean.TRUE.equals(ConfigProperty.getInstance().getServer().getCaptchaImageEnable())) {
                 // 验证验证码
                 if (StrUtil.isBlank(loginReq.getCaptchaId()) || StrUtil.isBlank(loginReq.getCaptchaCode())) {
                     throw new RuntimeException("验证码不能为空");

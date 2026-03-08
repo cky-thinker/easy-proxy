@@ -46,6 +46,12 @@ public class TrafficStatisticManager {
         final AtomicLong upload = new AtomicLong(0);
         final AtomicLong download = new AtomicLong(0);
         
+        // Real-time speed
+        final AtomicLong speedUpload = new AtomicLong(0);
+        final AtomicLong speedDownload = new AtomicLong(0);
+        final AtomicLong tempUpload = new AtomicLong(0);
+        final AtomicLong tempDownload = new AtomicLong(0);
+
         // Active connections
         final AtomicLong activeConnections = new AtomicLong(0);
         
@@ -124,7 +130,9 @@ public class TrafficStatisticManager {
     public static void addUpload(String userId, long bytes) {
         TrafficContext ctx = connectionMap.get(userId);
         if (ctx != null) {
-            getStats(ctx).upload.addAndGet(bytes);
+            TrafficStats stats = getStats(ctx);
+            stats.upload.addAndGet(bytes);
+            stats.tempUpload.addAndGet(bytes);
         }
     }
 
@@ -134,8 +142,36 @@ public class TrafficStatisticManager {
     public static void addDownload(String userId, long bytes) {
         TrafficContext ctx = connectionMap.get(userId);
         if (ctx != null) {
-            getStats(ctx).download.addAndGet(bytes);
+            TrafficStats stats = getStats(ctx);
+            stats.download.addAndGet(bytes);
+            stats.tempDownload.addAndGet(bytes);
         }
+    }
+
+    /**
+     * 计算实时速度 (调用频率: 1秒)
+     */
+    public static void calculateSpeed() {
+        for (TrafficStats stats : statsMap.values()) {
+            stats.speedUpload.set(stats.tempUpload.getAndSet(0));
+            stats.speedDownload.set(stats.tempDownload.getAndSet(0));
+        }
+    }
+
+    /**
+     * 获取上传速度 (bytes/s)
+     */
+    public static long getUploadSpeed(Integer ruleId) {
+        TrafficStats stats = statsMap.get(ruleId);
+        return stats == null ? 0 : stats.speedUpload.get();
+    }
+
+    /**
+     * 获取下载速度 (bytes/s)
+     */
+    public static long getDownloadSpeed(Integer ruleId) {
+        TrafficStats stats = statsMap.get(ruleId);
+        return stats == null ? 0 : stats.speedDownload.get();
     }
 
     private static TrafficStats getStats(TrafficContext ctx) {

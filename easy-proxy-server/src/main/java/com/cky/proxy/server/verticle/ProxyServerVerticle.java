@@ -53,6 +53,11 @@ public class ProxyServerVerticle extends AbstractVerticle {
 
         initRuleServers();
 
+        // 启动实时流量速度统计 (每秒执行一次)
+        vertx.setPeriodic(1000L, id -> {
+            TrafficStatisticManager.calculateSpeed();
+        });
+
         // 启动流量统计定时任务 (每小时执行一次)
         vertx.setPeriodic(3600000L, id -> {
             TrafficStatisticManager.flush();
