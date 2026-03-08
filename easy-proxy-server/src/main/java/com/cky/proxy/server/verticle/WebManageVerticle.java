@@ -17,6 +17,8 @@ import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
+import jakarta.validation.ConstraintViolationException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
@@ -90,7 +92,7 @@ public class WebManageVerticle extends AbstractVerticle {
             }
 
             String errorMessage;
-            if (failure instanceof jakarta.validation.ConstraintViolationException cve) {
+            if (failure instanceof ConstraintViolationException cve) {
                 statusCode = statusCode == -1 ? 400 : statusCode;
                 StringBuilder sb = new StringBuilder();
                 cve.getConstraintViolations().forEach(v -> {

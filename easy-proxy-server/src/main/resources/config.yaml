@@ -3,6 +3,6 @@ server:
     webPort: 10091
     captchaImageEnable: false
 db:
-    url: jdbc:h2:~/easy-proxy/database
+    url: jdbc:h2:./data/database
     username: test
     password: test

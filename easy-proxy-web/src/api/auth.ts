@@ -18,6 +18,22 @@ export const loginUser = async (loginData: LoginRequest): Promise<UserInfo> => {
 };
 
 /**
+ * 检查系统是否需要初始化
+ */
+export const checkInit = async (): Promise<boolean> => {
+  const response = await apiClient.get<ApiResponse<boolean>>('/api/open/checkInit');
+  return response.data.data;
+};
+
+/**
+ * 初始化系统管理员
+ */
+export const initUser = async (user: any): Promise<UserInfo> => {
+  const response = await apiClient.post<ApiResponse<UserInfo>>('/api/open/initUser', user);
+  return response.data.data;
+};
+
+/**
  * 用户登出
  */
 export const logoutUser = async (): Promise<void> => {

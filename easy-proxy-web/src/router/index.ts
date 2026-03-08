@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { checkInit } from '../api/auth';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,6 +14,12 @@ const router = createRouter({
             path: '/login',
             name: 'login',
             component: () => import('../views/LoginView.vue'),
+            meta: { requiresAuth: false }
+        },
+        {
+            path: '/init',
+            name: 'init',
+            component: () => import('../views/InitView.vue'),
             meta: { requiresAuth: false }
         },
         {
@@ -44,16 +51,50 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to: any, from: any, next: any) => {
+router.beforeEach(async (to: any, from: any, next: any) => {
     const token = localStorage.getItem('token');
     const requiresAuth = to.meta.requiresAuth;
 
-    if (requiresAuth && !token) {
-        // 需要认证但没有token，跳转到登录页
+    // 已登录用户
+    if (token) {
+        if (to.path === '/login' || to.path === '/init') {
+            next('/');
+        } else {
+            next();
+        }
+        return;
+    }
+
+    // 未登录用户
+    if (to.path === '/init') {
+        try {
+            const needInit = await checkInit();
+            if (!needInit) {
+                next('/login');
+                return;
+            }
+            next();
+        } catch (e) {
+            console.error(e);
+            next();
+        }
+        return;
+    }
+
+    if (to.path === '/login' || to.path === '/') {
+        try {
+            const needInit = await checkInit();
+            if (needInit) {
+                next('/init');
+                return;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    if (requiresAuth) {
         next('/login');
-    } else if (to.path === '/login' && token) {
-        // 已登录用户访问登录页，跳转到首页
-        next('/');
     } else {
         next();
     }

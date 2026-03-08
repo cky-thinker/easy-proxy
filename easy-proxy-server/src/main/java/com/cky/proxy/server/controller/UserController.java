@@ -34,6 +34,10 @@ public class UserController {
     private void initRoutes() {
         // 生成验证码图片
         router.get("/api/open/captchaImage").handler(this::captchaImage);
+        // 系统初始化检查
+        router.get("/api/open/checkInit").handler(this::checkInit);
+        // 系统初始化
+        router.post("/api/open/initUser").handler(this::initUser);
         // 用户登录
         router.post("/api/open/loginUser").handler(this::loginUser);
         router.get("/api/open/loginConfig").handler(this::getConfig);
@@ -74,6 +78,29 @@ public class UserController {
             ResponseUtil.response(ctx, Result.success(captchaImage, "获取验证码成功"));
         } catch (Exception e) {
             ResponseUtil.response(ctx, Result.error("生成验证码失败: " + e.getMessage()));
+        }
+    }
+
+    private void checkInit(RoutingContext ctx) {
+        try {
+            boolean needInit = authService.checkInit();
+            ResponseUtil.response(ctx, Result.success(needInit, "检查初始化状态成功"));
+        } catch (Exception e) {
+            ResponseUtil.response(ctx, Result.error("检查初始化状态失败: " + e.getMessage()));
+        }
+    }
+
+    private void initUser(RoutingContext ctx) {
+        try {
+            SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+            if (user == null) {
+                ResponseUtil.error(ctx, 400, "请求体不能为空");
+                return;
+            }
+            SysUser created = authService.initAdmin(user);
+            ResponseUtil.response(ctx, Result.success(created, "初始化系统管理员成功"));
+        } catch (Exception e) {
+            ResponseUtil.response(ctx, Result.error("初始化系统管理员失败: " + e.getMessage()));
         }
     }
 

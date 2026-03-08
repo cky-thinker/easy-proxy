@@ -134,7 +134,10 @@ public class CertGenerator {
                 subject, serial, from, to, subject, keyPair.getPublic());
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
-        GeneralName[] altNames = new GeneralName[] {};
+        GeneralName[] altNames = new GeneralName[] {
+            new GeneralName(GeneralName.dNSName, CN),
+            new GeneralName(GeneralName.iPAddress, "127.0.0.1")
+        };
         builder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(altNames));
 
         ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());

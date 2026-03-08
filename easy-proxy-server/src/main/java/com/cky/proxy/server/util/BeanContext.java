@@ -205,11 +205,9 @@ public class BeanContext {
      */
     private void initializeData() throws SQLException {
         try {
-            // 检查是否需要创建默认管理员用户
-            initializeDefaultAdminUser();
             // 初始化客户端状态
             initializeClientOffline();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             log.error("初始化默认数据失败", e);
             log.info("初始化默认数据失败: " + e.getMessage());
             throw e;
@@ -223,38 +221,5 @@ public class BeanContext {
             client.setStatus("offline");
             getProxyClientDao().updateById(client);
         });
-    }
-
-    /**
-     * 初始化默认管理员用户
-     */
-    private void initializeDefaultAdminUser() throws SQLException {
-        try {
-            // 检查是否已存在管理员用户
-            List<SysUser> existingSysUsers = userDao.selectList(qb -> {
-                qb.where().eq("username", "admin");
-            });
-
-            if (existingSysUsers.isEmpty()) {
-                // 创建默认管理员用户
-                SysUser adminSysUser = new SysUser();
-                adminSysUser.setUsername("admin");
-                adminSysUser.setPassword("admin123"); // 注意：实际项目中应该使用加密密码
-                adminSysUser.setMobile("13800000000");
-                adminSysUser.setRole("admin");
-                adminSysUser.setEnableFlag(true);
-                adminSysUser.setCreateTime(new Date());
-
-                userDao.insert(adminSysUser);
-                log.info("默认管理员用户创建成功 (用户名: admin, 密码: admin123)");
-                log.info("默认管理员用户创建成功");
-            } else {
-                log.info("管理员用户已存在，跳过创建");
-                log.info("管理员用户已存在，跳过创建");
-            }
-        } catch (Exception e) {
-            log.error("初始化默认管理员用户失败", e);
-            throw new SQLException("初始化默认管理员用户失败: " + e.getMessage(), e);
-        }
     }
 }

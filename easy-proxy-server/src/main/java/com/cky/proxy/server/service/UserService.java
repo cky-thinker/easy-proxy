@@ -208,6 +208,30 @@ public class UserService {
     // ===== 账户管理方法 =====
 
     /**
+     * 检查系统是否已初始化（是否存在用户）
+     */
+    public boolean checkInit() {
+        try {
+            long count = userDao.getDao().countOf();
+            return count == 0;
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException("查询用户数量失败", e);
+        }
+    }
+
+    /**
+     * 初始化系统管理员
+     */
+    public SysUser initAdmin(SysUser user) {
+        if (!checkInit()) {
+            throw new RuntimeException("系统已初始化，禁止重复操作");
+        }
+        // 强制设置为管理员
+        user.setRole("admin");
+        return createUser(user);
+    }
+
+    /**
      * 分页查询账户
      */
     public PageResult<SysUser> getUsersPageable(Page page, String q, Boolean enableFlag) {

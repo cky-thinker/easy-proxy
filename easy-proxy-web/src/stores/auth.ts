@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import type { UserInfo, LoginRequest } from '@/api/types';
-import { loginUser, logoutUser, getCaptchaImage } from '@/api/auth';
+import { loginUser, logoutUser, getCaptchaImage, checkInit as checkInitApi } from '@/api/auth';
 import { getLoginConfig } from '@/api/config';
 import type { ServerConfig } from '@/api/types';
 
@@ -68,21 +68,22 @@ export const useAuthStore = defineStore('auth', () => {
     return await getCaptchaImage();
   };
 
+  // 检查系统初始化
+  const checkInit = async (): Promise<boolean> => {
+    return await checkInitApi();
+  };
+
   return {
-    // 状态
     userInfo,
     token,
     isLoading,
     serverConfig,
-    
-    // 计算属性
     isLoggedIn,
-    
-    // 方法
     initAuth,
-    fetchLoginConfig: fetchLoginConfig,
+    fetchLoginConfig,
     login,
     logout,
     fetchCaptcha,
+    checkInit,
   };
 });

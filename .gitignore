@@ -187,5 +187,7 @@ nbdist/
 
 *.db
 config/
+data/
+.vscode/
 .trae/
 .vscode/
