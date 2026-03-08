@@ -50,8 +50,8 @@
             </svg>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">总上行流量</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.totalUpload) }}</p>
+            <p class="text-sm font-medium text-gray-600">总上行速度</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.uploadSpeed) }}/s</p>
           </div>
         </div>
       </div>
@@ -66,8 +66,8 @@
             </svg>
           </div>
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-600">总下行流量</p>
-            <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.totalDownload) }}</p>
+            <p class="text-sm font-medium text-gray-600">总下行速度</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.downloadSpeed) }}/s</p>
           </div>
         </div>
       </div>
@@ -162,9 +162,11 @@ import { getDashboardStats, getTrafficRanking, getTrafficTrend, getRecentActivit
 const stats = ref<DashboardStats>({
   onlineClients: 0,
   offlineClients: 0,
-  totalUpload: 0,
-  totalDownload: 0
+  uploadSpeed: 0,
+  downloadSpeed: 0
 })
+
+const statsTimer = ref<number | null>(null)
 
 const trafficPeriod = ref('day')
 const trendPeriod = ref('day')
@@ -295,12 +297,24 @@ const subscribeSSE = () => {
 onMounted(() => {
   loadDashboardData()
   subscribeSSE()
+  // 每秒刷新统计数据
+  statsTimer.value = window.setInterval(async () => {
+    try {
+      stats.value = await getDashboardStats()
+    } catch (e) {
+      // ignore error
+    }
+  }, 1000)
 })
 
 onUnmounted(() => {
   if (sseController.value) {
     sseController.value.abort()
     sseController.value = null
+  }
+  if (statsTimer.value) {
+    clearInterval(statsTimer.value)
+    statsTimer.value = null
   }
 })
 </script>

@@ -70,8 +70,8 @@ export interface UserInfo {
 export interface DashboardStats {
   onlineClients: number;
   offlineClients: number;
-  totalUpload: number;
-  totalDownload: number;
+  uploadSpeed: number;
+  downloadSpeed: number;
 }
 
 // 流量排行接口

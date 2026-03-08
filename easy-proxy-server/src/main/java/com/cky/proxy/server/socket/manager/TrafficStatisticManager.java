@@ -202,6 +202,28 @@ public class TrafficStatisticManager {
         return stats.lastDownloadSpeed;
     }
 
+    /**
+     * 获取总上行速度 (bytes/s)
+     */
+    public static long getTotalUploadSpeed() {
+        long total = 0;
+        for (Integer ruleId : statsMap.keySet()) {
+            total += getUploadSpeed(ruleId);
+        }
+        return total;
+    }
+
+    /**
+     * 获取总下行速度 (bytes/s)
+     */
+    public static long getTotalDownloadSpeed() {
+        long total = 0;
+        for (Integer ruleId : statsMap.keySet()) {
+            total += getDownloadSpeed(ruleId);
+        }
+        return total;
+    }
+
     private static TrafficStats getStats(TrafficContext ctx) {
         return statsMap.computeIfAbsent(ctx.ruleId, k -> new TrafficStats(ctx.clientId, ctx.ruleId));
     }

@@ -3,6 +3,7 @@ package com.cky.proxy.server.controller;
 import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
+import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.ResponseUtil;
 
@@ -46,23 +47,12 @@ public class DashboardController {
                     offline++;
             }
 
-            String sumSql = "SELECT COALESCE(SUM(upward_traffic_bytes), 0), COALESCE(SUM(downward_traffic_bytes), 0) FROM ts_day_report";
-            String[] res = BeanContext.getTsDayReportDao().getDao()
-                    .queryRaw(sumSql).getFirstResult();
-            long totalUpload = 0L;
-            long totalDownload = 0L;
-            if (res != null && res.length > 1) {
-                if (res[0] != null)
-                    totalUpload = Long.parseLong(res[0]);
-                if (res[1] != null)
-                    totalDownload = Long.parseLong(res[1]);
-            }
 
             Map<String, Object> data = new HashMap<>();
             data.put("onlineClients", online);
             data.put("offlineClients", offline);
-            data.put("totalUpload", totalUpload);
-            data.put("totalDownload", totalDownload);
+            data.put("uploadSpeed", TrafficStatisticManager.getTotalUploadSpeed());
+            data.put("downloadSpeed", TrafficStatisticManager.getTotalDownloadSpeed());
 
             ResponseUtil.success(ctx, data);
         } catch (Exception e) {
