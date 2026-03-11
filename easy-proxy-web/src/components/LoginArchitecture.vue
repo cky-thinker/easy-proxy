@@ -59,8 +59,15 @@
           fill="url(#cloudGradient)"
           filter="url(#glow)"
         />
-        <text x="94" y="75" text-anchor="middle" fill="#0369a1" font-size="20" font-weight="bold" font-family="sans-serif">Internet</text>
-        <text x="94" y="95" text-anchor="middle" fill="#0ea5e9" font-size="14" font-family="sans-serif">Easy Proxy Server</text>
+        <!-- Logo Image -->
+        <image
+          :href="logoUrl"
+          x="54"
+          y="28"
+          width="80"
+          height="60"
+          preserveAspectRatio="xMidYMid meet"
+        />
       </g>
 
       <!-- 2. Web Page - Bottom Left -->
@@ -78,8 +85,6 @@
         <rect x="20" y="50" width="160" height="10" rx="2" fill="#cbd5e1" />
         <rect x="20" y="70" width="100" height="10" rx="2" fill="#cbd5e1" />
         <rect x="20" y="90" width="140" height="40" rx="2" fill="#e2e8f0" />
-        
-        <text x="100" y="175" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold">Web Client</text>
       </g>
 
       <!-- 3. Computer - Bottom Right -->
@@ -96,12 +101,14 @@
         <!-- Stand -->
         <path d="M70,140 L130,140 L140,160 L60,160 Z" fill="#334155" />
         <rect x="40" y="160" width="120" height="10" rx="2" fill="#1e293b" />
-        
-        <text x="100" y="200" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold">Local Server</text>
       </g>
     </svg>
   </div>
 </template>
+
+<script setup lang="ts">
+import logoUrl from '../assets/logo.png'
+</script>
 
 <style scoped>
 .animate-flow {
