@@ -1,11 +1,12 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
     <!-- 页面标题和操作按钮 -->
-    <div class="flex justify-between items-center mb-6">
-      <div>
+    <div class="relative mb-6 h-24 flex items-center overflow-hidden">
+      <div class="z-10">
         <h1 class="text-2xl font-bold text-gray-900">规则管理</h1>
         <p class="text-gray-600 mt-1">管理转发规则</p>
       </div>
+      <PageIllustration type="rule" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 opacity-50" />
     </div>
 
     <!-- 搜索和筛选 -->
@@ -176,6 +177,7 @@ import type { ProxyRule, RuleRealtimeTraffic, TrafficTrend } from '@/api/types'
 
 import TagEnableFlag from '@/components/TagEnableFlag.vue'
 import TrafficChart from '@/components/TrafficChart.vue'
+import PageIllustration from '@/components/PageIllustration.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, onBeforeUnmount, reactive, ref } from 'vue'

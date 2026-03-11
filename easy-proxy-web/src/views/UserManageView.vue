@@ -3,11 +3,12 @@
     <!-- 使用 Element Plus 消息通知（ElMessage）替代自定义 Toast -->
 
     <!-- 页面标题 -->
-    <div class="flex justify-between items-center mb-6">
-      <div>
+    <div class="relative mb-6 h-24 flex items-center overflow-hidden">
+      <div class="z-10">
         <h1 class="text-2xl font-bold text-gray-900">账号管理</h1>
         <p class="text-gray-600 mt-1">管理系统账号和权限</p>
       </div>
+      <PageIllustration type="user" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 opacity-50" />
     </div>
 
     <!-- 搜索与操作 -->
@@ -184,6 +185,7 @@ import {
 } from '../api/user'
 
 import TagEnableFlag from '../components/TagEnableFlag.vue'
+import PageIllustration from '@/components/PageIllustration.vue'
 
 
 // 响应式数据

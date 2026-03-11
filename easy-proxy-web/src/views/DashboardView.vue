@@ -1,9 +1,12 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
     <!-- 页面标题 -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">总览</h1>
-      <p class="text-gray-600 mt-1">服务运行状态和统计信息</p>
+    <div class="relative mb-6 h-24 flex items-center overflow-hidden">
+      <div class="z-10">
+        <h1 class="text-2xl font-bold text-gray-900">总览</h1>
+        <p class="text-gray-600 mt-1">服务运行状态和统计信息</p>
+      </div>
+      <PageIllustration type="dashboard" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 opacity-50" />
     </div>
 
     <!-- 统计卡片 -->
@@ -106,44 +109,31 @@
                 </div>
                 <div>
                   <p class="text-sm font-medium text-gray-900">{{ item.name }}</p>
-                  <p class="text-xs text-gray-500">{{ item.ip }}</p>
                 </div>
               </div>
               <div class="text-right">
-                <p class="text-sm font-medium text-gray-900">{{ formatBytes(item.traffic) }}</p>
-                <p class="text-xs text-gray-500">{{ item.connections }} 连接</p>
+                <p class="text-sm font-medium text-gray-900">{{ formatTrafficWithUnit(item.traffic, rankingMaxTraffic) }}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 实时流量趋势 -->
-      <div class="bg-white rounded-lg shadow flex flex-col">
-        <div class="p-6 flex-1 h-0 min-h-[300px]">
-          <TrafficChart 
-            :data="trafficTrendData" 
-            :loading="loading.trafficTrend"
-            @period-change="handlePeriodChange"
-          />
+      <!-- 最近活动 -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">最近活动</h2>
         </div>
-      </div>
-    </div>
-
-    <!-- 最近活动 -->
-    <div class="mt-6 bg-white rounded-lg shadow">
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">最近活动</h2>
-      </div>
-      <div class="p-6">
-        <div class="space-y-4">
-          <div v-for="(activity, index) in recentActivities" :key="index" class="flex items-start">
-            <div class="flex-shrink-0">
-              <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-gray-900">{{ activity.message }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ activity.time }}</p>
+        <div class="p-6">
+          <div class="space-y-4">
+            <div v-for="(activity, index) in recentActivities" :key="index" class="flex items-start">
+              <div class="flex-shrink-0">
+                <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-900">{{ activity.message }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ activity.time }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -153,10 +143,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import TrafficChart from '@/components/TrafficChart.vue'
-import type { DashboardStats, TrafficRanking, RecentActivity, TrafficTrend } from '@/api/types'
-import { getDashboardStats, getTrafficRanking, getTrafficTrend, getRecentActivities } from '@/api/dashboard'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import type { DashboardStats, TrafficRanking, RecentActivity } from '@/api/types'
+import { getDashboardStats, getTrafficRanking, getRecentActivities } from '@/api/dashboard'
+import PageIllustration from '@/components/PageIllustration.vue'
 
 // 响应式数据
 const stats = ref<DashboardStats>({
@@ -169,19 +159,17 @@ const stats = ref<DashboardStats>({
 const statsTimer = ref<number | null>(null)
 
 const trafficPeriod = ref('day')
-const trendPeriod = ref('day')
 const periods = [
-  { label: '按天', value: 'day' as const },
-  { label: '按周', value: 'week' as const },
-  { label: '按月', value: 'month' as const }
+  { label: '近24小时', value: 'day' as const },
+  { label: '近7日', value: 'week' as const },
+  { label: '近30日', value: 'month' as const }
 ]
 
-const trafficTrendData = ref<TrafficTrend[]>([])
-const loading = ref({
-  trafficTrend: false
-})
-
 const trafficRanking = ref<TrafficRanking[]>([])
+const rankingMaxTraffic = computed(() => {
+  if (trafficRanking.value.length === 0) return 0
+  return Math.max(...trafficRanking.value.map(i => i.traffic))
+})
 
 const recentActivities = ref<RecentActivity[]>([])
 
@@ -194,27 +182,22 @@ const formatBytes = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-// 处理周期变化
-const handlePeriodChange = (period: string) => {
-  trendPeriod.value = period
-  loadTrafficTrendData()
+const formatTrafficWithUnit = (bytes: number, maxBytes: number): string => {
+  if (bytes === 0) return '0'
+  if (maxBytes === 0) return '0 B'
+  
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  // 根据最大值确定单位
+  const i = Math.floor(Math.log(maxBytes) / Math.log(k))
+  // 使用确定的单位格式化当前值
+  const val = parseFloat((bytes / Math.pow(k, i)).toFixed(2))
+  return val + ' ' + sizes[i]
 }
 
 const changeRankingPeriod = async (period: 'day'|'week'|'month') => {
   trafficPeriod.value = period
   await loadTrafficRanking()
-}
-
-// 加载流量趋势数据
-const loadTrafficTrendData = async () => {
-  loading.value.trafficTrend = true
-  try {
-    trafficTrendData.value = await getTrafficTrend(trendPeriod.value as 'day'|'week'|'month')
-  } catch (error) {
-    console.error('加载流量趋势数据失败:', error)
-  } finally {
-    loading.value.trafficTrend = false
-  }
 }
 
 const loadTrafficRanking = async () => {
@@ -227,7 +210,6 @@ const loadDashboardData = async () => {
     stats.value = await getDashboardStats()
     await loadTrafficRanking()
     recentActivities.value = await getRecentActivities()
-    await loadTrafficTrendData()
   } catch (error) {
     console.error('加载仪表板数据失败:', error)
   }

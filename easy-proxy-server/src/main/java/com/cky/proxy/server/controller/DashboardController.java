@@ -67,53 +67,56 @@ public class DashboardController {
                 period = "day";
             java.util.Calendar cal = java.util.Calendar.getInstance();
             java.util.Date end = cal.getTime();
+            
+            String tableName;
+            com.j256.ormlite.dao.Dao<?, ?> dao;
+            
             if ("day".equals(period)) {
-                cal.add(java.util.Calendar.DAY_OF_MONTH, -1);
-            } else if ("week".equals(period)) {
-                cal.add(java.util.Calendar.DAY_OF_MONTH, -7);
-            } else if ("month".equals(period)) {
-                cal.add(java.util.Calendar.DAY_OF_MONTH, -30);
+                cal.add(java.util.Calendar.HOUR_OF_DAY, -24);
+                tableName = "ts_hour_report";
+                dao = BeanContext.getTsHourReportDao().getDao();
+            } else {
+                if ("week".equals(period)) {
+                    cal.add(java.util.Calendar.DAY_OF_MONTH, -7);
+                } else {
+                    cal.add(java.util.Calendar.DAY_OF_MONTH, -30);
+                }
+                tableName = "ts_day_report";
+                dao = BeanContext.getTsDayReportDao().getDao();
             }
             java.util.Date start = cal.getTime();
 
-            String sql = "SELECT proxy_client_id, COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) AS total FROM ts_day_report WHERE date >= ? AND date <= ? GROUP BY proxy_client_id ORDER BY total DESC LIMIT 5";
+            String sql = "SELECT proxy_client_rule_id, COALESCE(SUM(upward_traffic_bytes) + SUM(downward_traffic_bytes), 0) AS total FROM " + tableName + " WHERE date >= ? AND date <= ? GROUP BY proxy_client_rule_id ORDER BY total DESC LIMIT 5";
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String[] params = new String[] { sdf.format(start), sdf.format(end) };
-            var res = BeanContext.getTsDayReportDao().getDao().queryRaw(sql, params);
+            var res = dao.queryRaw(sql, params);
             java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
 
-            // 预取规则连接数
-            java.util.Map<Integer, Integer> connMap = new java.util.HashMap<>();
-            for (ProxyClientRule r : proxyClientRuleService.getAllProxyClientRules(null, null, null)) {
-                if (Boolean.TRUE.equals(r.getEnableFlag())) {
-                    connMap.merge(r.getProxyClientId(), 1, Integer::sum);
+            // 预取规则名称
+            java.util.List<Integer> ruleIds = new java.util.ArrayList<>();
+            for (String[] row : res.getResults()) {
+                 ruleIds.add(Integer.valueOf(row[0]));
+            }
+            java.util.Map<Integer, String> ruleMap = new java.util.HashMap<>();
+            if (!ruleIds.isEmpty()) {
+                // 这里可以使用 proxyClientRuleService.getProxyClientRulesByIds(ruleIds) 如果有这个方法，或者循环查询，或者查询所有
+                // 鉴于只有5条，循环查询或者查询所有都可。为了性能，查询所有规则可能更好，或者如果 Service 没有批量查询，就循环查。
+                // 考虑到 ProxyClientRuleService 没有批量查询方法，我们暂时查询所有，或者循环查询。
+                // 为了简单起见，且通常规则数不多，我们查询所有规则建立映射。如果规则非常多，建议增加批量查询接口。
+                // 但为了避免修改 Service 接口，我们这里简单实现：
+                for (ProxyClientRule r : proxyClientRuleService.getAllProxyClientRules(null, null, null)) {
+                    ruleMap.put(r.getId(), r.getName());
                 }
             }
 
-            // 将结果映射为排行项
-            java.util.Map<Integer, ProxyClient> clientMap = new java.util.HashMap<>();
-            for (ProxyClient c : proxyClientService.getProxyClients())
-                clientMap.put(c.getId(), c);
-
             for (String[] row : res.getResults()) {
-                Integer clientId = Integer.valueOf(row[0]);
+                Integer ruleId = Integer.valueOf(row[0]);
                 long total = Long.parseLong(row[1]);
-                ProxyClient client = clientMap.get(clientId);
-                String name = client != null ? client.getName() : ("客户端" + clientId);
-                String ip = "-";
-                // 从任一规则的 client_address 提取 ip
-                java.util.List<ProxyClientRule> rules = proxyClientRuleService.getProxyClientRules(clientId);
-                if (!rules.isEmpty()) {
-                    String addr = rules.get(0).getClientAddress();
-                    if (addr != null && addr.contains(":"))
-                        ip = addr.split(":")[0];
-                }
-                int connections = connMap.getOrDefault(clientId, 0);
+                String name = ruleMap.getOrDefault(ruleId, "规则" + ruleId);
+                
                 java.util.Map<String, Object> item = new java.util.HashMap<>();
                 item.put("name", name);
-                item.put("ip", ip);
                 item.put("traffic", total);
-                item.put("connections", connections);
                 list.add(item);
             }
             ResponseUtil.success(ctx, list);

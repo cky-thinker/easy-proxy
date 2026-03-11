@@ -1,11 +1,12 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
     <!-- 页面标题 -->
-    <div class="flex justify-between items-center mb-6">
-      <div>
+    <div class="relative mb-6 h-24 flex items-center overflow-hidden">
+      <div class="z-10">
         <h1 class="text-2xl font-bold text-gray-900">客户端管理</h1>
         <p class="text-gray-600 mt-1">管理客户端配置</p>
       </div>
+      <PageIllustration type="client" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 opacity-50" />
     </div>
 
     <!-- 搜索与操作 -->
@@ -139,6 +140,7 @@ import {
 import type { ProxyClientConfig } from '../api/types'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
 import TagStatus from '../components/TagStatus.vue'
+import PageIllustration from '@/components/PageIllustration.vue'
 
 
 const router = useRouter()
