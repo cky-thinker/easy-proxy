@@ -82,9 +82,10 @@
         <circle cx="30" cy="15" r="4" fill="#f59e0b" />
         <circle cx="45" cy="15" r="4" fill="#22c55e" />
         <!-- Content placeholders -->
-        <rect x="20" y="50" width="160" height="10" rx="2" fill="#cbd5e1" />
-        <rect x="20" y="70" width="100" height="10" rx="2" fill="#cbd5e1" />
-        <rect x="20" y="90" width="140" height="40" rx="2" fill="#e2e8f0" />
+        <rect x="20" y="55" width="160" height="10" rx="2" fill="#cbd5e1" />
+        <rect x="20" y="80" width="100" height="10" rx="2" fill="#cbd5e1" />
+        <rect x="20" y="105" width="140" height="45" rx="2" fill="#e2e8f0" />
+        
       </g>
 
       <!-- 3. Computer - Bottom Right -->
@@ -112,11 +113,11 @@ import logoUrl from '../assets/logo.png'
 
 <style scoped>
 .animate-flow {
-  animation: flow 2s linear infinite;
+  animation: flow-reverse 0.5s linear infinite;
 }
 
 .animate-flow-reverse {
-  animation: flow-reverse 2s linear infinite;
+  animation: flow-reverse 0.5s linear infinite;
 }
 
 @keyframes flow {
