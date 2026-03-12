@@ -80,10 +80,14 @@
           </el-table-column>
           <el-table-column label="最后登录" width="180">
             <template #default="{ row }">
-              <span class="text-sm text-gray-900">{{ row.lastLogin || '从未登录' }}</span>
+              <span class="text-sm text-gray-900">{{ row.loginTime ? formatDateTime(row.loginTime) : '从未登录' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="180" />
+          <el-table-column label="创建时间" width="180">
+            <template #default="{ row }">
+              <span class="text-sm text-gray-900">{{ formatDateTime(row.createTime) }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="350" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" text @click="editUser(row)">编辑</el-button>
@@ -184,6 +188,7 @@ import {
   updateUser as updateUserApi
 } from '../api/user'
 
+import { formatDateTime } from '../util/dateUtil'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
 import PageIllustration from '@/components/PageIllustration.vue'
 
@@ -212,7 +217,6 @@ const currentUser = ref<User>({
   password: '',
   role: 'user',
   enableFlag: true,
-  createdAt: '',
   permissions: {}
 })
 
@@ -251,7 +255,6 @@ const resetForm = () => {
     password: '',
     role: 'user',
     enableFlag: true,
-    createdAt: '',
     permissions: {}
   }
 }
@@ -394,7 +397,6 @@ const closeModal = () => {
     password: '',
     role: 'user',
     enableFlag: true,
-    createdAt: '',
     permissions: {}
   }
 }

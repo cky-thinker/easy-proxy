@@ -110,8 +110,8 @@ export interface User {
   password?: string;
   role: 'admin' | 'user' | 'viewer';
   enableFlag?: boolean;
-  lastLogin?: string;
-  createdAt: string;
+  loginTime?: number;
+  createTime?: number;
   permissions: Record<string, boolean>;
 }
 
