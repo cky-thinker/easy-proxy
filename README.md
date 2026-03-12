@@ -1,42 +1,59 @@
-## Easy proxy
+# Easy Proxy
 
-一个简单、高效的内网穿透工具
+[English](./README_en.md) | 中文
 
-## 开发
+一个简单、高效的内网穿透工具。
 
-### 环境要求
+## 项目简介
+
+Easy Proxy 是一个基于 Vert.x 开发的高性能内网穿透工具，支持 TCP 流量转发。它包含服务端、客户端和 Web 管理界面，旨在提供简单易用的内网穿透服务。
+
+## 项目结构
+
+- `easy-proxy-server`: 服务端，负责处理客户端连接、请求转发和 Web 管理 API。
+- `easy-proxy-client`: 客户端，部署在内网，负责与服务端建立连接并转发本地服务流量。
+- `easy-proxy-web`: Web 管理界面，基于 Vue 3 + Element Plus 开发。
+- `easy-proxy-common`: 公共模块，包含通用的工具类和数据模型。
+
+## 环境要求
 
 - JDK 17
 - Maven 3.6.0+
-- https://element-plus.org/zh-CN/
+- Node.js 20+ (用于 Web 端开发)
 
-### mvn命令
+## 快速开始
 
-```
-npm cache clear --force
-rm -rf node_modules
-rm -rf package-lock.json
-npm config set strict-ssl false
-```
+### 服务端部署 (Server)
 
-To launch your tests:
+```bash
+# api服务
+docker run -d \
+  --name easy-proxy-server \
+  --network host \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/data:/app/data \
+  easy-proxy-server
 
-```
-mvn clean test
-```
-
-To package your application:
-
-```
-mvn clean package
-```
-
-To run your application:
-
-```
-mvn clean compile exec:java
+# web管理界面
+docker run -d \
+  --name easy-proxy-web \
+  --network host \
+  easy-proxy-web
 ```
 
-## 业务流程
+### 客户端部署 (Client)
 
+```bash
+docker run -d \
+  --name easy-proxy-client \
+  --network host \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/data:/app/data \
+  easy-proxy-client
+```
 
+## 技术栈
+
+- **后端**: Java 17, Vert.x 4
+- **前端**: Vue 3, TypeScript, Element Plus, Vite
+- **构建工具**: Maven, npm

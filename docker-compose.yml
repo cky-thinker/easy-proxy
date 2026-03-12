@@ -1,0 +1,28 @@
+version: '3'
+services:
+  server:
+    build:
+      context: ./easy-proxy-server
+      dockerfile: Dockerfile
+    image: easy-proxy-server:latest
+    container_name: easy-proxy-server
+    ports:
+      - "10090:10090" # Proxy Port
+      - "10091:10091" # Web Manage Port
+    volumes:
+      - ./data:/app/data
+    restart: always
+
+  web:
+    build:
+      context: ./easy-proxy-web
+      dockerfile: Dockerfile
+    image: easy-proxy-web:latest
+    container_name: easy-proxy-web
+    ports:
+      - "10093:10093" # Web Interface Port
+    volumes:
+      - ./easy-proxy-web/nginx-docker.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - server
+    restart: always
