@@ -50,6 +50,7 @@ docker run -d \
 ### 客户端部署 (Client)
 
 ```bash
+# 客户端服务
 docker run -d \
   --name easy-proxy-client \
   --network host \
