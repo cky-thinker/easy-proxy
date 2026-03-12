@@ -30,7 +30,7 @@ public class DbInitTest {
     public void dataInit() {
         BeanContext beanContext = BeanContext.getInstance();
         com.cky.proxy.server.config.DatabaseProperty db = new com.cky.proxy.server.config.DatabaseProperty();
-        db.setUrl("jdbc:h2:~/easy-proxy/database");
+        db.setUrl("jdbc:h2:./data/database");
         db.setUsername("test");
         db.setPassword("test");
         com.cky.proxy.server.config.ConfigProperty.getInstance().setDb(db);
@@ -43,7 +43,7 @@ public class DbInitTest {
         TsHourReportDao hourDao = BeanContext.getTsHourReportDao();
         SysLogDao sysLogDao = BeanContext.getSysLogDao();
         
-        // 然后清空表数据
+        // 首先清空表数据
         try {
             TableUtils.clearTable(clientDao.getDao().getConnectionSource(), ProxyClient.class);
             TableUtils.clearTable(ruleDao.getDao().getConnectionSource(), ProxyClientRule.class);
@@ -118,7 +118,7 @@ public class DbInitTest {
             // 生成近24小时的小时级数据
             for (int h = 1; h <= 24; h++) {
                 cal.setTime(new Date());
-                cal.add(Calendar.HOUR_OF_DAY, -h);
+                cal.add(Calendar.HOUR_OF_DAY, h);
                 // 设置为该小时的59分59秒，模拟小时结束生成
                 cal.set(Calendar.MINUTE, 59);
                 cal.set(Calendar.SECOND, 59);

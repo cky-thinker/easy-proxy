@@ -1,7 +1,9 @@
 package com.cky.proxy.server;
 
+import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
+import com.cky.proxy.server.util.H2ConsoleBootstrap;
 import com.cky.proxy.server.util.CertGenerator;
 import com.cky.proxy.server.verticle.ProxyServerVerticle;
 import com.cky.proxy.server.verticle.WebManageVerticle;
@@ -44,5 +46,10 @@ public class ProxyServer {
                 log.error("WebManage start fail!", res.cause());
             }
         });
+
+        // 启动H2 Console
+        if (ConfigProperty.getInstance().getDb().isH2ConsoleEnable()) {
+            H2ConsoleBootstrap.startup();
+        }
     }
 }
