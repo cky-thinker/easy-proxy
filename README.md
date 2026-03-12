@@ -21,6 +21,13 @@ Easy Proxy 是一个基于 Vert.x 开发的高性能内网穿透工具，支持 
 - `easy-proxy-web`: Web 管理界面，基于 Vue 3 + Element Plus 开发。
 - `easy-proxy-common`: 公共模块，包含通用的工具类和数据模型。
 
+## 软件截图
+
+<p align="center">
+  <img src="./resources/images/page_login.jpeg" alt="登录页" width="48%">
+  <img src="./resources/images/page_dashboard.jpeg" alt="仪表盘" width="48%">
+</p>
+
 ## 环境要求
 
 - JDK 17

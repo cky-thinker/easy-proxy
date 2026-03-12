@@ -88,7 +88,6 @@ public class WebManageVerticle extends AbstractVerticle {
             int statusCode = ctx.statusCode();
             Throwable failure = ctx.failure();
             if (failure != null) {
-                failure.printStackTrace();
                 log.error("Request failed", failure);
             }
 

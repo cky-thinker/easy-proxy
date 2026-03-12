@@ -9,6 +9,7 @@ import com.cky.proxy.server.util.ResponseUtil;
 
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Map;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 
+@Slf4j
 public class DashboardController {
     private final Router router;
     private final ProxyClientService proxyClientService;
@@ -90,11 +92,12 @@ public class DashboardController {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String[] params = new String[] { sdf.format(start), sdf.format(end) };
             var res = dao.queryRaw(sql, params);
+            List<String[]> results = res.getResults();
             java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
 
             // 预取规则名称
             java.util.List<Integer> ruleIds = new java.util.ArrayList<>();
-            for (String[] row : res.getResults()) {
+            for (String[] row : results) {
                  ruleIds.add(Integer.valueOf(row[0]));
             }
             java.util.Map<Integer, String> ruleMap = new java.util.HashMap<>();
@@ -109,7 +112,7 @@ public class DashboardController {
                 }
             }
 
-            for (String[] row : res.getResults()) {
+            for (String[] row : results) {
                 Integer ruleId = Integer.valueOf(row[0]);
                 long total = Long.parseLong(row[1]);
                 String name = ruleMap.getOrDefault(ruleId, "规则" + ruleId);
@@ -121,7 +124,7 @@ public class DashboardController {
             }
             ResponseUtil.success(ctx, list);
         } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "Failed to load ranking: " + e.getMessage());
+            throw new RuntimeException("Failed to load traffic ranking", e);
         }
     }
 

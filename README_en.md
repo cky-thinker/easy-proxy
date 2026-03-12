@@ -21,6 +21,13 @@ Easy Proxy is a high-performance intranet penetration tool developed based on Ve
 - `easy-proxy-web`: Web management interface, developed with Vue 3 + Element Plus.
 - `easy-proxy-common`: Common module, contains shared utility classes and data models.
 
+## Screenshots
+
+<p align="center">
+  <img src="./resources/images/page_login.jpeg" alt="Login Page" width="48%">
+  <img src="./resources/images/page_dashboard.jpeg" alt="Dashboard Page" width="48%">
+</p>
+
 ## Requirements
 
 - JDK 17
