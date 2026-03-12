@@ -1,12 +1,18 @@
+English | [中文](./README.md)
+
 # Easy Proxy
 
-English | [中文](./README.md)
+<p align="center">
+  <img src="./resources/images/logo.png" alt="Easy Proxy Logo" width="200">
+</p>
 
 A simple and efficient intranet penetration tool.
 
 ## Introduction
 
 Easy Proxy is a high-performance intranet penetration tool developed based on Vert.x, supporting TCP traffic forwarding. It includes a server, a client, and a Web management interface, aiming to provide easy-to-use intranet penetration services.
+
+![Architecture](./resources/images/architecture.png)
 
 ## Project Structure
 

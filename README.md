@@ -1,12 +1,18 @@
+[English](./README_en.md) | 中文
+
 # Easy Proxy
 
-[English](./README_en.md) | 中文
+<p align="center">
+  <img src="./resources/images/logo.png" alt="Easy Proxy Logo" width="200">
+</p>
 
 一个简单、高效的内网穿透工具。
 
 ## 项目简介
 
 Easy Proxy 是一个基于 Vert.x 开发的高性能内网穿透工具，支持 TCP 流量转发。它包含服务端、客户端和 Web 管理界面，旨在提供简单易用的内网穿透服务。
+
+![Architecture](./resources/images/architecture.png)
 
 ## 项目结构
 
