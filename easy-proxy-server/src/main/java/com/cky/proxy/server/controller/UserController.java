@@ -14,6 +14,8 @@ import com.cky.proxy.server.util.JsonUtil;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 
+import lombok.SneakyThrows;
+
 import cn.hutool.core.util.StrUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -53,6 +55,7 @@ public class UserController {
         router.get("/api/users/permissions").handler(this::getPermissions);
     }
 
+    @SneakyThrows
     private void loginUser(RoutingContext ctx) {
         // 从请求体获取JSON数据
         String body = ctx.body().asString();
@@ -63,107 +66,82 @@ public class UserController {
         // 获取用户名、密码和验证码信息
         LoginReq loginReq = JsonUtil.parseJson(body, LoginReq.class);
 
-        try {
-            UserInfo userInfo = authService.login(loginReq);
-            ResponseUtil.response(ctx, Result.success(userInfo, "登录成功"));
-        } catch (Exception e) {
-            ResponseUtil.response(ctx, Result.error("登录失败: " + e.getMessage()));
-        }
+        UserInfo userInfo = authService.login(loginReq);
+        ResponseUtil.response(ctx, Result.success(userInfo, "登录成功"));
     }
 
+    @SneakyThrows
     private void captchaImage(RoutingContext ctx) {
-        try {
-            CaptchaImage captchaImage = authService.captchaImage();
-            // 返回验证码信息
-            ResponseUtil.response(ctx, Result.success(captchaImage, "获取验证码成功"));
-        } catch (Exception e) {
-            ResponseUtil.response(ctx, Result.error("生成验证码失败: " + e.getMessage()));
-        }
+        CaptchaImage captchaImage = authService.captchaImage();
+        // 返回验证码信息
+        ResponseUtil.response(ctx, Result.success(captchaImage, "获取验证码成功"));
     }
 
+    @SneakyThrows
     private void checkInit(RoutingContext ctx) {
-        try {
-            boolean needInit = authService.checkInit();
-            ResponseUtil.response(ctx, Result.success(needInit, "检查初始化状态成功"));
-        } catch (Exception e) {
-            ResponseUtil.response(ctx, Result.error("检查初始化状态失败: " + e.getMessage()));
-        }
+        boolean needInit = authService.checkInit();
+        ResponseUtil.response(ctx, Result.success(needInit, "检查初始化状态成功"));
     }
 
+    @SneakyThrows
     private void initUser(RoutingContext ctx) {
-        try {
-            SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
-            if (user == null) {
-                ResponseUtil.error(ctx, 400, "请求体不能为空");
-                return;
-            }
-            SysUser created = authService.initAdmin(user);
-            ResponseUtil.response(ctx, Result.success(created, "初始化系统管理员成功"));
-        } catch (Exception e) {
-            ResponseUtil.response(ctx, Result.error("初始化系统管理员失败: " + e.getMessage()));
+        SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+        if (user == null) {
+            ResponseUtil.error(ctx, 400, "请求体不能为空");
+            return;
         }
+        SysUser created = authService.initAdmin(user);
+        ResponseUtil.response(ctx, Result.success(created, "初始化系统管理员成功"));
     }
 
+    @SneakyThrows
     private void getConfig(RoutingContext routingcontext1) {
-        try {
-            ConfigProperty configProperty = ConfigProperty.getInstance();
-            HashMap<String, Object> map = new HashMap<>();
-            map.put("captchaImageEnable", configProperty.getServer().getCaptchaImageEnable());
-            ResponseUtil.response(routingcontext1, Result.success(map, "获取配置成功"));
-        } catch (Exception e) {
-            ResponseUtil.response(routingcontext1, Result.error("获取配置失败: " + e.getMessage()));
-        }
+        ConfigProperty configProperty = ConfigProperty.getInstance();
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("captchaImageEnable", configProperty.getServer().getCaptchaImageEnable());
+        ResponseUtil.response(routingcontext1, Result.success(map, "获取配置成功"));
     }
 
     // ===== 账户管理 =====
 
+    @SneakyThrows
     private void getUsersPageable(RoutingContext ctx) {
-        try {
-            Boolean enableFlag = RequestUtil.getParamBool(ctx, "enableFlag");
-            PageResult<SysUser> pageResult = authService.getUsersPageable(RequestUtil.getPage(ctx),
-                    ctx.request().getParam("q"), enableFlag);
+        Boolean enableFlag = RequestUtil.getParamBool(ctx, "enableFlag");
+        PageResult<SysUser> pageResult = authService.getUsersPageable(RequestUtil.getPage(ctx),
+                ctx.request().getParam("q"), enableFlag);
 
-            ResponseUtil.success(ctx, pageResult);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "查询账户失败: " + e.getMessage());
-        }
+        ResponseUtil.success(ctx, pageResult);
     }
 
+    @SneakyThrows
     private void getUserDetail(RoutingContext ctx) {
         Integer id = RequestUtil.getParamInt(ctx, "id");
         if (id == null) {
             ResponseUtil.error(ctx, 400, "缺少参数: id");
             return;
         }
-        try {
-            SysUser user = authService.getUserById(id);
-            if (user == null) {
-                ResponseUtil.error(ctx, 404, "账号不存在");
-                return;
-            }
-            ResponseUtil.success(ctx, user);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "获取账户详情失败: " + e.getMessage());
+        SysUser user = authService.getUserById(id);
+        if (user == null) {
+            ResponseUtil.error(ctx, 404, "账号不存在");
+            return;
         }
+        ResponseUtil.success(ctx, user);
     }
 
+    @SneakyThrows
     private void addUser(RoutingContext ctx) {
-        try {
-            SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
-            if (user == null) {
-                ResponseUtil.error(ctx, 400, "请求体不能为空");
-                return;
-            }
-            SysUser created = authService.createUser(user);
-            ResponseUtil.success(ctx, created);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "创建账户失败: " + e.getMessage());
+        SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+        if (user == null) {
+            ResponseUtil.error(ctx, 400, "请求体不能为空");
+            return;
         }
+        SysUser created = authService.createUser(user);
+        ResponseUtil.success(ctx, created);
     }
 
+    @SneakyThrows
     private void updateUser(RoutingContext ctx) {
-        try {
-            SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+        SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
         if (user == null) {
             ResponseUtil.error(ctx, 400, "请求体不能为空");
             return;
@@ -172,77 +150,59 @@ public class UserController {
             ResponseUtil.error(ctx, 400, "请求体缺少 id");
             return;
         }
-            SysUser updated = authService.updateUser(user);
-            ResponseUtil.success(ctx, updated);
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "id 格式错误");
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "更新账户失败: " + e.getMessage());
-        }
+        SysUser updated = authService.updateUser(user);
+        ResponseUtil.success(ctx, updated);
     }
 
+    @SneakyThrows
     private void resetPassword(RoutingContext ctx) {
-        try {
-            SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
-            if (user == null) {
-                ResponseUtil.error(ctx, 400, "请求体不能为空");
-                return;
-            }
-            if (user.getId() == null || user.getPassword() == null) {
-                ResponseUtil.error(ctx, 400, "请求体缺少 id 或 password");
-                return;
-            }
-            SysUser updated = authService.resetPassword(user.getId(), user.getPassword());
-            ResponseUtil.success(ctx, updated);
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "id 格式错误");
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "重置密码失败: " + e.getMessage());
+        SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+        if (user == null) {
+            ResponseUtil.error(ctx, 400, "请求体不能为空");
+            return;
         }
+        if (user.getId() == null || user.getPassword() == null) {
+            ResponseUtil.error(ctx, 400, "请求体缺少 id 或 password");
+            return;
+        }
+        SysUser updated = authService.resetPassword(user.getId(), user.getPassword());
+        ResponseUtil.success(ctx, updated);
     }
 
+    @SneakyThrows
     private void deleteUser(RoutingContext ctx) {
-        try {
-            Integer id = RequestUtil.getParamInt(ctx, "id");
-            if (id == null) {
-                ResponseUtil.error(ctx, 400, "缺少参数: id");
-                return;
-            }
-            boolean ok = authService.deleteUser(id);
-            if (!ok) {
-                ResponseUtil.error(ctx, 404, "删除失败");
-                return;
-            }
-            ResponseUtil.success(ctx, null);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "删除账户失败: " + e.getMessage());
+        Integer id = RequestUtil.getParamInt(ctx, "id");
+        if (id == null) {
+            ResponseUtil.error(ctx, 400, "缺少参数: id");
+            return;
         }
+        boolean ok = authService.deleteUser(id);
+        if (!ok) {
+            ResponseUtil.error(ctx, 404, "删除失败");
+            return;
+        }
+        ResponseUtil.success(ctx, null);
     }
 
+    @SneakyThrows
     private void updateEnableFlag(RoutingContext ctx) {
-        try {
-            SysUser sysUser = RequestUtil.getBodyObj(ctx, SysUser.class);
-            if (sysUser == null) {
-                ResponseUtil.error(ctx, 400, "请求体不能为空");
-                return;
-            }
-            Integer id = sysUser.getId();
-            if (id == null) {
-                ResponseUtil.error(ctx, 400, "请求体缺少 id");
-                return;
-            }
-            Boolean enableFlag = sysUser.getEnableFlag();
-            if (enableFlag == null) {
-                ResponseUtil.error(ctx, 400, "请求体缺少 enableFlag");
-                return;
-            }
-            SysUser user = authService.updateEnableFlag(id, enableFlag);
-            ResponseUtil.success(ctx, user);
-        } catch (NumberFormatException e) {
-            ResponseUtil.error(ctx, 400, "id 格式错误");
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "更新状态失败: " + e.getMessage());
+        SysUser sysUser = RequestUtil.getBodyObj(ctx, SysUser.class);
+        if (sysUser == null) {
+            ResponseUtil.error(ctx, 400, "请求体不能为空");
+            return;
         }
+        Integer id = sysUser.getId();
+        if (id == null) {
+            ResponseUtil.error(ctx, 400, "请求体缺少 id");
+            return;
+        }
+        Boolean enableFlag = sysUser.getEnableFlag();
+        if (enableFlag == null) {
+            ResponseUtil.error(ctx, 400, "请求体缺少 enableFlag");
+            return;
+        }
+        SysUser user = authService.updateEnableFlag(id, enableFlag);
+        ResponseUtil.success(ctx, user);
     }
 
     private void getPermissions(RoutingContext ctx) {

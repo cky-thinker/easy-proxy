@@ -9,6 +9,7 @@ import com.cky.proxy.server.util.ResponseUtil;
 
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -38,8 +39,8 @@ public class DashboardController {
         router.get("/api/dashboard/recentActivities").handler(this::getRecentActivities);
     }
 
+    @SneakyThrows
     private void getDashboardStats(RoutingContext ctx) {
-        try {
             List<ProxyClient> clients = proxyClientService.getProxyClients();
             int online = 0, offline = 0;
             for (ProxyClient c : clients) {
@@ -57,14 +58,11 @@ public class DashboardController {
             data.put("downloadSpeed", TrafficStatisticManager.getTotalDownloadSpeed());
 
             ResponseUtil.success(ctx, data);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "Failed to load dashboard stats: " + e.getMessage());
-        }
     }
 
+    @SneakyThrows
     private void getTrafficRanking(RoutingContext ctx) {
-        try {
-            String period = ctx.request().getParam("period");
+        String period = ctx.request().getParam("period");
             if (period == null || period.isEmpty())
                 period = "day";
             java.util.Calendar cal = java.util.Calendar.getInstance();
@@ -123,13 +121,10 @@ public class DashboardController {
                 list.add(item);
             }
             ResponseUtil.success(ctx, list);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load traffic ranking", e);
-        }
     }
 
+    @SneakyThrows
     private void getTrafficTrend(RoutingContext ctx) {
-        try {
             String period = ctx.request().getParam("period");
             if (period == null || period.isEmpty())
                 period = "day";
@@ -174,13 +169,10 @@ public class DashboardController {
                 data.add(item);
             }
             ResponseUtil.success(ctx, data);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "Failed to load trend: " + e.getMessage());
-        }
     }
 
+    @SneakyThrows
     private void getRecentActivities(RoutingContext ctx) {
-        try {
             // 取最近10条系统日志
             var page = new cn.hutool.db.Page(0, 5);
             var service = new com.cky.proxy.server.service.SysLogService();
@@ -194,8 +186,5 @@ public class DashboardController {
                 list.add(item);
             }
             ResponseUtil.success(ctx, list);
-        } catch (Exception e) {
-            ResponseUtil.error(ctx, 500, "Failed to load activities: " + e.getMessage());
-        }
     }
 }
