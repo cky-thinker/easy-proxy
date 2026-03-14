@@ -27,6 +27,7 @@ public class ProxyServer {
 
         Vertx vertx = Vertx.vertx();
         EventBusUtil.init(vertx);
+        BeanContext.getInstance().initUserService(vertx);
         vertx.exceptionHandler(t -> {
             log.error(t.getMessage(), t);
         });

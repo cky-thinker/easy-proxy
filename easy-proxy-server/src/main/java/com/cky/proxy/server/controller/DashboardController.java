@@ -29,8 +29,8 @@ public class DashboardController {
 
     public DashboardController(Router router) {
         this.router = router;
-        this.proxyClientService = new ProxyClientService();
-        this.proxyClientRuleService = new ProxyClientRuleService();
+        this.proxyClientService = BeanContext.getProxyClientService();
+        this.proxyClientRuleService = BeanContext.getProxyClientRuleService();
         initRoutes();
     }
 
@@ -157,7 +157,7 @@ public class DashboardController {
     private void getRecentActivities(RoutingContext ctx) {
             // 取最近10条系统日志
             var page = new cn.hutool.db.Page(0, 5);
-            var service = new com.cky.proxy.server.service.SysLogService();
+            var service = BeanContext.getSysLogService();
             var result = service.getSysLogsPageable(page, null, null);
             java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
             for (var log : result.getList()) {

@@ -9,12 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.consts.AddGroup;
 import com.cky.proxy.server.consts.UpdateGroup;
-import com.cky.proxy.server.domain.dto.ExtendedProxyClient;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.dto.SseEvent;
 import com.cky.proxy.server.domain.entity.ProxyClient;
-import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientService;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.util.JsonUtil;
 import com.cky.proxy.server.util.RequestUtil;
@@ -33,14 +32,12 @@ public class ProxyClientController {
     private final Router router;
     private final Vertx vertx;
     private final ProxyClientService proxyClientService;
-    private final com.cky.proxy.server.service.ProxyClientRuleService proxyClientRuleService;
     private final Set<HttpServerResponse> sseConnections = ConcurrentHashMap.newKeySet();
 
     public ProxyClientController(Router router, Vertx vertx) {
         this.router = router;
         this.vertx = vertx;
-        this.proxyClientService = new ProxyClientService();
-        this.proxyClientRuleService = new com.cky.proxy.server.service.ProxyClientRuleService();
+        this.proxyClientService = BeanContext.getProxyClientService();
         initRoutes();
         initEventBus();
     }
@@ -114,29 +111,12 @@ public class ProxyClientController {
         PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, params.get("q"),
                 params.get("status"), getParamBool(ctx, "enableFlag"));
 
-        java.util.List<ExtendedProxyClient> extendedList = new java.util.ArrayList<>();
-        for (ProxyClient client : result.getList()) {
-            ExtendedProxyClient ext = new ExtendedProxyClient();
-            ext.setId(client.getId());
-            ext.setName(client.getName());
-            ext.setToken(client.getToken());
-            ext.setStatus(client.getStatus());
-            ext.setEnableFlag(client.getEnableFlag());
-            ext.setCreateBy(client.getCreateBy());
-            ext.setCreateTime(client.getCreateTime());
-            ext.setUpdateBy(client.getUpdateBy());
-            ext.setUpdateTime(client.getUpdateTime());
-            java.util.List<ProxyClientRule> rules = proxyClientRuleService.getProxyClientRules(client.getId());
-            ext.setProxyRules(rules);
-            extendedList.add(ext);
-        }
-
-        PageResult<ExtendedProxyClient> extendedPage = new PageResult<>(
+        PageResult<ProxyClient> extendedPage = new PageResult<>(
                 result.getPage(),
                 result.getPageSize(),
                 result.getTotalPage(),
                 result.getTotal(),
-                extendedList);
+                result.getList());
         ResponseUtil.success(ctx, extendedPage);
     }
 

@@ -7,6 +7,7 @@ import com.cky.proxy.server.consts.UpdateGroup;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.service.ProxyClientRuleService;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
@@ -28,7 +29,7 @@ public class ProxyClientRuleController {
     public ProxyClientRuleController(Router router, Vertx vertx) {
         this.router = router;
         this.vertx = vertx;
-        this.proxyClientRuleService = new ProxyClientRuleService();
+        this.proxyClientRuleService = BeanContext.getProxyClientRuleService();
         initRoutes();
     }
 

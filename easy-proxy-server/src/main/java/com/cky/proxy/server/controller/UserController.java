@@ -10,6 +10,7 @@ import com.cky.proxy.server.domain.dto.Result;
 import com.cky.proxy.server.domain.dto.UserInfo;
 import com.cky.proxy.server.domain.entity.SysUser;
 import com.cky.proxy.server.service.UserService;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.JsonUtil;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
@@ -29,7 +30,7 @@ public class UserController {
 
     public UserController(Router router, Vertx vertx) {
         this.router = router;
-        this.authService = new UserService(vertx);
+        this.authService = BeanContext.getUserService();
         initRoutes();
     }
 

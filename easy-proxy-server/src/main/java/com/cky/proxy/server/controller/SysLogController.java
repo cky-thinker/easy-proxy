@@ -4,6 +4,7 @@ import cn.hutool.db.Page;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.SysLog;
 import com.cky.proxy.server.service.SysLogService;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 import io.vertx.ext.web.Router;
@@ -17,7 +18,7 @@ public class SysLogController {
 
     public SysLogController(Router router) {
         this.router = router;
-        this.sysLogService = new SysLogService();
+        this.sysLogService = BeanContext.getSysLogService();
         initRoutes();
     }
 

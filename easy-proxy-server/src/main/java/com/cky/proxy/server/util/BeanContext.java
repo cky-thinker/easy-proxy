@@ -16,7 +16,11 @@ import com.cky.proxy.server.mapper.TsHourReportMapper;
 import com.cky.proxy.server.mapper.TsReportMapper;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
+import com.cky.proxy.server.service.SysLogService;
+import com.cky.proxy.server.service.TrafficStatisticService;
+import com.cky.proxy.server.service.UserService;
 
+import io.vertx.core.Vertx;
 import lombok.Data;
 
 import org.apache.ibatis.jdbc.ScriptRunner;
@@ -43,6 +47,9 @@ public class BeanContext {
     // 服务实例
     private ProxyClientService proxyClientService;
     private ProxyClientRuleService proxyClientRuleService;
+    private SysLogService sysLogService;
+    private TrafficStatisticService trafficStatisticService;
+    private UserService userService;
 
     private BeanContext() {
     }
@@ -97,6 +104,18 @@ public class BeanContext {
         return instance.proxyClientRuleService;
     }
 
+    public static SysLogService getSysLogService() {
+        return instance.sysLogService;
+    }
+
+    public static TrafficStatisticService getTrafficStatisticService() {
+        return instance.trafficStatisticService;
+    }
+
+    public static UserService getUserService() {
+        return instance.userService;
+    }
+
     /**
      * 初始化所有数据库表
      */
@@ -120,6 +139,14 @@ public class BeanContext {
     private void initializeService() {
         proxyClientService = new ProxyClientService();
         proxyClientRuleService = new ProxyClientRuleService();
+        sysLogService = new SysLogService();
+        trafficStatisticService = new TrafficStatisticService();
+    }
+
+    public void initUserService(Vertx vertx) {
+        if (userService == null) {
+            userService = new UserService(vertx);
+        }
     }
 
     private void initializeMapper() {

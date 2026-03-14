@@ -9,6 +9,7 @@ import com.cky.proxy.server.domain.entity.TsDayReport;
 import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.cky.proxy.server.service.TrafficStatisticService;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 
@@ -25,7 +26,7 @@ public class TrafficStatisticController {
 
     public TrafficStatisticController(Router router) {
         this.router = router;
-        this.statisticService = new TrafficStatisticService();
+        this.statisticService = BeanContext.getTrafficStatisticService();
         initRoutes();
     }
 

@@ -1,13 +1,12 @@
 package com.cky.proxy.server.domain.entity;
 
+import java.util.Date;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.cky.proxy.server.consts.AddGroup;
-import com.cky.proxy.server.consts.UpdateGroup;
 
-import java.util.Date;
 import lombok.Data;
 
 /**
