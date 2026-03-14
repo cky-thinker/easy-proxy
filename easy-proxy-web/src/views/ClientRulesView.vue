@@ -64,10 +64,15 @@
               <TagEnableFlag :value="row.enableFlag" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="220" fixed="right">
+          <el-table-column label="操作" width="300" align="center">
             <template #default="{ row }">
+              <el-button type="primary" text @click="openDetails(row)">流量分析</el-button>
               <el-button type="primary" text @click="openEditRuleModal(row)">编辑</el-button>
-              <el-button type="info" text @click="openDetails(row)">详情</el-button>
+              <el-popconfirm title="确认删除该规则？" @confirm="deleteRuleAction(row)">
+                <template #reference>
+                  <el-button type="danger" text>删除</el-button>
+                </template>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
@@ -171,7 +176,7 @@
 <script setup lang="ts">
 import type { ExtendedProxyClientConfig } from '@/api/proxyClient'
 import { getAllClients } from '@/api/proxyClient'
-import { addClientRule, getClientRulesPage, updateClientRule, getRuleRealtimeTraffic, getRuleTrafficTrend } from '@/api/proxyClientRule'
+import { addClientRule, getClientRulesPage, updateClientRule, getRuleRealtimeTraffic, getRuleTrafficTrend, deleteClientRule } from '@/api/proxyClientRule'
 import type { ProxyRule, RuleRealtimeTraffic, TrafficTrend } from '@/api/types'
 
 
@@ -397,6 +402,22 @@ const saveEditRule = async () => {
   } catch (e) {
     console.error('更新规则失败', e)
     showToast('更新失败，请稍后重试', 'error')
+  }
+}
+
+const deleteRuleAction = async (rule: ProxyRule) => {
+  try {
+    if (!rule.id) return
+    // clientId is not strictly needed by the API but required by the function signature
+    const clientId = rule.proxyClientId || 0
+    await deleteClientRule(clientId, rule.id)
+    await reload()
+    showToast('删除成功', 'success')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除规则失败:', error)
+      showToast('删除失败', 'error')
+    }
   }
 }
 

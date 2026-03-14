@@ -103,7 +103,7 @@ export const updateClient = async (
 
 // 删除客户端
 export const deleteClient = async (id: number): Promise<void> => {
-  await apiClient.delete(`/api/proxyClient/${id}`)
+  await apiClient.delete(`/api/proxyClient`, { params: { id } })
 }
 
 // 切换客户端状态（后端未提供单独切换状态端点，使用更新接口）

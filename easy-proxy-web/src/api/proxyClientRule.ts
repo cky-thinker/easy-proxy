@@ -33,7 +33,7 @@ export const updateClientRule = async (_clientId: number, ruleId: number, rule: 
 
 // 删除代理规则
 export const deleteClientRule = async (_clientId: number, ruleId: number): Promise<void> => {
-  await apiClient.delete(`/api/proxyClientRule/${ruleId}`)
+  await apiClient.delete(`/api/proxyClientRule`, { params: { id: ruleId } })
 }
 
 // 获取规则实时流量
