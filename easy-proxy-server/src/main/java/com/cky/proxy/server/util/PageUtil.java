@@ -20,7 +20,10 @@ public class PageUtil {
         
         if (page.getOrders() != null) {
             for (Order order : page.getOrders()) {
-                mybatisPage.addOrder(new OrderItem(order.getField(), order.getDirection() == Direction.ASC));
+                OrderItem item = new OrderItem();
+                item.setColumn(order.getField());
+                item.setAsc(order.getDirection() == Direction.ASC);
+                mybatisPage.addOrder(item);
             }
         }
         return mybatisPage;

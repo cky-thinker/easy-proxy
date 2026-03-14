@@ -76,7 +76,7 @@ public class DashboardController {
         if ("day".equals(period)) {
             cal.add(java.util.Calendar.HOUR_OF_DAY, -24);
             start = cal.getTime();
-            results = BeanContext.getTsHourReportDao().getTrafficRanking(start, end, 5);
+            results = BeanContext.getTsHourReportMapper().selectTrafficRanking(start, end, 5);
         } else {
             if ("week".equals(period)) {
                 cal.add(java.util.Calendar.DAY_OF_MONTH, -7);
@@ -84,7 +84,7 @@ public class DashboardController {
                 cal.add(java.util.Calendar.DAY_OF_MONTH, -30);
             }
             start = cal.getTime();
-            results = BeanContext.getTsDayReportDao().getTrafficRanking(start, end, 5);
+            results = BeanContext.getTsDayReportMapper().selectTrafficRanking(start, end, 5);
         }
         
         java.util.List<Map<String, Object>> list = new java.util.ArrayList<>();
@@ -124,7 +124,7 @@ public class DashboardController {
         if ("day".equals(period)) {
             cal.add(java.util.Calendar.DAY_OF_MONTH, -1);
             start = cal.getTime();
-            results = BeanContext.getTsHourReportDao().getTrafficTrend(start, end);
+            results = BeanContext.getTsHourReportMapper().selectTrafficTrend(start, end);
         } else {
             if ("week".equals(period)) {
                 cal.add(java.util.Calendar.DAY_OF_MONTH, -7);
@@ -137,7 +137,7 @@ public class DashboardController {
             cal.set(java.util.Calendar.SECOND, 0);
             cal.set(java.util.Calendar.MILLISECOND, 0);
             start = cal.getTime();
-            results = BeanContext.getTsDayReportDao().getTrafficTrend(start, end);
+            results = BeanContext.getTsDayReportMapper().selectTrafficTrend(start, end);
         }
         
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

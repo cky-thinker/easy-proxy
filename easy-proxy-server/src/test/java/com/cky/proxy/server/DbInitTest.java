@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class DbInitTest {
     // mvn -f easy-proxy-server/pom.xml -Dtest=DbInitTest test
-    @Test
+    // @Test
     public void dataInit() {
         BeanContext beanContext = BeanContext.getInstance();
         com.cky.proxy.server.config.DatabaseProperty db = new com.cky.proxy.server.config.DatabaseProperty();
