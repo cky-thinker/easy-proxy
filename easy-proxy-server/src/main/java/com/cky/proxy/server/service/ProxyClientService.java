@@ -222,8 +222,8 @@ public class ProxyClientService {
     private void validateTokenFormat(String token) {
         if (token == null)
             return;
-        if (!token.matches("^[0-9a-fA-F]{64}$")) {
-            throw new RuntimeException("Token 必须为64位十六进制字符串");
+        if (!token.matches("^[0-9a-fA-F]{32}$")) {
+            throw new RuntimeException("Token 必须为32位十六进制字符串");
         }
     }
 

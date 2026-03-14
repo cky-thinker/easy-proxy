@@ -52,7 +52,7 @@ export const getRuleTrafficTrend = async (
   let url = ''
   const params: any = { 
     proxyClientRuleId: ruleId,
-    pageSize: 1000,
+    pageSize: 30,
     page: 1 // Assuming default page is 1
   }
   

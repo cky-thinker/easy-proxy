@@ -66,18 +66,6 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="规则" width="150">
-            <template #default="{ row }">
-              <div class="flex items-center space-x-2">
-                <span>{{ row.proxyRules?.length || 0 }}条</span>
-                <el-button type="primary" text @click="goToRulesPage(row)">
-                  <el-icon>
-                    <Edit />
-                  </el-icon>
-                </el-button>
-              </div>
-            </template>
-          </el-table-column>
           <el-table-column label="操作" width="350" fixed="right" header-align="center" align="center">
             <template #default="{ row }">
               <el-button type="primary" text @click="openEditModal(row)">编辑</el-button>
@@ -106,7 +94,7 @@
           <el-input v-model="currentClient.name" placeholder="请输入客户端名称" class="w-full" />
         </el-form-item>
         <el-form-item label="Token" prop="token">
-          <div class="flex items-center space-x-2">
+          <div class="flex items-center space-x-2 w-full">
             <el-input v-model="currentClient.token" placeholder="请输入Token" class="flex-1" />
             <el-button type="default" @click="generateToken">生成</el-button>
           </div>
@@ -170,8 +158,8 @@ const clientFormRules: FormRules = {
     {
       validator: (_rule, value, callback) => {
         if (!value) return callback()
-        const hex64 = /^[0-9a-fA-F]{64}$/
-        if (!hex64.test(value)) callback(new Error('Token 必须为 64 位十六进制字符串'))
+        const hex32 = /^[0-9a-fA-F]{32}$/
+        if (!hex32.test(value)) callback(new Error('Token 必须为 32 位十六进制字符串'))
         else callback()
       },
       trigger: ['blur', 'change']
@@ -383,9 +371,9 @@ const onCurrentPageChange = async (page: number) => {
   await onPageChange(page - 1)
 }
 
-// 生成64位随机字符串（使用32字节的十六进制表示）
+// 生成32位随机字符串（使用16字节的十六进制表示）
 const generateToken = () => {
-  const bytes = new Uint8Array(32)
+  const bytes = new Uint8Array(16)
   crypto.getRandomValues(bytes)
   currentClient.value.token = Array.from(bytes)
     .map(b => b.toString(16).padStart(2, '0'))
