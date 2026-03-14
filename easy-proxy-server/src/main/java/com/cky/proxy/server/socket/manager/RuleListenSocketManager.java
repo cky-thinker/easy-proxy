@@ -1,13 +1,10 @@
 package com.cky.proxy.server.socket.manager;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import cn.hutool.core.map.BiMap;
-import io.vertx.core.impl.ConcurrentHashSet;
 import io.vertx.core.net.NetServer;
 import io.vertx.core.net.NetSocket;
 
@@ -18,8 +15,8 @@ public class RuleListenSocketManager {
     // 服务端规则监听socket
     private final static Map<Integer, NetServer> ruleListenSocketMap = new ConcurrentHashMap<>();
     // 服务端用户连接socket
-    private final static BiMap<String, NetSocket> userIdUserSocketMap = new BiMap<>(new HashMap<>());
-    private final static BiMap<String, String> userIdRuleIdMap = new BiMap<>(new HashMap<>());
+    private final static Map<String, NetSocket> userIdUserSocketMap = new ConcurrentHashMap<>();
+    private final static Map<String, String> userIdRuleIdMap = new ConcurrentHashMap<>();
 
     /**
      * 根据规则ID获取用户连接监听socket
@@ -75,6 +72,10 @@ public class RuleListenSocketManager {
     }
 
     public static Set<String> getOnlineUsers(Integer ruleId) {
-        return userIdRuleIdMap.values().stream().filter(value -> value.equals(ruleId.toString())).collect(Collectors.toSet());
+        String ruleIdStr = ruleId.toString();
+        return userIdRuleIdMap.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(ruleIdStr))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
     }
 }

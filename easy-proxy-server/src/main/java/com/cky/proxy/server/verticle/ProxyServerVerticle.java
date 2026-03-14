@@ -143,20 +143,23 @@ public class ProxyServerVerticle extends AbstractVerticle {
     private void stopRuleServer(Integer ruleId, Runnable completionHandler) {
         // 关闭规则端口监听
         NetServer server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
-        if (server == null) {
-            return;
-        }
-        server.close(res -> {
-            if (res.succeeded()) {
-                log.info("Stopped server for rule {}", ruleId);
-            } else {
-                log.error("Failed to stop server for rule {}", ruleId, res.cause());
-            }
+        if (server != null) {
+            server.close(res -> {
+                if (res.succeeded()) {
+                    log.info("Stopped server for rule {}", ruleId);
+                } else {
+                    log.error("Failed to stop server for rule {}", ruleId, res.cause());
+                }
+                if (completionHandler != null) {
+                    completionHandler.run();
+                }
+            });
+        } else {
             if (completionHandler != null) {
                 completionHandler.run();
             }
-        });
-        
+        }
+
         // TODO 根据规则关闭用户连接通道 Repeat
         Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
         if (userIds != null) {
