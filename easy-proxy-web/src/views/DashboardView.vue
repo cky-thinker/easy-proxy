@@ -269,6 +269,9 @@ const subscribeSSE = () => {
     }
     return read()
   }).catch(err => {
+    if (err.name === 'AbortError') {
+      return
+    }
     console.error('SSE订阅失败:', err)
     if (!controller.signal.aborted) {
       setTimeout(() => subscribeSSE(), 2000)
@@ -279,14 +282,14 @@ const subscribeSSE = () => {
 onMounted(() => {
   loadDashboardData()
   subscribeSSE()
-  // 每秒刷新统计数据
+  // 每5秒刷新统计数据
   statsTimer.value = window.setInterval(async () => {
     try {
       stats.value = await getDashboardStats()
     } catch (e) {
       // ignore error
     }
-  }, 1000)
+  }, 5000)
 })
 
 onUnmounted(() => {
