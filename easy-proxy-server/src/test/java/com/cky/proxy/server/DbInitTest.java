@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 public class DbInitTest {
+    // mvn -f easy-proxy-server/pom.xml -Dtest=DbInitTest test
     @Test
     public void dataInit() {
         BeanContext beanContext = BeanContext.getInstance();
@@ -44,6 +45,7 @@ public class DbInitTest {
         SysLogDao sysLogDao = BeanContext.getSysLogDao();
         
         // 首先清空表数据
+        log.info("首先清空表数据");
         try {
             TableUtils.clearTable(clientDao.getDao().getConnectionSource(), ProxyClient.class);
             TableUtils.clearTable(ruleDao.getDao().getConnectionSource(), ProxyClientRule.class);
@@ -55,6 +57,7 @@ public class DbInitTest {
             log.error("清空表数据失败", e);
         }
 
+        log.info("生成客户端");
         List<ProxyClient> clients = new ArrayList<>();
         for (int i = 1; i <= 15; i++) {
             ProxyClient c = new ProxyClient();
@@ -68,6 +71,7 @@ public class DbInitTest {
             clients.add(c);
         }
 
+        log.info("生成客户端规则");
         List<ProxyClientRule> rules = new ArrayList<>();
         int portBase = 8000;
         int ipBase = 100;
@@ -87,6 +91,7 @@ public class DbInitTest {
             }
         }
 
+        log.info("生成客户端规则的天级数据");
         Calendar cal = Calendar.getInstance(TimeZone.getDefault());
         for (ProxyClientRule rule : rules) {
             // 生成近30日的天级数据（涵盖近7日和近30日）
@@ -112,7 +117,8 @@ public class DbInitTest {
                 dayDao.insert(dr);
             }
         }
-
+        log.info("生成客户端规则的小时级数据");
+        
         for (ProxyClientRule rule : rules) {
             if (!rule.getEnableFlag()) continue;
             // 生成近24小时的小时级数据
@@ -137,7 +143,7 @@ public class DbInitTest {
                 hourDao.insert(hr);
             }
         }
-
+        log.info("生成客户端规则的总统计数据");
         for (ProxyClientRule rule : rules) {
             // 生成总统计数据
             long up = rule.getEnableFlag() ? ThreadLocalRandom.current().nextLong(50_000_000L, 500_000_000L) : 0L;
@@ -151,7 +157,8 @@ public class DbInitTest {
             report.setUpdateTime(new Date());
             reportDao.insert(report);
         }
-
+        log.info("生成系统日志");
+        
         String[] msgs = new String[] {
                 "系统启动完成",
                 "新增代理规则：端口8080",

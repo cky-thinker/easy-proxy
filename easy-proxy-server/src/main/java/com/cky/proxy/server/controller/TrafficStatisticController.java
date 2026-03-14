@@ -83,8 +83,7 @@ public class TrafficStatisticController {
         Integer proxyClientRuleId = RequestUtil.getParamInt(ctx, "proxyClientRuleId");
         Date startDate = RequestUtil.getParamDate(ctx, "startDate");
         Date endDate = RequestUtil.getParamDate(ctx, "endDate");
-        PageResult<TsDayReport> result = statisticService.getDayReportsPageable(page, proxyClientRuleId,
-                startDate, endDate);
+        PageResult<TsDayReport> result = statisticService.getDayReportsPageable(page, proxyClientRuleId,startDate, endDate);
         ResponseUtil.success(ctx, result);
     }
 
