@@ -61,7 +61,11 @@
           <el-table-column prop="clientAddress" label="转发地址" min-width="320" />
           <el-table-column label="启用状态" width="140">
             <template #default="{ row }">
-              <TagEnableFlag :value="row.enableFlag" />
+              <el-switch
+                v-model="row.enableFlag"
+                :loading="(row as any).statusLoading"
+                @change="(val: any) => handleEnableChange(row, val as boolean)"
+              />
             </template>
           </el-table-column>
           <el-table-column label="操作" width="300" align="center">
@@ -180,7 +184,6 @@ import { addClientRule, getClientRulesPage, updateClientRule, getRuleRealtimeTra
 import type { ProxyRule, RuleRealtimeTraffic, TrafficTrend } from '@/api/types'
 
 
-import TagEnableFlag from '@/components/TagEnableFlag.vue'
 import TrafficChart from '@/components/TrafficChart.vue'
 import PageIllustration from '@/components/PageIllustration.vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -402,6 +405,27 @@ const saveEditRule = async () => {
   } catch (e) {
     console.error('更新规则失败', e)
     showToast('更新失败，请稍后重试', 'error')
+  }
+}
+
+const handleEnableChange = async (row: ProxyRule, val: boolean) => {
+  try {
+    (row as any).statusLoading = true
+    await updateClientRule(row.proxyClientId || 0, row.id!, {
+      name: row.name,
+      serverPort: row.serverPort!,
+      clientAddress: row.clientAddress,
+      enableFlag: val,
+      limitConn: row.limitConn,
+      limitRate: row.limitRate
+    })
+    showToast('状态更新成功', 'success')
+  } catch (e) {
+    console.error('状态更新失败', e)
+    showToast('状态更新失败，请稍后重试', 'error')
+    row.enableFlag = !val
+  } finally {
+    (row as any).statusLoading = false
   }
 }
 
