@@ -194,11 +194,6 @@ const resetForm = () => {
 // 客户端操作
 const deleteClientAction = async (client: ProxyClientConfig) => {
   try {
-    await ElMessageBox.confirm(`确定要删除客户端 \"${client.name}\" 吗？`, '提示', {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
     await deleteClientApi((client as any).id as number)
     await loadClients()
     showToast('删除成功', 'success')

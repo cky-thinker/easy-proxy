@@ -96,10 +96,6 @@ public class ProxyClientRuleController {
         // 保存到数据库
         ProxyClientRule newRule = proxyClientRuleService.addProxyClientRule(rule);
 
-        if (newRule != null) {
-            EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, newRule.getId());
-        }
-
         // 返回成功响应
         ResponseUtil.success(ctx, newRule);
     }
@@ -112,10 +108,6 @@ public class ProxyClientRuleController {
         }
         ValidateUtil.validate(rule, UpdateGroup.class);
         ProxyClientRule existingRule = proxyClientRuleService.updateProxyClientRule(rule);
-
-        if (existingRule != null) {
-            EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, existingRule.getId());
-        }
 
         // 返回成功响应
         ResponseUtil.success(ctx, existingRule);
@@ -135,8 +127,6 @@ public class ProxyClientRuleController {
             ResponseUtil.error(ctx, 404, "Proxy client rule not found");
             return;
         }
-
-        EventBusUtil.publish(EventBusUtil.DB_RULE_DELETE, id);
 
         // 返回成功响应
         ResponseUtil.success(ctx, null);

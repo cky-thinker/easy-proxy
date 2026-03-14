@@ -157,9 +157,6 @@ public class ProxyClientController {
         }
         ValidateUtil.validate(proxyClient, UpdateGroup.class);
         ProxyClient updated = proxyClientService.updateProxyClient(proxyClient);
-        if (updated != null) {
-            EventBusUtil.publish(EventBusUtil.DB_CLIENT_UPDATE, updated.getId());
-        }
         ResponseUtil.success(ctx, updated);
     }
 
@@ -174,7 +171,6 @@ public class ProxyClientController {
             ResponseUtil.error(ctx, 404, "Proxy client not found");
             return;
         }
-        EventBusUtil.publish(EventBusUtil.DB_CLIENT_DELETE, id);
         ResponseUtil.success(ctx, null);
     }
 }
