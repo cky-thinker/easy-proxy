@@ -17,6 +17,11 @@
         <appender-ref ref="console"/>
     </logger>
 
+    <!-- SQL Log -->
+    <logger name="com.cky.proxy.server.mapper" level="DEBUG" additivity="false">
+        <appender-ref ref="console"/>
+    </logger>
+
     <!-- ORMLite SQL 打印：启用 TRACE 级别 -->
     <logger name="com.j256.ormlite" level="INFO" additivity="false">
         <appender-ref ref="console"/>
