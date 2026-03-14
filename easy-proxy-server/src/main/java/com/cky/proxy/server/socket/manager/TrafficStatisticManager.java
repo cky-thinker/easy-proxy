@@ -1,12 +1,13 @@
 package com.cky.proxy.server.socket.manager;
 
 import cn.hutool.core.date.DateUtil;
-import com.cky.proxy.server.dao.TsDayReportDao;
-import com.cky.proxy.server.dao.TsHourReportDao;
-import com.cky.proxy.server.dao.TsReportDao;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cky.proxy.server.domain.entity.TsDayReport;
 import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.cky.proxy.server.domain.entity.TsReport;
+import com.cky.proxy.server.mapper.TsDayReportMapper;
+import com.cky.proxy.server.mapper.TsHourReportMapper;
+import com.cky.proxy.server.mapper.TsReportMapper;
 import com.cky.proxy.server.util.BeanContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,9 +240,9 @@ public class TrafficStatisticManager {
         Date now = new Date();
         Date today = DateUtil.beginOfDay(now);
 
-        TsHourReportDao hourDao = BeanContext.getTsHourReportDao();
-        TsDayReportDao dayDao = BeanContext.getTsDayReportDao();
-        TsReportDao totalDao = BeanContext.getTsReportDao();
+        TsHourReportMapper hourMapper = BeanContext.getTsHourReportMapper();
+        TsDayReportMapper dayMapper = BeanContext.getTsDayReportMapper();
+        TsReportMapper totalMapper = BeanContext.getTsReportMapper();
 
         for (TrafficStats stats : statsMap.values()) {
             long up = stats.upload.getAndSet(0);
@@ -258,13 +259,13 @@ public class TrafficStatisticManager {
                 hourReport.setUploadBytes(up);
                 hourReport.setDownloadBytes(down);
                 hourReport.setCreateTime(now);
-                hourDao.insert(hourReport);
+                hourMapper.insert(hourReport);
 
                 // 2. 更新天报告 (TsDayReport)
-                updateDayReport(dayDao, stats, up, down, today, now);
+                updateDayReport(dayMapper, stats, up, down, today, now);
 
                 // 3. 更新总报告 (TsReport)
-                updateTotalReport(totalDao, stats, up, down, now);
+                updateTotalReport(totalMapper, stats, up, down, now);
 
             } catch (Exception e) {
                 log.error("Failed to flush stats for rule {}", stats.ruleId, e);
@@ -273,10 +274,10 @@ public class TrafficStatisticManager {
         log.info("Flush traffic statistics finished.");
     }
 
-    private static void updateDayReport(TsDayReportDao dao, TrafficStats stats, long up, long down, Date today, Date now) throws Exception {
-        TsDayReport report = dao.selectList(wrapper -> {
-            wrapper.eq("proxy_client_rule_id", stats.ruleId).eq("date", today);
-        }).stream().findFirst().orElse(null);
+    private static void updateDayReport(TsDayReportMapper mapper, TrafficStats stats, long up, long down, Date today, Date now) throws Exception {
+        TsDayReport report = mapper.selectOne(new QueryWrapper<TsDayReport>()
+                .eq("proxy_client_rule_id", stats.ruleId)
+                .eq("date", today));
 
         if (report == null) {
             report = new TsDayReport();
@@ -286,18 +287,17 @@ public class TrafficStatisticManager {
             report.setUploadBytes(up);
             report.setDownloadBytes(down);
             report.setCreateTime(now);
-            dao.insert(report);
+            mapper.insert(report);
         } else {
             report.setUploadBytes((report.getUploadBytes() == null ? 0 : report.getUploadBytes()) + up);
             report.setDownloadBytes((report.getDownloadBytes() == null ? 0 : report.getDownloadBytes()) + down);
-            dao.updateById(report);
+            mapper.updateById(report);
         }
     }
 
-    private static void updateTotalReport(TsReportDao dao, TrafficStats stats, long up, long down, Date now) throws Exception {
-        TsReport report = dao.selectList(wrapper -> {
-            wrapper.eq("proxy_client_rule_id", stats.ruleId);
-        }).stream().findFirst().orElse(null);
+    private static void updateTotalReport(TsReportMapper mapper, TrafficStats stats, long up, long down, Date now) throws Exception {
+        TsReport report = mapper.selectOne(new QueryWrapper<TsReport>()
+                .eq("proxy_client_rule_id", stats.ruleId));
 
         if (report == null) {
             report = new TsReport();
@@ -307,12 +307,12 @@ public class TrafficStatisticManager {
             report.setDownloadBytes(down);
             report.setCreateTime(now);
             report.setUpdateTime(now);
-            dao.insert(report);
+            mapper.insert(report);
         } else {
             report.setUploadBytes((report.getUploadBytes() == null ? 0 : report.getUploadBytes()) + up);
             report.setDownloadBytes((report.getDownloadBytes() == null ? 0 : report.getDownloadBytes()) + down);
             report.setUpdateTime(now);
-            dao.updateById(report);
+            mapper.updateById(report);
         }
     }
 }

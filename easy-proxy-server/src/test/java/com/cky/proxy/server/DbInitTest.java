@@ -7,12 +7,12 @@ import com.cky.proxy.server.util.BeanContext;
 import lombok.extern.slf4j.Slf4j;
 
 import com.cky.proxy.common.consts.OnlineStatus;
-import com.cky.proxy.server.dao.ProxyClientDao;
-import com.cky.proxy.server.dao.ProxyClientRuleDao;
-import com.cky.proxy.server.dao.TsDayReportDao;
-import com.cky.proxy.server.dao.TsHourReportDao;
-import com.cky.proxy.server.dao.SysLogDao;
-import com.cky.proxy.server.dao.TsReportDao;
+import com.cky.proxy.server.mapper.ProxyClientMapper;
+import com.cky.proxy.server.mapper.ProxyClientRuleMapper;
+import com.cky.proxy.server.mapper.TsDayReportMapper;
+import com.cky.proxy.server.mapper.TsHourReportMapper;
+import com.cky.proxy.server.mapper.SysLogMapper;
+import com.cky.proxy.server.mapper.TsReportMapper;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.TsDayReport;
@@ -36,22 +36,22 @@ public class DbInitTest {
         com.cky.proxy.server.config.ConfigProperty.getInstance().setDb(db);
         // 初始化数据库连接
         beanContext.init();
-        ProxyClientDao clientDao = BeanContext.getProxyClientDao();
-        ProxyClientRuleDao ruleDao = BeanContext.getProxyClientRuleDao();
-        TsReportDao reportDao = BeanContext.getTsReportDao();
-        TsDayReportDao dayDao = BeanContext.getTsDayReportDao();
-        TsHourReportDao hourDao = BeanContext.getTsHourReportDao();
-        SysLogDao sysLogDao = BeanContext.getSysLogDao();
+        ProxyClientMapper clientMapper = BeanContext.getProxyClientMapper();
+        ProxyClientRuleMapper ruleMapper = BeanContext.getProxyClientRuleMapper();
+        TsReportMapper reportMapper = BeanContext.getTsReportMapper();
+        TsDayReportMapper dayMapper = BeanContext.getTsDayReportMapper();
+        TsHourReportMapper hourMapper = BeanContext.getTsHourReportMapper();
+        SysLogMapper sysLogMapper = BeanContext.getSysLogMapper();
         
         // 首先清空表数据
         log.info("首先清空表数据");
         try {
-            clientDao.execute(mapper -> mapper.delete(null));
-            ruleDao.execute(mapper -> mapper.delete(null));
-            reportDao.execute(mapper -> mapper.delete(null));
-            dayDao.execute(mapper -> mapper.delete(null));
-            hourDao.execute(mapper -> mapper.delete(null));
-            sysLogDao.execute(mapper -> mapper.delete(null));
+            clientMapper.delete(null);
+            ruleMapper.delete(null);
+            reportMapper.delete(null);
+            dayMapper.delete(null);
+            hourMapper.delete(null);
+            sysLogMapper.delete(null);
         } catch (Exception e) {
             log.error("清空表数据失败", e);
         }
@@ -66,7 +66,7 @@ public class DbInitTest {
             c.setEnableFlag(i != 5);
             c.setCreateBy("test");
             c.setCreateTime(new Date());
-            clientDao.insert(c);
+            clientMapper.insert(c);
             clients.add(c);
         }
 
@@ -85,7 +85,7 @@ public class DbInitTest {
                 rule.setEnableFlag(!(c.getId() % 2 == 0 && r == 3));
                 rule.setCreateBy("test");
                 rule.setCreateTime(new Date());
-                ruleDao.insert(rule);
+                ruleMapper.insert(rule);
                 rules.add(rule);
             }
         }
@@ -113,7 +113,7 @@ public class DbInitTest {
                 dr.setUploadBytes(up);
                 dr.setDownloadBytes(down);
                 dr.setCreateTime(new Date());
-                dayDao.insert(dr);
+                dayMapper.insert(dr);
             }
         }
         log.info("生成客户端规则的小时级数据");
@@ -139,7 +139,7 @@ public class DbInitTest {
                 hr.setUploadBytes(up);
                 hr.setDownloadBytes(down);
                 hr.setCreateTime(new Date());
-                hourDao.insert(hr);
+                hourMapper.insert(hr);
             }
         }
         log.info("生成客户端规则的总统计数据");
@@ -154,7 +154,7 @@ public class DbInitTest {
             report.setDownloadBytes(down);
             report.setCreateTime(new Date());
             report.setUpdateTime(new Date());
-            reportDao.insert(report);
+            reportMapper.insert(report);
         }
         log.info("生成系统日志");
         
@@ -171,7 +171,7 @@ public class DbInitTest {
             log.setLogType(types[i % types.length]);
             log.setLogContent(msgs[i]);
             log.setCreateTime(new Date());
-            sysLogDao.insert(log);
+            sysLogMapper.insert(log);
         }
     }
 }

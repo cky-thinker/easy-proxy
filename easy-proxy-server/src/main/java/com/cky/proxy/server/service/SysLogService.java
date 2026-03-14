@@ -1,12 +1,14 @@
 package com.cky.proxy.server.service;
 
 import java.util.Date;
-import java.util.List;
 
-import com.cky.proxy.server.dao.SysLogDao;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.SysLog;
+import com.cky.proxy.server.mapper.SysLogMapper;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.PageUtil;
 
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
@@ -16,10 +18,10 @@ import cn.hutool.db.sql.Order;
  * 系统日志服务
  */
 public class SysLogService {
-    private final SysLogDao sysLogDao;
+    private final SysLogMapper sysLogMapper;
 
     public SysLogService() {
-        this.sysLogDao = BeanContext.getSysLogDao();
+        this.sysLogMapper = BeanContext.getSysLogMapper();
     }
 
     private void validateForCreate(SysLog sysLog) {
@@ -39,21 +41,25 @@ public class SysLogService {
         if (page.getOrders() == null || page.getOrders().length == 0) {
             page.setOrder(new Order("create_time", Direction.DESC));
         }
-        return sysLogDao.selectPage(page, wrapper -> {
-            if (logType != null && !logType.isEmpty()) {
-                wrapper.eq("log_type", logType);
-            }
-            if (keyword != null && !keyword.isEmpty()) {
-                wrapper.like("log_content", keyword);
-            }
-        });
+        
+        QueryWrapper<SysLog> wrapper = new QueryWrapper<>();
+        if (logType != null && !logType.isEmpty()) {
+            wrapper.eq("log_type", logType);
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.like("log_content", keyword);
+        }
+        
+        IPage<SysLog> mybatisPage = PageUtil.toMybatisPage(page);
+        IPage<SysLog> result = sysLogMapper.selectPage(mybatisPage, wrapper);
+        return PageUtil.toPageResult(page, result);
     }
 
     /**
      * 根据ID查询日志详情
      */
     public SysLog getSysLogById(Integer id) {
-        return sysLogDao.selectById(id);
+        return sysLogMapper.selectById(id);
     }
 
     /**
@@ -62,7 +68,7 @@ public class SysLogService {
     public SysLog addSysLog(SysLog sysLog) {
         validateForCreate(sysLog);
         sysLog.setCreateTime(new Date());
-        sysLogDao.insert(sysLog);
+        sysLogMapper.insert(sysLog);
         return sysLog;
     }
 
@@ -70,11 +76,11 @@ public class SysLogService {
      * 删除系统日志
      */
     public boolean deleteSysLog(Integer id) {
-        SysLog existing = sysLogDao.selectById(id);
+        SysLog existing = sysLogMapper.selectById(id);
         if (existing == null) {
             return false;
         }
-        sysLogDao.deleteById(id);
+        sysLogMapper.deleteById(id);
         return true;
     }
 }

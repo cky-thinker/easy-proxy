@@ -3,39 +3,42 @@ package com.cky.proxy.server.service;
 import java.util.Date;
 import java.util.List;
 
-import com.cky.proxy.server.dao.ProxyClientRuleDao;
-import com.cky.proxy.server.dao.SysLogDao;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.SysLog;
+import com.cky.proxy.server.mapper.ProxyClientRuleMapper;
+import com.cky.proxy.server.mapper.SysLogMapper;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
+import com.cky.proxy.server.util.PageUtil;
 
 import cn.hutool.db.Page;
 
 public class ProxyClientRuleService {
-    private final ProxyClientRuleDao proxyClientRuleDao = BeanContext.getProxyClientRuleDao();
-    private final SysLogDao sysLogDao = BeanContext.getSysLogDao();
+    private final ProxyClientRuleMapper proxyClientRuleMapper = BeanContext.getProxyClientRuleMapper();
+    private final SysLogMapper sysLogMapper = BeanContext.getSysLogMapper();
 
     public List<ProxyClientRule> getProxyClientRules(Integer proxyClientId) {
-        return proxyClientRuleDao.selectByProxyClientId(proxyClientId);
+        return proxyClientRuleMapper.selectList(new QueryWrapper<ProxyClientRule>().eq("proxy_client_id", proxyClientId));
     }
 
     /**
      * 查询所有代理客户端规则，支持按名称、服务端口、客户端ID筛选
      */
     public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId) {
-        return proxyClientRuleDao.selectList(wrapper -> {
-            if (name != null && !name.isEmpty()) {
-                wrapper.like("name", name);
-            }
-            if (serverPort != null) {
-                wrapper.eq("server_port", serverPort);
-            }
-            if (proxyClientId != null) {
-                wrapper.eq("proxy_client_id", proxyClientId);
-            }
-        });
+        QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
+        if (name != null && !name.isEmpty()) {
+            wrapper.like("name", name);
+        }
+        if (serverPort != null) {
+            wrapper.eq("server_port", serverPort);
+        }
+        if (proxyClientId != null) {
+            wrapper.eq("proxy_client_id", proxyClientId);
+        }
+        return proxyClientRuleMapper.selectList(wrapper);
     }
 
     /**
@@ -43,24 +46,27 @@ public class ProxyClientRuleService {
      */
     public PageResult<ProxyClientRule> getProxyClientRulesPageable(Page page, String name, Integer serverPort,
             Integer proxyClientId) {
-        return proxyClientRuleDao.selectPage(page, wrapper -> {
-            if (name != null && !name.isEmpty()) {
-                wrapper.like("name", name);
-            }
-            if (serverPort != null) {
-                wrapper.eq("server_port", serverPort);
-            }
-            if (proxyClientId != null) {
-                wrapper.eq("proxy_client_id", proxyClientId);
-            }
-        });
+        QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
+        if (name != null && !name.isEmpty()) {
+            wrapper.like("name", name);
+        }
+        if (serverPort != null) {
+            wrapper.eq("server_port", serverPort);
+        }
+        if (proxyClientId != null) {
+            wrapper.eq("proxy_client_id", proxyClientId);
+        }
+        
+        IPage<ProxyClientRule> mybatisPage = PageUtil.toMybatisPage(page);
+        IPage<ProxyClientRule> result = proxyClientRuleMapper.selectPage(mybatisPage, wrapper);
+        return PageUtil.toPageResult(page, result);
     }
 
     /**
      * 根据ID查询代理客户端规则详情
      */
     public ProxyClientRule getProxyClientRuleById(Integer id) {
-        return proxyClientRuleDao.selectById(id);
+        return proxyClientRuleMapper.selectById(id);
     }
 
     /**
@@ -71,14 +77,14 @@ public class ProxyClientRuleService {
 
         rule.setCreateTime(new Date());
         if (rule.getEnableFlag() == null) rule.setEnableFlag(Boolean.TRUE);
-        proxyClientRuleDao.insert(rule);
+        proxyClientRuleMapper.insert(rule);
         
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("RULE_ADD");
         sysLog.setLogContent("添加规则: " + rule.getName());
         sysLog.setCreateTime(new Date());
-        sysLogDao.insert(sysLog);
+        sysLogMapper.insert(sysLog);
         
         EventBusUtil.publish(EventBusUtil.DB_RULE_ADD, rule.getId());
         
@@ -92,7 +98,7 @@ public class ProxyClientRuleService {
         if (rule == null || rule.getId() == null) {
             throw new RuntimeException("请求体缺少 id");
         }
-        ProxyClientRule existingRule = proxyClientRuleDao.selectById(rule.getId());
+        ProxyClientRule existingRule = proxyClientRuleMapper.selectById(rule.getId());
         if (existingRule == null) {
             return null;
         }
@@ -118,14 +124,14 @@ public class ProxyClientRuleService {
         existingRule.setUpdateBy("system");
         existingRule.setUpdateTime(new Date());
 
-        proxyClientRuleDao.updateById(existingRule);
+        proxyClientRuleMapper.updateById(existingRule);
         
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("RULE_UPDATE");
         sysLog.setLogContent("更新规则: " + existingRule.getName());
         sysLog.setCreateTime(new Date());
-        sysLogDao.insert(sysLog);
+        sysLogMapper.insert(sysLog);
         
         EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, existingRule.getId());
         
@@ -136,19 +142,19 @@ public class ProxyClientRuleService {
      * 删除代理客户端规则
      */
     public boolean deleteProxyClientRule(Integer id) {
-        ProxyClientRule existingRule = proxyClientRuleDao.selectById(id);
+        ProxyClientRule existingRule = proxyClientRuleMapper.selectById(id);
         if (existingRule == null) {
             return false;
         }
 
-        proxyClientRuleDao.deleteById(id);
+        proxyClientRuleMapper.deleteById(id);
         
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("RULE_DELETE");
         sysLog.setLogContent("删除规则: " + existingRule.getName());
         sysLog.setCreateTime(new Date());
-        sysLogDao.insert(sysLog);
+        sysLogMapper.insert(sysLog);
         
         EventBusUtil.publish(EventBusUtil.DB_RULE_DELETE, id);
         
@@ -158,24 +164,25 @@ public class ProxyClientRuleService {
     // ===== 私有校验方法 =====
     private void validateRuleNameUnique(Integer proxyClientId, String name, Integer excludeId) {
         if (name == null) return;
-        boolean exists = !proxyClientRuleDao.selectList(wrapper -> {
-            wrapper.eq("proxy_client_id", proxyClientId).eq("name", name);
-            if (excludeId != null) {
-                wrapper.ne("id", excludeId);
-            }
-        }).isEmpty();
+        QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
+        wrapper.eq("proxy_client_id", proxyClientId).eq("name", name);
+        if (excludeId != null) {
+            wrapper.ne("id", excludeId);
+        }
+        boolean exists = !proxyClientRuleMapper.selectList(wrapper).isEmpty();
         if (exists) throw new RuntimeException("同客户端下规则名称已存在");
     }
 
     private void validateServerPortRangeAndUnique(Integer port, Integer excludeId) {
         if (port == null) return;
         if (port < 1 || port > 65535) throw new RuntimeException("服务端口范围为 1-65535");
-        boolean exists = !proxyClientRuleDao.selectList(wrapper -> {
-            wrapper.eq("server_port", port);
-            if (excludeId != null) {
-                wrapper.ne("id", excludeId);
-            }
-        }).isEmpty();
+        
+        QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
+        wrapper.eq("server_port", port);
+        if (excludeId != null) {
+            wrapper.ne("id", excludeId);
+        }
+        boolean exists = !proxyClientRuleMapper.selectList(wrapper).isEmpty();
         if (exists) throw new RuntimeException("服务端口已被占用");
     }
 

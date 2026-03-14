@@ -5,14 +5,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.server.config.ConfigProperty;
-import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
 import com.cky.proxy.server.domain.dto.LoginReq;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.dto.UserInfo;
 import com.cky.proxy.server.domain.entity.SysUser;
+import com.cky.proxy.server.mapper.SysUserMapper;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.PageUtil;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
@@ -27,7 +30,7 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 
 public class UserService {
-    private final UserDao userDao;
+    private final SysUserMapper userMapper;
     private final JWTAuth jwtAuth;
     private final Vertx vertx;
     // 验证码缓存，key为验证码ID，value为验证码文本
@@ -36,7 +39,7 @@ public class UserService {
     private static final long CAPTCHA_EXPIRE_TIME = 5 * 60 * 1000;
 
     public UserService(Vertx vertx) {
-        this.userDao = BeanContext.getUserDao();
+        this.userMapper = BeanContext.getUserMapper();
         this.vertx = vertx;
         // 配置JWT
         JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()
@@ -49,30 +52,30 @@ public class UserService {
     // ===== 私有校验方法 =====
     private void validateUniqueUserFields(String username, String mobile, String email, Integer excludeId) {
         if (username != null) {
-            boolean exists = !userDao.selectList(wrapper -> {
-                wrapper.eq("username", username);
-                if (excludeId != null) {
-                    wrapper.ne("id", excludeId);
-                }
-            }).isEmpty();
+            QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
+            wrapper.eq("username", username);
+            if (excludeId != null) {
+                wrapper.ne("id", excludeId);
+            }
+            boolean exists = !userMapper.selectList(wrapper).isEmpty();
             if (exists) throw new RuntimeException("账号已存在");
         }
         if (mobile != null && !mobile.isEmpty()) {
-            boolean exists = !userDao.selectList(wrapper -> {
-                wrapper.eq("mobile", mobile);
-                if (excludeId != null) {
-                    wrapper.ne("id", excludeId);
-                }
-            }).isEmpty();
+            QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
+            wrapper.eq("mobile", mobile);
+            if (excludeId != null) {
+                wrapper.ne("id", excludeId);
+            }
+            boolean exists = !userMapper.selectList(wrapper).isEmpty();
             if (exists) throw new RuntimeException("手机号已存在");
         }
         if (email != null && !email.isEmpty()) {
-            boolean exists = !userDao.selectList(wrapper -> {
-                wrapper.eq("email", email);
-                if (excludeId != null) {
-                    wrapper.ne("id", excludeId);
-                }
-            }).isEmpty();
+            QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
+            wrapper.eq("email", email);
+            if (excludeId != null) {
+                wrapper.ne("id", excludeId);
+            }
+            boolean exists = !userMapper.selectList(wrapper).isEmpty();
             if (exists) throw new RuntimeException("邮箱已存在");
         }
     }
@@ -131,9 +134,7 @@ public class UserService {
             // 验证密码
             SysUser sysUser = null;
             try {
-                sysUser = userDao.selectList(wrapper -> {
-                    wrapper.eq("username", loginReq.getUsername());
-                }).stream().findFirst().orElse(null);
+                sysUser = userMapper.selectOne(new QueryWrapper<SysUser>().eq("username", loginReq.getUsername()));
             } catch (Exception e) {
                 throw new RuntimeException("查询用户失败: " + e.getMessage());
             }
@@ -160,7 +161,7 @@ public class UserService {
             // 更新上次登录时间
             sysUser.setLoginTime(new Date());
             sysUser.setUpdateTime(new Date());
-            userDao.updateById(sysUser);
+            userMapper.updateById(sysUser);
 
             // 构建用户信息响应
             UserInfo userInfo = new UserInfo();
@@ -209,7 +210,7 @@ public class UserService {
      */
     public boolean checkInit() {
         try {
-            Long count = userDao.execute(mapper -> mapper.selectCount(null));
+            Long count = userMapper.selectCount(null);
             return count == 0;
         } catch (Exception e) {
             throw new RuntimeException("查询用户数量失败", e);
@@ -232,19 +233,22 @@ public class UserService {
      * 分页查询账户
      */
     public PageResult<SysUser> getUsersPageable(Page page, String q, Boolean enableFlag) {
-        return userDao.selectPage(page, wrapper -> {
-            if (q != null && !q.isEmpty()) {
-                // 模糊匹配用户名或邮箱
-                wrapper.and(w -> w.like("username", q).or().like("email", q));
-            }
-            if (enableFlag != null) {
-                wrapper.eq("enable_flag", enableFlag);
-            }
-        });
+        QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
+        if (q != null && !q.isEmpty()) {
+            // 模糊匹配用户名或邮箱
+            wrapper.and(w -> w.like("username", q).or().like("email", q));
+        }
+        if (enableFlag != null) {
+            wrapper.eq("enable_flag", enableFlag);
+        }
+        
+        IPage<SysUser> mybatisPage = PageUtil.toMybatisPage(page);
+        IPage<SysUser> result = userMapper.selectPage(mybatisPage, wrapper);
+        return PageUtil.toPageResult(page, result);
     }
 
     public SysUser getUserById(Integer id) {
-        return userDao.selectById(id);
+        return userMapper.selectById(id);
     }
 
     public SysUser createUser(SysUser user) {
@@ -252,7 +256,7 @@ public class UserService {
 
         user.setCreateTime(new Date());
         if (user.getEnableFlag() == null) user.setEnableFlag(Boolean.TRUE);
-        userDao.insert(user);
+        userMapper.insert(user);
         return user;
     }
 
@@ -260,7 +264,7 @@ public class UserService {
         if (user == null || user.getId() == null) {
             throw new RuntimeException("请求体缺少 id");
         }
-        SysUser db = userDao.selectById(user.getId());
+        SysUser db = userMapper.selectById(user.getId());
         if (db == null) {
             throw new RuntimeException("账号不存在");
         }
@@ -275,12 +279,12 @@ public class UserService {
         if (user.getEnableFlag() != null) db.setEnableFlag(user.getEnableFlag());
 
         db.setUpdateTime(new Date());
-        userDao.updateById(db);
-        return userDao.selectById(db.getId());
+        userMapper.updateById(db);
+        return userMapper.selectById(db.getId());
     }
 
     public boolean deleteUser(Integer id) {
-        userDao.deleteById(id);
+        userMapper.deleteById(id);
         return true;
     }
 
@@ -288,27 +292,27 @@ public class UserService {
         if (ids == null)
             return;
         for (Integer id : ids) {
-            userDao.deleteById(id);
+            userMapper.deleteById(id);
         }
     }
 
     public SysUser resetPassword(Integer id, String newPassword) {
-        SysUser user = userDao.selectById(id);
+        SysUser user = userMapper.selectById(id);
         if (user == null)
             throw new RuntimeException("账号不存在");
         user.setPassword(newPassword);
         user.setUpdateTime(new Date());
-        userDao.updateById(user);
+        userMapper.updateById(user);
         return user;
     }
 
     public SysUser updateEnableFlag(Integer id, Boolean enableFlag) {
-        SysUser user = userDao.selectById(id);
+        SysUser user = userMapper.selectById(id);
         if (user == null)
             throw new RuntimeException("账号不存在");
         user.setEnableFlag(enableFlag);
         user.setUpdateTime(new Date());
-        userDao.updateById(user);
+        userMapper.updateById(user);
         return user;
     }
 }

@@ -4,15 +4,16 @@ import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cky.proxy.server.config.DatabaseConnectionManager;
-import com.cky.proxy.server.dao.ProxyClientDao;
-import com.cky.proxy.server.dao.ProxyClientRuleDao;
-import com.cky.proxy.server.dao.SysLogDao;
-import com.cky.proxy.server.dao.TsReportDao;
-import com.cky.proxy.server.dao.TsDayReportDao;
-import com.cky.proxy.server.dao.TsHourReportDao;
-import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
+import com.cky.proxy.server.mapper.ProxyClientMapper;
+import com.cky.proxy.server.mapper.ProxyClientRuleMapper;
+import com.cky.proxy.server.mapper.SysLogMapper;
+import com.cky.proxy.server.mapper.SysUserMapper;
+import com.cky.proxy.server.mapper.TsDayReportMapper;
+import com.cky.proxy.server.mapper.TsHourReportMapper;
+import com.cky.proxy.server.mapper.TsReportMapper;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
 
@@ -30,14 +31,14 @@ public class BeanContext {
     private static volatile BeanContext instance;
     private static final Object lock = new Object();
 
-    // DAO实例
-    private UserDao userDao;
-    private ProxyClientDao proxyClientDao;
-    private ProxyClientRuleDao proxyClientRuleDao;
-    private SysLogDao sysLogDao;
-    private TsReportDao trafficStatisticClientRuleReportDao;
-    private TsDayReportDao trafficStatisticDayReportDao;
-    private TsHourReportDao trafficStatisticHourReportDao;
+    // Mapper实例
+    private SysUserMapper userMapper;
+    private ProxyClientMapper proxyClientMapper;
+    private ProxyClientRuleMapper proxyClientRuleMapper;
+    private SysLogMapper sysLogMapper;
+    private TsReportMapper trafficStatisticClientRuleReportMapper;
+    private TsDayReportMapper trafficStatisticDayReportMapper;
+    private TsHourReportMapper trafficStatisticHourReportMapper;
 
     // 服务实例
     private ProxyClientService proxyClientService;
@@ -60,32 +61,32 @@ public class BeanContext {
         return instance;
     }
 
-    public static UserDao getUserDao() {
-        return instance.userDao;
+    public static SysUserMapper getUserMapper() {
+        return instance.userMapper;
     }
 
-    public static ProxyClientDao getProxyClientDao() {
-        return instance.proxyClientDao;
+    public static ProxyClientMapper getProxyClientMapper() {
+        return instance.proxyClientMapper;
     }
 
-    public static ProxyClientRuleDao getProxyClientRuleDao() {
-        return instance.proxyClientRuleDao;
+    public static ProxyClientRuleMapper getProxyClientRuleMapper() {
+        return instance.proxyClientRuleMapper;
     }
 
-    public static SysLogDao getSysLogDao() {
-        return instance.sysLogDao;
+    public static SysLogMapper getSysLogMapper() {
+        return instance.sysLogMapper;
     }
 
-    public static TsReportDao getTsReportDao() {
-        return instance.trafficStatisticClientRuleReportDao;
+    public static TsReportMapper getTsReportMapper() {
+        return instance.trafficStatisticClientRuleReportMapper;
     }
 
-    public static TsDayReportDao getTsDayReportDao() {
-        return instance.trafficStatisticDayReportDao;
+    public static TsDayReportMapper getTsDayReportMapper() {
+        return instance.trafficStatisticDayReportMapper;
     }
 
-    public static TsHourReportDao getTsHourReportDao() {
-        return instance.trafficStatisticHourReportDao;
+    public static TsHourReportMapper getTsHourReportMapper() {
+        return instance.trafficStatisticHourReportMapper;
     }
 
     public static ProxyClientService getProxyClientService() {
@@ -101,8 +102,8 @@ public class BeanContext {
      */
     public void init() {
         try {
-            // 初始化Dao
-            initializeDao();
+            // 初始化Mapper
+            initializeMapper();
             // 初始化服务
             initializeService();
             // 初始化所有表
@@ -121,15 +122,15 @@ public class BeanContext {
         proxyClientRuleService = new ProxyClientRuleService();
     }
 
-    private void initializeDao() {
-        // 初始化Dao
-        userDao = new UserDao();
-        proxyClientDao = new ProxyClientDao();
-        proxyClientRuleDao = new ProxyClientRuleDao();
-        sysLogDao = new SysLogDao();
-        trafficStatisticClientRuleReportDao = new TsReportDao();
-        trafficStatisticDayReportDao = new TsDayReportDao();
-        trafficStatisticHourReportDao = new TsHourReportDao();
+    private void initializeMapper() {
+        // 初始化Mapper代理
+        userMapper = MapperProxyFactory.getMapper(SysUserMapper.class);
+        proxyClientMapper = MapperProxyFactory.getMapper(ProxyClientMapper.class);
+        proxyClientRuleMapper = MapperProxyFactory.getMapper(ProxyClientRuleMapper.class);
+        sysLogMapper = MapperProxyFactory.getMapper(SysLogMapper.class);
+        trafficStatisticClientRuleReportMapper = MapperProxyFactory.getMapper(TsReportMapper.class);
+        trafficStatisticDayReportMapper = MapperProxyFactory.getMapper(TsDayReportMapper.class);
+        trafficStatisticHourReportMapper = MapperProxyFactory.getMapper(TsHourReportMapper.class);
     }
 
     /**
@@ -163,11 +164,10 @@ public class BeanContext {
     }
 
     private void initializeClientOffline() {
-        List<ProxyClient> proxyClients = getProxyClientDao().selectList(wrapper -> {
-        });
+        List<ProxyClient> proxyClients = getProxyClientMapper().selectList(new QueryWrapper<>());
         proxyClients.forEach(client -> {
             client.setStatus("offline");
-            getProxyClientDao().updateById(client);
+            getProxyClientMapper().updateById(client);
         });
     }
 }
