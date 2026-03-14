@@ -143,39 +143,37 @@ public class ProxyServerVerticle extends AbstractVerticle {
     private void stopRuleServer(Integer ruleId, Runnable completionHandler) {
         // 关闭规则端口监听
         NetServer server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
-        if (server != null) {
-            server.close(res -> {
-                if (res.succeeded()) {
-                    log.info("Stopped server for rule {}", ruleId);
-                } else {
-                    log.error("Failed to stop server for rule {}", ruleId, res.cause());
+        if (server == null) {
+            return;
+        }
+        server.close(res -> {
+            if (res.succeeded()) {
+                log.info("Stopped server for rule {}", ruleId);
+            } else {
+                log.error("Failed to stop server for rule {}", ruleId, res.cause());
+            }
+            // TODO 根据规则关闭用户连接通道 Repeat
+            Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
+            if (userIds != null) {
+                for (String userId : userIds) {
+                    NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+                    if (dataSocket != null) {
+                        dataSocket.close();
+                    }
+                    ClientDataSocketManager.closeDataSocket(userId);
+                    NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
+                    if (proxySocket != null) {
+                        proxySocket.close();
+                    }
+                    RuleListenSocketManager.userConnectionClose(userId);
                 }
-                if (completionHandler != null) {
-                    completionHandler.run();
-                }
-            });
-        } else {
+            }
             if (completionHandler != null) {
                 completionHandler.run();
             }
-        }
-
-        // TODO 根据规则关闭用户连接通道 Repeat
-        Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
-        if (userIds != null) {
-            for (String userId : userIds) {
-                NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
-                if (dataSocket != null) {
-                    dataSocket.close();
-                }
-                ClientDataSocketManager.closeDataSocket(userId);
-                NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
-                if (proxySocket != null) {
-                    proxySocket.close();
-                }
-                RuleListenSocketManager.userConnectionClose(userId);
-            }
-        }
+        });
+        
+        
     }
 
     private void updateRuleServer(Integer ruleId) {
