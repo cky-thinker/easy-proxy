@@ -49,31 +49,28 @@ public class UserService {
     // ===== 私有校验方法 =====
     private void validateUniqueUserFields(String username, String mobile, String email, Integer excludeId) {
         if (username != null) {
-            boolean exists = !userDao.selectList(qb -> {
-                if (excludeId == null) {
-                    qb.where().eq("username", username);
-                } else {
-                    qb.where().eq("username", username).and().ne("id", excludeId);
+            boolean exists = !userDao.selectList(wrapper -> {
+                wrapper.eq("username", username);
+                if (excludeId != null) {
+                    wrapper.ne("id", excludeId);
                 }
             }).isEmpty();
             if (exists) throw new RuntimeException("账号已存在");
         }
         if (mobile != null && !mobile.isEmpty()) {
-            boolean exists = !userDao.selectList(qb -> {
-                if (excludeId == null) {
-                    qb.where().eq("mobile", mobile);
-                } else {
-                    qb.where().eq("mobile", mobile).and().ne("id", excludeId);
+            boolean exists = !userDao.selectList(wrapper -> {
+                wrapper.eq("mobile", mobile);
+                if (excludeId != null) {
+                    wrapper.ne("id", excludeId);
                 }
             }).isEmpty();
             if (exists) throw new RuntimeException("手机号已存在");
         }
         if (email != null && !email.isEmpty()) {
-            boolean exists = !userDao.selectList(qb -> {
-                if (excludeId == null) {
-                    qb.where().eq("email", email);
-                } else {
-                    qb.where().eq("email", email).and().ne("id", excludeId);
+            boolean exists = !userDao.selectList(wrapper -> {
+                wrapper.eq("email", email);
+                if (excludeId != null) {
+                    wrapper.ne("id", excludeId);
                 }
             }).isEmpty();
             if (exists) throw new RuntimeException("邮箱已存在");
@@ -134,8 +131,8 @@ public class UserService {
             // 验证密码
             SysUser sysUser = null;
             try {
-                sysUser = userDao.selectList(queryBuilder -> {
-                    queryBuilder.where().eq("username", loginReq.getUsername());
+                sysUser = userDao.selectList(wrapper -> {
+                    wrapper.eq("username", loginReq.getUsername());
                 }).stream().findFirst().orElse(null);
             } catch (Exception e) {
                 throw new RuntimeException("查询用户失败: " + e.getMessage());
@@ -212,9 +209,9 @@ public class UserService {
      */
     public boolean checkInit() {
         try {
-            long count = userDao.getDao().countOf();
+            Long count = userDao.execute(mapper -> mapper.selectCount(null));
             return count == 0;
-        } catch (java.sql.SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException("查询用户数量失败", e);
         }
     }
@@ -235,17 +232,13 @@ public class UserService {
      * 分页查询账户
      */
     public PageResult<SysUser> getUsersPageable(Page page, String q, Boolean enableFlag) {
-        return userDao.selectPage(page, where -> {
-            boolean hasWhere = false;
+        return userDao.selectPage(page, wrapper -> {
             if (q != null && !q.isEmpty()) {
                 // 模糊匹配用户名或邮箱
-                where.like("username", "%" + q + "%").or().like("email", "%" + q + "%");
-                hasWhere = true;
+                wrapper.and(w -> w.like("username", q).or().like("email", q));
             }
             if (enableFlag != null) {
-                if (hasWhere)
-                    where.and();
-                where.eq("enable_flag", enableFlag);
+                wrapper.eq("enable_flag", enableFlag);
             }
         });
     }

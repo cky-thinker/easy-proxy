@@ -21,28 +21,20 @@ public class ProxyClientRuleService {
         return proxyClientRuleDao.selectByProxyClientId(proxyClientId);
     }
 
-    
-
     /**
      * 查询所有代理客户端规则，支持按名称、服务端口、客户端ID筛选
      */
     public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId) {
-        return proxyClientRuleDao.selectList(qb -> {
-            boolean hasWhere = false;
+        return proxyClientRuleDao.selectList(wrapper -> {
             if (name != null && !name.isEmpty()) {
-                qb.where().like("name", "%" + name + "%");
-                hasWhere = true;
+                wrapper.like("name", name);
             }
             if (serverPort != null) {
-                if (hasWhere) qb.where().and();
-                qb.where().eq("server_port", serverPort);
-                hasWhere = true;
+                wrapper.eq("server_port", serverPort);
             }
             if (proxyClientId != null) {
-                if (hasWhere) qb.where().and();
-                qb.where().eq("proxy_client_id", proxyClientId);
+                wrapper.eq("proxy_client_id", proxyClientId);
             }
-            // 当所有条件为空时，不调用 qb.where()，以返回全部
         });
     }
 
@@ -51,20 +43,15 @@ public class ProxyClientRuleService {
      */
     public PageResult<ProxyClientRule> getProxyClientRulesPageable(Page page, String name, Integer serverPort,
             Integer proxyClientId) {
-        return proxyClientRuleDao.selectPage(page, where -> {
-            boolean hasWhere = false;
+        return proxyClientRuleDao.selectPage(page, wrapper -> {
             if (name != null && !name.isEmpty()) {
-                where.like("name", "%" + name + "%");
-                hasWhere = true;
+                wrapper.like("name", name);
             }
             if (serverPort != null) {
-                if (hasWhere) where.and();
-                where.eq("server_port", serverPort);
-                hasWhere = true;
+                wrapper.eq("server_port", serverPort);
             }
             if (proxyClientId != null) {
-                if (hasWhere) where.and();
-                where.eq("proxy_client_id", proxyClientId);
+                wrapper.eq("proxy_client_id", proxyClientId);
             }
         });
     }
@@ -171,11 +158,10 @@ public class ProxyClientRuleService {
     // ===== 私有校验方法 =====
     private void validateRuleNameUnique(Integer proxyClientId, String name, Integer excludeId) {
         if (name == null) return;
-        boolean exists = !proxyClientRuleDao.selectList(qb -> {
-            if (excludeId == null) {
-                qb.where().eq("proxy_client_id", proxyClientId).and().eq("name", name);
-            } else {
-                qb.where().eq("proxy_client_id", proxyClientId).and().eq("name", name).and().ne("id", excludeId);
+        boolean exists = !proxyClientRuleDao.selectList(wrapper -> {
+            wrapper.eq("proxy_client_id", proxyClientId).eq("name", name);
+            if (excludeId != null) {
+                wrapper.ne("id", excludeId);
             }
         }).isEmpty();
         if (exists) throw new RuntimeException("同客户端下规则名称已存在");
@@ -184,11 +170,10 @@ public class ProxyClientRuleService {
     private void validateServerPortRangeAndUnique(Integer port, Integer excludeId) {
         if (port == null) return;
         if (port < 1 || port > 65535) throw new RuntimeException("服务端口范围为 1-65535");
-        boolean exists = !proxyClientRuleDao.selectList(qb -> {
-            if (excludeId == null) {
-                qb.where().eq("server_port", port);
-            } else {
-                qb.where().eq("server_port", port).and().ne("id", excludeId);
+        boolean exists = !proxyClientRuleDao.selectList(wrapper -> {
+            wrapper.eq("server_port", port);
+            if (excludeId != null) {
+                wrapper.ne("id", excludeId);
             }
         }).isEmpty();
         if (exists) throw new RuntimeException("服务端口已被占用");

@@ -27,7 +27,7 @@ public class ProxyClientService {
      * 查询所有代理客户端
      */
     public List<ProxyClient> getProxyClients() {
-        return proxyClientDao.selectList(qb -> {
+        return proxyClientDao.selectList(wrapper -> {
         });
     }
 
@@ -42,22 +42,15 @@ public class ProxyClientService {
             Boolean enableFlag) {
         return proxyClientDao.selectPage(
                 hutoolPage,
-                where -> {
-                    boolean hasWhere = false;
+                wrapper -> {
                     if (name != null && !name.isEmpty()) {
-                        where.like("name", "%" + name + "%");
-                        hasWhere = true;
+                        wrapper.like("name", name);
                     }
                     if (status != null && !status.isEmpty()) {
-                        if (hasWhere)
-                            where.and();
-                        where.eq("status", status);
-                        hasWhere = true;
+                        wrapper.eq("status", status);
                     }
                     if (enableFlag != null) {
-                        if (hasWhere)
-                            where.and();
-                        where.eq("enable_flag", enableFlag);
+                        wrapper.eq("enable_flag", enableFlag);
                     }
                 });
     }
@@ -212,11 +205,10 @@ public class ProxyClientService {
     private void validateNameUnique(String name, Integer excludeId) {
         if (name == null)
             return;
-        boolean exists = !proxyClientDao.selectList(qb -> {
-            if (excludeId == null) {
-                qb.where().eq("name", name);
-            } else {
-                qb.where().eq("name", name).and().ne("id", excludeId);
+        boolean exists = !proxyClientDao.selectList(wrapper -> {
+            wrapper.eq("name", name);
+            if (excludeId != null) {
+                wrapper.ne("id", excludeId);
             }
         }).isEmpty();
         if (exists)
@@ -234,11 +226,10 @@ public class ProxyClientService {
     private void validateTokenUnique(String token, Integer excludeId) {
         if (token == null)
             return;
-        boolean exists = !proxyClientDao.selectList(qb -> {
-            if (excludeId == null) {
-                qb.where().eq("token", token);
-            } else {
-                qb.where().eq("token", token).and().ne("id", excludeId);
+        boolean exists = !proxyClientDao.selectList(wrapper -> {
+            wrapper.eq("token", token);
+            if (excludeId != null) {
+                wrapper.ne("id", excludeId);
             }
         }).isEmpty();
         if (exists)

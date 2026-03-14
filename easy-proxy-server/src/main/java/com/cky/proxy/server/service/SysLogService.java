@@ -39,17 +39,12 @@ public class SysLogService {
         if (page.getOrders() == null || page.getOrders().length == 0) {
             page.setOrder(new Order("create_time", Direction.DESC));
         }
-        return sysLogDao.selectPage(page, where -> {
-            boolean hasCondition = false;
+        return sysLogDao.selectPage(page, wrapper -> {
             if (logType != null && !logType.isEmpty()) {
-                where.eq("log_type", logType);
-                hasCondition = true;
+                wrapper.eq("log_type", logType);
             }
             if (keyword != null && !keyword.isEmpty()) {
-                if (hasCondition) {
-                    where.and();
-                }
-                where.like("log_content", "%" + keyword + "%");
+                wrapper.like("log_content", keyword);
             }
         });
     }

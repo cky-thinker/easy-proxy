@@ -3,7 +3,6 @@ package com.cky.proxy.server;
 import org.junit.jupiter.api.Test;
 
 import com.cky.proxy.server.util.BeanContext;
-import com.j256.ormlite.table.TableUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,12 +46,12 @@ public class DbInitTest {
         // 首先清空表数据
         log.info("首先清空表数据");
         try {
-            TableUtils.clearTable(clientDao.getDao().getConnectionSource(), ProxyClient.class);
-            TableUtils.clearTable(ruleDao.getDao().getConnectionSource(), ProxyClientRule.class);
-            TableUtils.clearTable(reportDao.getDao().getConnectionSource(), TsReport.class);
-            TableUtils.clearTable(dayDao.getDao().getConnectionSource(), TsDayReport.class);
-            TableUtils.clearTable(hourDao.getDao().getConnectionSource(), TsHourReport.class);
-            TableUtils.clearTable(sysLogDao.getDao().getConnectionSource(), SysLog.class);
+            clientDao.execute(mapper -> mapper.delete(null));
+            ruleDao.execute(mapper -> mapper.delete(null));
+            reportDao.execute(mapper -> mapper.delete(null));
+            dayDao.execute(mapper -> mapper.delete(null));
+            hourDao.execute(mapper -> mapper.delete(null));
+            sysLogDao.execute(mapper -> mapper.delete(null));
         } catch (Exception e) {
             log.error("清空表数据失败", e);
         }

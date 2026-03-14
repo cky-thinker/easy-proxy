@@ -2,17 +2,29 @@ package com.cky.proxy.server.config;
 
 import java.sql.SQLException;
 
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.MybatisSqlSessionFactoryBuilder;
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.cky.proxy.server.mapper.*;
+import org.apache.ibatis.logging.slf4j.Slf4jImpl;
+import org.apache.ibatis.mapping.Environment;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.hutool.db.ds.simple.SimpleDataSource;
+
 /**
  * 数据库连接管理器
- * 实现ConnectionSource的单例模式和连接池管理
+ * 实现SqlSessionFactory的单例模式和连接池管理
  */
 public class DatabaseConnectionManager {
     private static final Logger log = LoggerFactory.getLogger(DatabaseConnectionManager.class);
     private static volatile DatabaseConnectionManager instance;
+    private SqlSessionFactory sqlSessionFactory;
 
     // 私有构造函数，防止外部实例化
     private DatabaseConnectionManager() {
@@ -34,9 +46,27 @@ public class DatabaseConnectionManager {
     }
 
     /**
-     * 初始化数据库连接源
+     * 获取SqlSessionFactory
      */
-    public JdbcConnectionSource createConnectionSource() throws SQLException {
+    public SqlSessionFactory getSqlSessionFactory() {
+        if (sqlSessionFactory == null) {
+            synchronized (this) {
+                if (sqlSessionFactory == null) {
+                    try {
+                        initSqlSessionFactory();
+                    } catch (SQLException e) {
+                        throw new RuntimeException("初始化SqlSessionFactory失败", e);
+                    }
+                }
+            }
+        }
+        return sqlSessionFactory;
+    }
+
+    /**
+     * 初始化SqlSessionFactory
+     */
+    private void initSqlSessionFactory() throws SQLException {
         // 获取数据库配置
         DatabaseProperty db = ConfigProperty.getInstance().getDb();
         if (db == null) {
@@ -46,12 +76,37 @@ public class DatabaseConnectionManager {
         // 验证配置参数
         validateDatabaseConfig(db);
 
-        // 创建新的连接源
-        JdbcConnectionSource source = new JdbcConnectionSource(
+        // 创建数据源
+        SimpleDataSource dataSource = new SimpleDataSource(
                 db.getUrl(),
                 db.getUsername(),
                 db.getPassword());
-        return source;
+        
+        // 创建MyBatis环境
+        Environment environment = new Environment("development", new JdbcTransactionFactory(), dataSource);
+        
+        // 创建MyBatis配置
+        MybatisConfiguration configuration = new MybatisConfiguration(environment);
+        configuration.setMapUnderscoreToCamelCase(true);
+        configuration.setLogImpl(Slf4jImpl.class);
+        
+        // Add Pagination Interceptor
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.H2));
+        configuration.addInterceptor(interceptor);
+        
+        // 注册Mappers
+        configuration.addMapper(SysUserMapper.class);
+        configuration.addMapper(ProxyClientMapper.class);
+        configuration.addMapper(ProxyClientRuleMapper.class);
+        configuration.addMapper(SysLogMapper.class);
+        configuration.addMapper(TsReportMapper.class);
+        configuration.addMapper(TsDayReportMapper.class);
+        configuration.addMapper(TsHourReportMapper.class);
+
+        // 创建SqlSessionFactory
+        this.sqlSessionFactory = new MybatisSqlSessionFactoryBuilder().build(configuration);
+        log.info("SqlSessionFactory initialized successfully.");
     }
 
     /**

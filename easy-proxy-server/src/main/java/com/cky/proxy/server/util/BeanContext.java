@@ -1,7 +1,7 @@
 package com.cky.proxy.server.util;
 
+import java.io.InputStreamReader;
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.List;
 
 import com.cky.proxy.server.config.DatabaseConnectionManager;
@@ -13,21 +13,13 @@ import com.cky.proxy.server.dao.TsDayReportDao;
 import com.cky.proxy.server.dao.TsHourReportDao;
 import com.cky.proxy.server.dao.UserDao;
 import com.cky.proxy.server.domain.entity.ProxyClient;
-import com.cky.proxy.server.domain.entity.ProxyClientRule;
-import com.cky.proxy.server.domain.entity.SysUser;
-import com.cky.proxy.server.domain.entity.SysLog;
-import com.cky.proxy.server.domain.entity.TsReport;
 import com.cky.proxy.server.service.ProxyClientRuleService;
 import com.cky.proxy.server.service.ProxyClientService;
-import com.cky.proxy.server.domain.entity.TsDayReport;
-import com.cky.proxy.server.domain.entity.TsHourReport;
-import com.j256.ormlite.jdbc.db.H2DatabaseType;
-import com.j256.ormlite.support.ConnectionSource;
-import com.j256.ormlite.table.DatabaseTableConfig;
-import com.j256.ormlite.table.TableUtils;
 
 import lombok.Data;
 
+import org.apache.ibatis.jdbc.ScriptRunner;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +110,7 @@ public class BeanContext {
             // 初始化默认数据
             initializeData();
             log.info("数据库初始化完成");
-        } catch (SQLException e) {
+        } catch (Exception e) {
             log.error("数据库初始化失败", e);
             throw new RuntimeException("数据库初始化失败: " + e.getMessage(), e);
         }
@@ -141,62 +133,18 @@ public class BeanContext {
     }
 
     /**
-     * 数据库迁移
-     */
-    private void migrateDatabase() {
-        try {
-            // 添加 limit_conn 和 limit_rate 字段
-            String sqlConn = "ALTER TABLE proxy_client_rule ADD COLUMN IF NOT EXISTS limit_conn INTEGER";
-            proxyClientRuleDao.getDao().executeRaw(sqlConn);
-            String sqlRate = "ALTER TABLE proxy_client_rule ADD COLUMN IF NOT EXISTS limit_rate INTEGER";
-            proxyClientRuleDao.getDao().executeRaw(sqlRate);
-            log.info("数据库迁移完成");
-        } catch (Exception e) {
-            log.warn("数据库迁移异常 (可能是字段已存在): " + e.getMessage());
-        }
-    }
-
-    /**
      * 初始化所有表
      */
     private void initializeAllTables() {
-        try (ConnectionSource connectionSource = DatabaseConnectionManager.getInstance().createConnectionSource()) {
-            // 初始化用户表
-            initializeTable(connectionSource, SysUser.class);
-            // 初始化代理客户端表
-            initializeTable(connectionSource, ProxyClient.class);
-            // 初始化代理客户端规则表
-            initializeTable(connectionSource, ProxyClientRule.class);
-            // 初始化系统日志表
-            initializeTable(connectionSource, SysLog.class);
-            // 初始化流量统计相关表
-            initializeTable(connectionSource, TsReport.class);
-            initializeTable(connectionSource, TsDayReport.class);
-            initializeTable(connectionSource, TsHourReport.class);
+        try (SqlSession session = DatabaseConnectionManager.getInstance().getSqlSessionFactory().openSession()) {
+            ScriptRunner runner = new ScriptRunner(session.getConnection());
+            runner.setAutoCommit(true);
+            runner.setStopOnError(true);
+            runner.setLogWriter(null); // 禁止输出详细日志，避免刷屏
+            runner.runScript(new InputStreamReader(BeanContext.class.getClassLoader().getResourceAsStream("schema.sql")));
+            log.info("Schema initialized.");
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 初始化单个表
-     */
-    private void initializeTable(ConnectionSource connectionSource, Class<?> entityClass)
-            throws SQLException {
-        String tableName = DatabaseTableConfig.extractTableName(new H2DatabaseType(), entityClass);
-        try {
-            int tableExists = TableUtils.createTableIfNotExists(connectionSource, entityClass);
-            if (tableExists == 1) {
-                log.info(tableName + " 已存在，跳过创建");
-            } else {
-                log.info(tableName + " 创建成功");
-            }
-            log.info("表 {} 初始化完成", tableName);
-        } catch (SQLException e) {
-            String errorMsg = "创建表 " + tableName + " 失败: " + e.getMessage();
-            log.info(errorMsg);
-            log.error(errorMsg, e);
-            throw new SQLException(errorMsg, e);
+            throw new RuntimeException("Failed to initialize database tables", e);
         }
     }
 
@@ -215,7 +163,7 @@ public class BeanContext {
     }
 
     private void initializeClientOffline() {
-        List<ProxyClient> proxyClients = getProxyClientDao().selectList(qb -> {
+        List<ProxyClient> proxyClients = getProxyClientDao().selectList(wrapper -> {
         });
         proxyClients.forEach(client -> {
             client.setStatus("offline");

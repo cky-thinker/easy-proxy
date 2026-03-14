@@ -8,7 +8,6 @@ import com.cky.proxy.server.domain.entity.TsDayReport;
 import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.cky.proxy.server.domain.entity.TsReport;
 import com.cky.proxy.server.util.BeanContext;
-import com.j256.ormlite.stmt.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -275,9 +274,9 @@ public class TrafficStatisticManager {
     }
 
     private static void updateDayReport(TsDayReportDao dao, TrafficStats stats, long up, long down, Date today, Date now) throws Exception {
-        QueryBuilder<TsDayReport, Integer> qb = dao.getDao().queryBuilder();
-        qb.where().eq("proxy_client_rule_id", stats.ruleId).and().eq("date", today);
-        TsDayReport report = qb.queryForFirst();
+        TsDayReport report = dao.selectList(wrapper -> {
+            wrapper.eq("proxy_client_rule_id", stats.ruleId).eq("date", today);
+        }).stream().findFirst().orElse(null);
 
         if (report == null) {
             report = new TsDayReport();
@@ -289,21 +288,16 @@ public class TrafficStatisticManager {
             report.setCreateTime(now);
             dao.insert(report);
         } else {
-            // 注意：这里需要处理并发更新，但在单机简单场景下，且flush是单线程执行（定时任务），一般没问题。
-            // 如果有多个实例，需要数据库层面的原子更新。目前假设单实例。
             report.setUploadBytes((report.getUploadBytes() == null ? 0 : report.getUploadBytes()) + up);
             report.setDownloadBytes((report.getDownloadBytes() == null ? 0 : report.getDownloadBytes()) + down);
-            // 这里不需要更新 createTime，也不需要 updateTime 字段（实体中未定义 updateTime 用于天报表? 
-            // 检查实体定义: TsDayReport 只有 createTime，没有 updateTime。
-            // 可以在此处不更新时间，只更新数据。
             dao.updateById(report);
         }
     }
 
     private static void updateTotalReport(TsReportDao dao, TrafficStats stats, long up, long down, Date now) throws Exception {
-        QueryBuilder<TsReport, Integer> qb = dao.getDao().queryBuilder();
-        qb.where().eq("proxy_client_rule_id", stats.ruleId);
-        TsReport report = qb.queryForFirst();
+        TsReport report = dao.selectList(wrapper -> {
+            wrapper.eq("proxy_client_rule_id", stats.ruleId);
+        }).stream().findFirst().orElse(null);
 
         if (report == null) {
             report = new TsReport();
