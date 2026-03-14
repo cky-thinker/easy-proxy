@@ -123,7 +123,7 @@ public class DbInitTest {
             // 生成近24小时的小时级数据
             for (int h = 1; h <= 24; h++) {
                 cal.setTime(new Date());
-                cal.add(Calendar.HOUR_OF_DAY, h);
+                cal.add(Calendar.HOUR_OF_DAY, -h);
                 // 设置为该小时的59分59秒，模拟小时结束生成
                 cal.set(Calendar.MINUTE, 59);
                 cal.set(Calendar.SECOND, 59);
