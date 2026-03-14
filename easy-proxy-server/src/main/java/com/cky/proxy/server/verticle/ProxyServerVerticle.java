@@ -144,6 +144,9 @@ public class ProxyServerVerticle extends AbstractVerticle {
         // 关闭规则端口监听
         NetServer server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
         if (server == null) {
+            if (completionHandler != null) {
+                completionHandler.run();
+            }
             return;
         }
         server.close(res -> {
