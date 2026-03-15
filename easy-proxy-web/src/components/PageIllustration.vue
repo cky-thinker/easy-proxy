@@ -94,35 +94,42 @@
 
     <!-- Rule Illustration -->
     <svg v-if="type === 'rule'" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-      <!-- Background Elements -->
-      <rect x="40" y="30" width="120" height="90" rx="4" fill="#ECFDF5" stroke="#D1FAE5" stroke-width="2" />
+      <!-- Background Card -->
+      <rect x="30" y="20" width="140" height="110" rx="8" fill="#ECFDF5" stroke="#D1FAE5" stroke-width="2" />
       
-      <!-- Rule List Items -->
-      <g transform="translate(55, 45)">
-         <!-- Item 1 -->
-         <rect x="0" y="0" width="90" height="12" rx="2" fill="#FFFFFF" />
-         <circle cx="80" cy="6" r="3" fill="#10B981" />
+      <!-- Network Flow Diagram -->
+      <g transform="translate(50, 45)">
+         <!-- Ingress Node (Source) -->
+         <circle cx="15" cy="30" r="12" fill="#FFFFFF" stroke="#10B981" stroke-width="2" />
+         <path d="M10 30 H20" stroke="#10B981" stroke-width="2" stroke-linecap="round" />
          
-         <!-- Item 2 -->
-         <rect x="0" y="20" width="90" height="12" rx="2" fill="#FFFFFF" />
-         <circle cx="80" cy="26" r="3" fill="#10B981" />
+         <!-- Egress Node (Target) -->
+         <circle cx="85" cy="30" r="12" fill="#FFFFFF" stroke="#10B981" stroke-width="2" />
+         <path d="M80 30 H90 M85 25 V35" stroke="#10B981" stroke-width="2" stroke-linecap="round" />
          
-         <!-- Item 3 (Active/Highlight) -->
-         <g class="animate-pulse-slow">
-            <rect x="-5" y="40" width="100" height="16" rx="3" fill="#10B981" />
-            <rect x="5" y="46" width="60" height="4" rx="2" fill="#FFFFFF" opacity="0.8" />
-            <circle cx="85" cy="48" r="4" fill="#FFFFFF" />
-         </g>
-
-         <!-- Item 4 -->
-         <rect x="0" y="65" width="90" height="12" rx="2" fill="#FFFFFF" />
-         <circle cx="80" cy="71" r="3" fill="#D1D5DB" />
+         <!-- Connection Line (Animated) -->
+         <path d="M27 30 H73" stroke="#34D399" stroke-width="2" stroke-dasharray="4 4" class="animate-dash" />
+         
+         <!-- Arrow Head -->
+         <path d="M70 27 L73 30 L70 33" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+         
+         <!-- Moving Dot (Packet) -->
+         <circle cx="30" cy="30" r="3" fill="#059669">
+            <animate attributeName="cx" from="30" to="70" dur="1.5s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0;1;1;0" dur="1.5s" repeatCount="indefinite" />
+         </circle>
       </g>
       
-      <!-- Floating Checkmark -->
-      <g transform="translate(140, 100)" class="animate-bounce-small">
-        <circle cx="0" cy="0" r="15" fill="#059669" stroke="#FFFFFF" stroke-width="2" />
-        <path d="M-6 0 L-2 4 L6 -4" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Configuration Lines below -->
+      <g transform="translate(60, 100)">
+        <rect x="0" y="0" width="80" height="6" rx="3" fill="#D1FAE5" />
+        <rect x="0" y="12" width="50" height="6" rx="3" fill="#D1FAE5" />
+      </g>
+      
+      <!-- Settings Gear (Floating) -->
+      <g transform="translate(150, 40)" class="animate-spin-slow">
+        <path d="M12 0L14.5 4.3L19.4 5L15.9 8.5L16.7 13.4L12 11L7.3 13.4L8.1 8.5L4.6 5L9.5 4.3L12 0Z" fill="#34D399" opacity="0.6" />
+        <circle cx="12" cy="7" r="3" fill="#ECFDF5" />
       </g>
     </svg>
   </div>

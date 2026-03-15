@@ -6,7 +6,7 @@
         <h1 class="text-2xl font-bold text-gray-900">规则管理</h1>
         <p class="text-gray-600 mt-1">管理转发规则</p>
       </div>
-      <PageIllustration type="rule" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 opacity-50" />
+      <PageIllustration type="rule" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24" />
     </div>
 
     <!-- 搜索和筛选 -->
