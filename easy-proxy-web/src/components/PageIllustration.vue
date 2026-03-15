@@ -59,47 +59,71 @@
 
     <!-- User Illustration -->
     <svg v-if="type === 'user'" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-      <!-- Background Circle -->
-      <circle cx="100" cy="75" r="50" fill="#E0E7FF" class="animate-scale" />
-      
-      <!-- User Avatar -->
-      <g transform="translate(100, 75)" class="animate-float">
-        <circle cx="0" cy="-15" r="20" fill="#4F46E5" />
-        <path d="M-30 35 C-30 15 -15 10 0 10 C15 10 30 15 30 35 V40 H-30 V35 Z" fill="#4F46E5" />
+      <!-- Background Card -->
+      <g transform="translate(90, 30) rotate(15)">
+         <rect x="0" y="0" width="80" height="100" rx="12" fill="#C7D2FE" opacity="0.5" />
       </g>
       
-      <!-- Badge -->
-      <g transform="translate(130, 45)">
-        <circle cx="0" cy="0" r="12" fill="#FCD34D" stroke="#FFFFFF" stroke-width="2" class="animate-bounce-small" />
-        <path d="M-4 0 L-1 3 L4 -3" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(0, 0)" />
+      <!-- Main User Card -->
+      <g transform="translate(60, 40)" class="animate-float">
+        <rect x="0" y="0" width="90" height="110" rx="12" fill="#FFFFFF" stroke="#4F46E5" stroke-width="2" />
+        
+        <!-- Avatar Circle -->
+        <circle cx="45" cy="35" r="20" fill="#EEF2FF" />
+        <circle cx="45" cy="30" r="8" fill="#4F46E5" />
+        <path d="M29 52 C29 44 36 40 45 40 C54 40 61 44 61 52 V55 H29 V52 Z" fill="#4F46E5" />
+        
+        <!-- Text Lines -->
+        <rect x="20" y="65" width="50" height="6" rx="3" fill="#E0E7FF" />
+        <rect x="20" y="80" width="35" height="6" rx="3" fill="#E0E7FF" />
+        
+        <!-- Active Dot -->
+        <circle cx="75" cy="20" r="4" fill="#10B981" class="animate-pulse" />
       </g>
       
-      <!-- Decorative particles -->
-      <circle cx="50" cy="50" r="4" fill="#818CF8" class="animate-fade-1" />
-      <circle cx="150" cy="100" r="3" fill="#818CF8" class="animate-fade-2" />
-      <circle cx="60" cy="110" r="5" fill="#818CF8" class="animate-fade-3" />
+      <!-- Admin Shield -->
+      <g transform="translate(140, 90) rotate(-10)" class="animate-scale">
+         <path d="M10 2 L18 6 V11 C18 16 10 20 10 20 C10 20 2 16 2 11 V6 L10 2 Z" fill="#FCD34D" stroke="#FFFFFF" stroke-width="2" />
+         <path d="M6 10 L9 13 L14 8" stroke="#B45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      
+      <!-- Decor -->
+      <circle cx="40" cy="110" r="5" fill="#818CF8" class="animate-fade-1" />
+      <circle cx="160" cy="40" r="3" fill="#6366F1" class="animate-fade-2" />
     </svg>
 
     <!-- Rule Illustration -->
     <svg v-if="type === 'rule'" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-      <!-- Gears -->
-      <g transform="translate(60, 60)" class="animate-spin-slow">
-        <circle cx="0" cy="0" r="25" fill="none" stroke="#6B7280" stroke-width="8" stroke-dasharray="8 8" />
-        <circle cx="0" cy="0" r="10" fill="#9CA3AF" />
+      <!-- Background Elements -->
+      <rect x="40" y="30" width="120" height="90" rx="4" fill="#ECFDF5" stroke="#D1FAE5" stroke-width="2" />
+      
+      <!-- Rule List Items -->
+      <g transform="translate(55, 45)">
+         <!-- Item 1 -->
+         <rect x="0" y="0" width="90" height="12" rx="2" fill="#FFFFFF" />
+         <circle cx="80" cy="6" r="3" fill="#10B981" />
+         
+         <!-- Item 2 -->
+         <rect x="0" y="20" width="90" height="12" rx="2" fill="#FFFFFF" />
+         <circle cx="80" cy="26" r="3" fill="#10B981" />
+         
+         <!-- Item 3 (Active/Highlight) -->
+         <g class="animate-pulse-slow">
+            <rect x="-5" y="40" width="100" height="16" rx="3" fill="#10B981" />
+            <rect x="5" y="46" width="60" height="4" rx="2" fill="#FFFFFF" opacity="0.8" />
+            <circle cx="85" cy="48" r="4" fill="#FFFFFF" />
+         </g>
+
+         <!-- Item 4 -->
+         <rect x="0" y="65" width="90" height="12" rx="2" fill="#FFFFFF" />
+         <circle cx="80" cy="71" r="3" fill="#D1D5DB" />
       </g>
       
-      <g transform="translate(110, 90)" class="animate-spin-reverse">
-        <circle cx="0" cy="0" r="20" fill="none" stroke="#4B5563" stroke-width="6" stroke-dasharray="6 6" />
-        <circle cx="0" cy="0" r="8" fill="#6B7280" />
+      <!-- Floating Checkmark -->
+      <g transform="translate(140, 100)" class="animate-bounce-small">
+        <circle cx="0" cy="0" r="15" fill="#059669" stroke="#FFFFFF" stroke-width="2" />
+        <path d="M-6 0 L-2 4 L6 -4" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
       </g>
-      
-      <!-- Flow Lines -->
-      <path d="M20 75 Q 60 20 100 75 T 180 75" stroke="#10B981" stroke-width="3" fill="none" stroke-dasharray="10 5" class="animate-flow" />
-      
-      <!-- Particles on path -->
-      <circle r="4" fill="#059669">
-        <animateMotion dur="3s" repeatCount="indefinite" path="M20 75 Q 60 20 100 75 T 180 75" />
-      </circle>
     </svg>
   </div>
 </template>
