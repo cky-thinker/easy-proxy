@@ -17,7 +17,7 @@ public class Address {
         if (addrs.length != 2) {
             return new Address().setValid(false);
         }
-        if (!ReUtil.isMatch(RegexPool.IPV4, addrs[0])) {
+        if (!"localhost".equals(addrs[0]) && !ReUtil.isMatch(RegexPool.IPV4, addrs[0])) {
             return new Address().setValid(false);
         }
         if (!ReUtil.isMatch(RegexPool.NUMBERS, addrs[1])) {
