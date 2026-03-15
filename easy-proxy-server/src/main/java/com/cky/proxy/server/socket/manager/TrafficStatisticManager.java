@@ -151,6 +151,23 @@ public class TrafficStatisticManager {
     }
 
     /**
+     * Get recommended wait time in ms based on current usage and limit.
+     * Should be called immediately after isRateExceeded returns true.
+     */
+    public static long getWaitTime(Integer ruleId) {
+        TrafficStats stats = statsMap.get(ruleId);
+        if (stats == null || stats.limitRate <= 0) return 0;
+
+        synchronized (stats) {
+            long limitBytes = stats.limitRate * 1024L;
+            long current = stats.currentSecondBytes.get();
+            if (current <= limitBytes) return 0;
+
+            return (current - limitBytes) * 1000 / limitBytes;
+        }
+    }
+
+    /**
      * 记录上传流量 (User -> Server -> Client)
      */
     public static void addUpload(String userId, long bytes) {

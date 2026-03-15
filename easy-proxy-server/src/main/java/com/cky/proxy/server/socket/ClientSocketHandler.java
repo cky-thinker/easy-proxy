@@ -179,9 +179,13 @@ public class ClientSocketHandler implements Handler<NetSocket> {
             // Check bandwidth limit
             Integer ruleId = TrafficStatisticManager.getRuleId(userId);
             if (ruleId != null && TrafficStatisticManager.isRateExceeded(ruleId, data.length)) {
-                log.debug("EP>>ServerMng>> Rate limit exceeded, pausing client socket");
+                long waitTime = TrafficStatisticManager.getWaitTime(ruleId);
+                if (waitTime < 1000) {
+                    waitTime = 1000;
+                }
+                log.debug("EP>>ServerMng>> Rate limit exceeded, pausing client socket for {} ms", waitTime);
                 clientSocket.pause();
-                vertx.setTimer(1000, id -> clientSocket.resume());
+                vertx.setTimer(waitTime, id -> clientSocket.resume());
             }
 
             TrafficStatisticManager.addDownload(userId, data.length);
