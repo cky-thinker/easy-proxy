@@ -6,7 +6,7 @@
         <h1 class="text-2xl font-bold text-gray-900">客户端管理</h1>
         <p class="text-gray-600 mt-1">管理客户端配置</p>
       </div>
-      <PageIllustration type="client" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 opacity-50" />
+      <PageIllustration type="client" class="absolute right-0 md:right-auto md:left-64 top-1/2 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 opacity-50" />
     </div>
 
     <!-- 搜索与操作 -->
