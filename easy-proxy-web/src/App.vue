@@ -15,7 +15,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-if="route.path !== '/login'" class="flex flex-col min-h-screen bg-gray-50">
+    <div v-if="!['/login', '/init'].includes(route.path)" class="flex flex-col min-h-screen bg-gray-50">
         <NavBar />
 
         <div class="flex-1 relative z-10">

@@ -1,10 +1,16 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <!-- 动态插画 -->
+    <PageIllustration type="init" class="absolute right-0 md:right-auto md:left-32 top-1/2 -translate-y-1/2 w-64 h-64 md:w-96 md:h-96 opacity-30 pointer-events-none" />
+    
+    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100 z-10 relative">
       <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          系统初始化
-        </h2>
+        <div class="flex justify-center items-center">
+          <img src="/favicon.ico" alt="logo" class="w-10 h-10 mr-3" />
+          <h2 class="text-center text-3xl font-extrabold text-gray-900">
+            系统初始化
+          </h2>
+        </div>
         <p class="mt-2 text-center text-sm text-gray-600">
           请设置系统管理员账号
         </p>
@@ -45,6 +51,7 @@ import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
 import { initUser } from '../api/auth';
+import PageIllustration from '../components/PageIllustration.vue';
 
 const router = useRouter();
 const formRef = ref<FormInstance>();

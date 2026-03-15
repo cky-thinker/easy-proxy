@@ -132,6 +132,46 @@
         <circle cx="12" cy="7" r="3" fill="#ECFDF5" />
       </g>
     </svg>
+
+    <!-- Init Illustration -->
+    <svg v-if="type === 'init'" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+      <!-- Background Hexagon -->
+      <path d="M100 20 L160 55 L160 125 L100 160 L40 125 L40 55 Z" fill="#EEF2FF" opacity="0.6" class="animate-pulse-slow" />
+
+      <!-- Progress Rings -->
+      <g transform="translate(100, 75)">
+        <circle cx="0" cy="0" r="50" fill="none" stroke="#C7D2FE" stroke-width="2" stroke-dasharray="4 4" class="animate-spin-slow" />
+        <circle cx="0" cy="0" r="65" fill="none" stroke="#E0E7FF" stroke-width="1" stroke-dasharray="2 6" class="animate-spin-reverse" />
+      </g>
+
+      <!-- Core Server / Setup Base -->
+      <g transform="translate(60, 50)" class="animate-float">
+        <!-- Layers -->
+        <path d="M40 0 L80 20 L40 40 L0 20 Z" fill="#818CF8" opacity="0.3" />
+        <path d="M40 15 L80 35 L40 55 L0 35 Z" fill="#6366F1" opacity="0.5" />
+        <path d="M40 30 L80 50 L40 70 L0 50 Z" fill="#4F46E5" />
+
+        <!-- Magic Sparkles -->
+        <path d="M40 -15 L43 -25 L53 -28 L43 -31 L40 -41 L37 -31 L27 -28 L37 -25 Z" fill="#FCD34D" class="animate-scale" />
+        <path d="M60 -5 L62 -12 L69 -14 L62 -16 L60 -23 L58 -16 L51 -14 L58 -12 Z" fill="#FBBF24" class="animate-scale" style="animation-delay: 0.5s;" />
+
+        <!-- Loading/Init dots -->
+        <circle cx="20" cy="55" r="3" fill="#34D399" class="animate-blink-1" />
+        <circle cx="40" cy="65" r="3" fill="#34D399" class="animate-blink-2" />
+        <circle cx="60" cy="55" r="3" fill="#34D399" class="animate-blink-3" />
+      </g>
+
+      <!-- Floating Setup Gears -->
+      <g transform="translate(145, 35)" class="animate-spin-slow">
+        <path d="M10,-2 L13,-6 L18,-3 L16,2 C17,4 17,6 16,8 L21,10 L18,15 L13,13 C10,15 8,15 6,14 L3,19 L-2,16 L0,11 C-2,9 -2,7 0,5 L-5,3 L-2,-2 L3,0 C6,-2 8,-2 10,-2 Z" fill="#A5B4FC" opacity="0.8"/>
+        <circle cx="8" cy="6" r="4" fill="#EEF2FF" />
+      </g>
+
+      <g transform="translate(45, 105)" class="animate-spin-reverse">
+         <path d="M6,-1 L8,-4 L12,-2 L10,1 C11,2 11,4 10,5 L14,7 L12,11 L8,9 C6,10 5,10 3,9 L1,13 L-2,11 L0,7 C-1,6 -1,4 0,3 L-3,1 L-2,-2 L2,-1 C4,-2 5,-2 6,-1 Z" fill="#818CF8" opacity="0.9"/>
+         <circle cx="5" cy="4" r="2" fill="#EEF2FF" />
+      </g>
+    </svg>
   </div>
 </template>
 
@@ -139,7 +179,7 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-  type: 'dashboard' | 'client' | 'user' | 'rule'
+  type: 'dashboard' | 'client' | 'user' | 'rule' | 'init'
   class?: string
 }>()
 
