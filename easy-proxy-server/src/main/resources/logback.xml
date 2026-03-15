@@ -13,7 +13,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.cky.proxy" level="INFO" additivity="false">
+    <logger name="com.cky.proxy" level="DEBUG" additivity="false">
         <appender-ref ref="console"/>
     </logger>
 

@@ -53,7 +53,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                     processConnect(msg, clientSocket);
                     break;
                 case Message.DATA:
-                    processData(msg);
+                    processData(msg, clientSocket);
                     break;
                 case Message.DISCONNECT:
                     processDisconnect(msg);
@@ -168,13 +168,22 @@ public class ClientSocketHandler implements Handler<NetSocket> {
         }
     }
 
-    private void processData(Message msg) {
+    private void processData(Message msg, NetSocket clientSocket) {
         log.debug("EP>>ServerMng>> Process data");
         String userId = msg.getToken();
         NetSocket userSocket = RuleListenSocketManager.getProxySocket(userId);
         if (userSocket != null) {
             log.debug("EP>>ServerMng>> Process data success");
             byte[] data = msg.getData();
+
+            // Check bandwidth limit
+            Integer ruleId = TrafficStatisticManager.getRuleId(userId);
+            if (ruleId != null && TrafficStatisticManager.isRateExceeded(ruleId, data.length)) {
+                log.debug("EP>>ServerMng>> Rate limit exceeded, pausing client socket");
+                clientSocket.pause();
+                vertx.setTimer(1000, id -> clientSocket.resume());
+            }
+
             TrafficStatisticManager.addDownload(userId, data.length);
             userSocket.write(Buffer.buffer(data));
         } else {

@@ -63,6 +63,8 @@ public class TrafficStatisticManager {
         // Rate limiting
         final AtomicLong currentSecondBytes = new AtomicLong(0);
         volatile long lastResetTime = System.currentTimeMillis();
+        // Rate limiting config (KB/s)
+        volatile int limitRate = 0;
 
         TrafficStats(Integer clientId, Integer ruleId) {
             this.clientId = clientId;
@@ -102,6 +104,25 @@ public class TrafficStatisticManager {
     public static long getActiveConnections(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
         return stats == null ? 0 : stats.activeConnections.get();
+    }
+
+    /**
+     * 更新规则限流配置
+     */
+    public static void updateRuleLimit(Integer ruleId, Integer limitRate) {
+        TrafficStats stats = statsMap.get(ruleId);
+        if (stats != null && limitRate != null) {
+            stats.limitRate = limitRate;
+        }
+    }
+
+    /**
+     * 检查是否超过带宽限制 (使用缓存的配置)
+     */
+    public static boolean isRateExceeded(Integer ruleId, int bytes) {
+        TrafficStats stats = statsMap.get(ruleId);
+        if (stats == null) return false;
+        return isRateExceeded(ruleId, stats.limitRate, bytes);
     }
 
     /**
