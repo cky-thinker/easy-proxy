@@ -78,8 +78,8 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- 流量排行 -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="p-6 border-b border-gray-200">
+      <div class="bg-white rounded-lg shadow h-[400px] flex flex-col">
+        <div class="p-6 border-b border-gray-200 flex-shrink-0">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900">流量排行</h2>
             <div class="flex space-x-2">
@@ -100,7 +100,7 @@
             </div>
           </div>
         </div>
-        <div class="p-6">
+        <div class="p-6 flex-1 overflow-y-auto">
           <div class="space-y-4">
             <div v-for="(item, index) in trafficRanking" :key="index" class="flex items-center justify-between">
               <div class="flex items-center">
@@ -120,11 +120,11 @@
       </div>
 
       <!-- 最近活动 -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="p-6 border-b border-gray-200">
+      <div class="bg-white rounded-lg shadow h-[400px] flex flex-col">
+        <div class="p-6 border-b border-gray-200 flex-shrink-0">
           <h2 class="text-lg font-semibold text-gray-900">最近活动</h2>
         </div>
-        <div class="p-6">
+        <div class="p-6 flex-1 overflow-y-auto">
           <div class="space-y-4">
             <div v-for="(activity, index) in recentActivities" :key="index" class="flex items-start">
               <div class="flex-shrink-0">
