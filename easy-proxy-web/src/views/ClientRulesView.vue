@@ -12,6 +12,12 @@
     <!-- 搜索和筛选 -->
     <div class="bg-white rounded-lg mb-6 pt-4 pl-6">
       <el-form inline label-position="left">
+        <el-form-item label="客户端">
+          <el-select v-model="queryForm.clientFilter" clearable placeholder="全部" class="w-48">
+            <el-option label="全部" :value="undefined" />
+            <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="搜索">
           <el-input v-model="queryForm.nameQuery" clearable placeholder="规则名称">
             <template #prefix>
@@ -23,12 +29,6 @@
         </el-form-item>
         <el-form-item label="端口">
           <el-input v-model="queryForm.portQuery" clearable placeholder="端口" class="w-40" />
-        </el-form-item>
-        <el-form-item label="客户端">
-          <el-select v-model="queryForm.clientFilter" clearable placeholder="全部" class="w-48">
-            <el-option label="全部" :value="undefined" />
-            <el-option v-for="c in clients" :key="c.id" :label="c.name" :value="c.id" />
-          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery">

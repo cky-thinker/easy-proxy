@@ -51,7 +51,16 @@
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto p-6">
         <el-table :data="clients" v-loading="loading">
-          <el-table-column prop="name" label="客户端名称" width="300" />
+          <el-table-column prop="name" label="客户端名称" width="300">
+            <template #default="{ row }">
+              <div class="flex items-center space-x-2">
+                <span>{{ row.name }}</span>
+                <el-button type="primary" link @click="goToRulesPage(row)" title="管理规则">
+                  <el-icon><Connection /></el-icon>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column prop="token" label="TOKEN" min-width="320" />
           <el-table-column label="在线状态" width="120">
             <template #default="{ row }">
