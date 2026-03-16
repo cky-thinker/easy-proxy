@@ -3,7 +3,7 @@
 # Easy Proxy
 
 <p align="center">
-  <img src="./resources/images/logo.png" alt="Easy Proxy Logo" width="200">
+  <img src="wiki/asserts/images/logo.png" alt="Easy Proxy Logo" width="200">
 </p>
 
 一个简单、高效的内网穿透工具。
@@ -12,7 +12,7 @@
 
 Easy Proxy 是一个基于 Vert.x 开发的高性能内网穿透工具，支持 TCP 流量转发。它包含服务端、客户端和 Web 管理界面，旨在提供简单易用的内网穿透服务。
 
-![Architecture](./resources/images/architecture.png)
+![Architecture](wiki/asserts/images/architecture.png)
 
 ## 项目结构
 
@@ -24,8 +24,8 @@ Easy Proxy 是一个基于 Vert.x 开发的高性能内网穿透工具，支持 
 ## 软件截图
 
 <p align="center">
-  <img src="./resources/images/page_login.jpeg" alt="登录页" width="48%">
-  <img src="./resources/images/page_dashboard.jpeg" alt="仪表盘" width="48%">
+  <img src="wiki/asserts/images/page_login.jpeg" alt="登录页" width="48%">
+  <img src="wiki/asserts/images/page_dashboard.jpeg" alt="仪表盘" width="48%">
 </p>
 
 ## 环境要求
@@ -62,7 +62,6 @@ docker run -d \
   --name easy-proxy-client \
   --network host \
   -v $(pwd)/config:/app/config \
-  -v $(pwd)/data:/app/data \
   easy-proxy-client
 ```
 

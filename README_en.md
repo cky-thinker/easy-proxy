@@ -3,7 +3,7 @@ English | [中文](./README.md)
 # Easy Proxy
 
 <p align="center">
-  <img src="./resources/images/logo.png" alt="Easy Proxy Logo" width="200">
+  <img src="wiki/asserts/images/logo.png" alt="Easy Proxy Logo" width="200">
 </p>
 
 A simple and efficient intranet penetration tool.
@@ -12,7 +12,7 @@ A simple and efficient intranet penetration tool.
 
 Easy Proxy is a high-performance intranet penetration tool developed based on Vert.x, supporting TCP traffic forwarding. It includes a server, a client, and a Web management interface, aiming to provide easy-to-use intranet penetration services.
 
-![Architecture](./resources/images/architecture.png)
+![Architecture](wiki/asserts/images/architecture.png)
 
 ## Project Structure
 
@@ -24,8 +24,8 @@ Easy Proxy is a high-performance intranet penetration tool developed based on Ve
 ## Screenshots
 
 <p align="center">
-  <img src="./resources/images/page_login.jpeg" alt="Login Page" width="48%">
-  <img src="./resources/images/page_dashboard.jpeg" alt="Dashboard Page" width="48%">
+  <img src="wiki/asserts/images/page_login.jpeg" alt="Login Page" width="48%">
+  <img src="wiki/asserts/images/page_dashboard.jpeg" alt="Dashboard Page" width="48%">
 </p>
 
 ## Requirements
