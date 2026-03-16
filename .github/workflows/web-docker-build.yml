@@ -2,8 +2,6 @@ name: Web Docker Build
 
 on:
   push:
-    branches:
-      - master
     paths:
       - 'easy-proxy-web/**'
     tags:
@@ -11,6 +9,7 @@ on:
 
 jobs:
   build-web:
+    if: github.ref_type == 'tag' && contains(github.ref, 'refs/tags/v') && github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     
     steps:
