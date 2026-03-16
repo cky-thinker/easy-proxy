@@ -12,7 +12,6 @@ on:
 
 jobs:
   build:
-    if: github.ref_type == 'tag' && contains(github.ref, 'refs/tags/v') && github.event.base_ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     
     steps:
@@ -40,10 +39,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          # if using ghcr.io, change to:
-          # registry: ghcr.io
-          # username: ${{ github.actor }}
-          # password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Client
         uses: docker/build-push-action@v5
