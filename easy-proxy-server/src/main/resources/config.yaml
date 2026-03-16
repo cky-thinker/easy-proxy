@@ -1,7 +1,7 @@
 server:
     proxyPort: 10090
     webPort: 10091
-    captchaImageEnable: false
+    captchaImageEnable: true
     publicHost: localhost
     certValidityDays: 3650
     certPassword: easyproxy@2008
