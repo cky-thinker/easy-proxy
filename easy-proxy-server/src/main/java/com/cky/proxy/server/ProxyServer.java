@@ -2,6 +2,7 @@ package com.cky.proxy.server;
 
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.common.util.ConfigBootstrap;
 import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.util.H2ConsoleBootstrap;
 import com.cky.proxy.server.util.CertGenerator;
@@ -16,6 +17,8 @@ public class ProxyServer {
     private static final Logger log = LoggerFactory.getLogger(ProxyServer.class);
 
     public static void main(String[] args) {
+        // 检查并复制默认配置文件
+        ConfigBootstrap.initConfigs();
         // 初始化对象管理器
         BeanContext.getInstance().init();
         // 检查并生成证书：不存在则生成JKS证书+导出PEM公钥

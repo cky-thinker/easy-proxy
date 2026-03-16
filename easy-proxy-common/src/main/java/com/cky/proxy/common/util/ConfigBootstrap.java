@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 public class ConfigBootstrap {
     public static void initConfigs() {
         Path configDir = Paths.get("config");
-        copyIfAbsent(configDir, "config.yml");
+        copyIfAbsent(configDir, "config.yaml");
     }
 
     private static void copyIfAbsent(Path configDir, String resourceName) {
