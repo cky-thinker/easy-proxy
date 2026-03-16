@@ -104,12 +104,12 @@
         <el-form-item label="转发地址" prop="clientAddress">
           <el-input v-model="newRule.clientAddress" placeholder="localhost:3000" class="w-full" />
         </el-form-item>
-        <!-- <el-form-item label="连接数限制" prop="limitConn">
+        <el-form-item label="连接数限制" prop="limitConn">
           <el-input v-model.number="newRule.limitConn" placeholder="最大连接数 (0或空不限制)" class="w-full" type="number" />
         </el-form-item>
         <el-form-item label="带宽限制 (KB/s)" prop="limitRate">
           <el-input v-model.number="newRule.limitRate" placeholder="带宽限制 KB/s (0或空不限制)" class="w-full" type="number" />
-        </el-form-item> -->
+        </el-form-item>
         <el-form-item>
           <el-checkbox v-model="newRule.enableFlag">启用</el-checkbox>
         </el-form-item>
@@ -135,12 +135,12 @@
         <el-form-item label="转发地址" prop="clientAddress">
           <el-input v-model="editRule.clientAddress" placeholder="localhost:3000" class="w-full" />
         </el-form-item>
-        <!-- <el-form-item label="连接数限制" prop="limitConn">
+        <el-form-item label="连接数限制" prop="limitConn">
           <el-input v-model.number="editRule.limitConn" placeholder="最大连接数 (0或空不限制)" class="w-full" type="number" />
         </el-form-item>
         <el-form-item label="带宽限制 (KB/s)" prop="limitRate">
           <el-input v-model.number="editRule.limitRate" placeholder="带宽限制 KB/s (0或空不限制)" class="w-full" type="number" />
-        </el-form-item> -->
+        </el-form-item>
         <el-form-item>
           <el-checkbox v-model="editRule.enableFlag">启用</el-checkbox>
         </el-form-item>
