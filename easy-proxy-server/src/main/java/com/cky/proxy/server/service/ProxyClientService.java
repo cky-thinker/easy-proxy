@@ -1,8 +1,5 @@
 package com.cky.proxy.server.service;
 
-import java.util.Date;
-import java.util.List;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.common.consts.OnlineStatus;
@@ -16,8 +13,10 @@ import com.cky.proxy.server.mapper.SysLogMapper;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.util.PageUtil;
-
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 public class ProxyClientService {
@@ -40,8 +39,8 @@ public class ProxyClientService {
      * 分页查询代理客户端，支持 name、status、enableFlag 条件
      */
     public PageResult<ProxyClient> getProxyClientsPageable(cn.hutool.db.Page hutoolPage, String name, String status,
-            Boolean enableFlag) {
-        
+                                                           Boolean enableFlag) {
+
         QueryWrapper<ProxyClient> wrapper = new QueryWrapper<>();
         if (name != null && !name.isEmpty()) {
             wrapper.like("name", name);
@@ -161,29 +160,6 @@ public class ProxyClientService {
     /**
      * 更新客户端在线状态
      */
-    public ProxyClient updateClientStatus(Integer proxyClientId, String status) {
-        ProxyClient client = proxyClientMapper.selectById(proxyClientId);
-        if (client == null) {
-            throw new RuntimeException("客户端不存在");
-        }
-        client.setStatus(status);
-        client.setUpdateTime(new Date());
-        proxyClientMapper.updateById(client);
-        log.info("EP>>ProxyClientService>> Update proxy client status, id: {}, status: {}", client.getId(), status);
-
-        // 记录日志
-        SysLog sysLog = new SysLog();
-        sysLog.setLogType("CLIENT_STATUS_CHANGE");
-        sysLog.setLogContent("客户端状态更新: [" + client.getName() + "] [" + OnlineStatus.valueOf(status).getDesc() + "]");
-        sysLog.setCreateTime(new Date());
-        sysLogMapper.insert(sysLog);
-
-        return client;
-    }
-
-    /**
-     * 更新客户端在线状态
-     */
     public ProxyClient updateClientStatus(String token, String status) {
         ProxyClient client = proxyClientMapper.selectOne(new QueryWrapper<ProxyClient>().eq("token", token));
         if (client == null) {
@@ -197,7 +173,7 @@ public class ProxyClientService {
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("CLIENT_STATUS");
-        sysLog.setLogContent("客户端状态更新: " + client.getName() + " -> " + status);
+        sysLog.setLogContent("客户端状态更新: [" + client.getName() + "] [" + OnlineStatus.valueOf(status).getDesc() + "]");
         sysLog.setCreateTime(new Date());
         sysLogMapper.insert(sysLog);
 
@@ -208,7 +184,7 @@ public class ProxyClientService {
     private void validateNameUnique(String name, Integer excludeId) {
         if (name == null)
             return;
-        
+
         QueryWrapper<ProxyClient> wrapper = new QueryWrapper<>();
         wrapper.eq("name", name);
         if (excludeId != null) {

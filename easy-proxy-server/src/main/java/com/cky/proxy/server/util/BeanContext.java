@@ -121,12 +121,12 @@ public class BeanContext {
      */
     public void init() {
         try {
+            // 初始化数据库
+            initializeDb();
             // 初始化Mapper
             initializeMapper();
             // 初始化服务
             initializeService();
-            // 初始化所有表
-            initializeAllTables();
             // 初始化默认数据
             initializeData();
             log.info("数据库初始化完成");
@@ -163,7 +163,7 @@ public class BeanContext {
     /**
      * 初始化所有表
      */
-    private void initializeAllTables() {
+    private void initializeDb() {
         try (SqlSession session = DatabaseConnectionManager.getInstance().getSqlSessionFactory().openSession()) {
             ScriptRunner runner = new ScriptRunner(session.getConnection());
             runner.setAutoCommit(true);

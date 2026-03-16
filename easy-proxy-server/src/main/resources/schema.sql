@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS proxy_client_rule (
     update_time TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_proxy_client_rule_client ON proxy_client_rule(proxy_client_id);
+
 CREATE TABLE IF NOT EXISTS sys_log (
     id INT AUTO_INCREMENT PRIMARY KEY,
     log_type VARCHAR(50),
@@ -72,6 +74,8 @@ CREATE TABLE IF NOT EXISTS ts_day_report (
     downward_traffic_bytes BIGINT,
     create_time TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_ts_day_report_client ON ts_day_report(proxy_client_id);
+CREATE INDEX IF NOT EXISTS idx_ts_day_report_rule ON ts_day_report(proxy_client_rule_id);
 
 CREATE TABLE IF NOT EXISTS ts_hour_report (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -82,3 +86,5 @@ CREATE TABLE IF NOT EXISTS ts_hour_report (
     downward_traffic_bytes BIGINT,
     create_time TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_ts_hour_report_client ON ts_hour_report(proxy_client_id);
+CREATE INDEX IF NOT EXISTS idx_ts_hour_report_rule ON ts_hour_report(proxy_client_rule_id);

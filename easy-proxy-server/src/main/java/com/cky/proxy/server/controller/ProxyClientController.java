@@ -60,15 +60,19 @@ public class ProxyClientController {
     }
 
     private void initEventBus() {
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, (Message<Integer> msg) -> {
-            Integer proxyClientId = msg.body();
-            proxyClientService.updateClientStatus(proxyClientId, OnlineStatus.online.name());
-            sendSseEvent(EventBusUtil.SOCKET_CLIENT_ONLINE, proxyClientId.toString());
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, (Message<String> msg) -> {
+            String token = msg.body();
+            ProxyClient proxyClient = proxyClientService.updateClientStatus(token, OnlineStatus.online.name());
+            if (proxyClient != null) {
+                sendSseEvent(EventBusUtil.SOCKET_CLIENT_ONLINE, proxyClient.getId().toString());
+            }
         });
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, (Message<Integer> msg) -> {
-            Integer proxyClientId = msg.body();
-            proxyClientService.updateClientStatus(proxyClientId, OnlineStatus.offline.name());
-            sendSseEvent(EventBusUtil.SOCKET_CLIENT_OFFLINE, proxyClientId.toString());
+        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, (Message<String> msg) -> {
+            String token = msg.body();
+            ProxyClient proxyClient = proxyClientService.updateClientStatus(token, OnlineStatus.offline.name());
+            if (proxyClient != null) {
+                sendSseEvent(EventBusUtil.SOCKET_CLIENT_OFFLINE, proxyClient.getId().toString());
+            }
         });
     }
 

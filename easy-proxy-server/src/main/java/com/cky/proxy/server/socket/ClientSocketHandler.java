@@ -82,14 +82,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                     return;
                 }
 
-                try {
-                    ProxyClient client = proxyClientService.updateClientStatus(token, "offline");
-                    if (client != null) {
-                        EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, client.getId());
-                    }
-                } catch (Exception e) {
-                    log.error("EP>>ServerMng>> Update offline status error", e);
-                }
+                EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, token);
 
                 List<ProxyClientRule> rules = proxyRuleService.getAllProxyClientRules(token, null, null);
                 // TODO 根据规则关闭用户连接通道
@@ -135,10 +128,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
             }
 
             // Update online status
-            client = proxyClientService.updateClientStatus(token, OnlineStatus.online.name());
-            if (client != null) {
-                EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, client.getId());
-            }
+            EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, token);
         } catch (Exception e) {
             log.error("EP>>ServerMng>> Process auth error", e);
             sMngSocket.close();
