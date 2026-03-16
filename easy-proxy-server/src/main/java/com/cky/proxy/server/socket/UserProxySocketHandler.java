@@ -48,6 +48,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
         RuleListenSocketManager.userConnectionOnline(proxyRule.getId(), userId, userConnection);
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
+        // Update bandwidth limit
         if (proxyRule.getLimitRate() != null && proxyRule.getLimitRate() > 0) {
             TrafficStatisticManager.updateRuleLimit(proxyRule.getId(), proxyRule.getLimitRate());
         }
@@ -62,11 +63,11 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
     private Handler<Buffer> processRead(NetSocket userProxySocket, String userId) {
         return buffer -> {
             // Check bandwidth limit
-            if (TrafficStatisticManager.isRateExceeded(proxyRule.getId(), buffer.length())) {
-                log.debug("EP>>UserProxy>> Rate limit exceeded, pausing socket");
-                userProxySocket.pause();
-                Vertx.currentContext().owner().setTimer(1000, id -> userProxySocket.resume());
-            }
+            // if (TrafficStatisticManager.isRateExceeded(proxyRule.getId(), buffer.length())) {
+            //     log.debug("EP>>UserProxy>> Rate limit exceeded, pausing socket");
+            //     userProxySocket.pause();
+            //     Vertx.currentContext().owner().setTimer(1000, id -> userProxySocket.resume());
+            // }
             log.debug("EP>>UserProxy>> User socket read");
             NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
             if (dataSocket == null) {
