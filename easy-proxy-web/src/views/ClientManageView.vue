@@ -346,7 +346,7 @@ const loadClients = async () => {
 
 const sseController = ref<AbortController | null>(null)
 const onSseMessage = (evt: { eventType: string; data: any }) => {
-  if (evt.eventType === 'SOCKET_CLIENT_ONLINE' || evt.eventType === 'SOCKET_CLIENT_OFFLINE') {
+  if (evt.eventType === 'socket.client.online' || evt.eventType === 'socket.client.offline') {
     loadClients()
   }
 }

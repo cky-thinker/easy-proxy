@@ -52,14 +52,14 @@ docker run -d \
   --network host \
   -v $(pwd)/easy-proxy-server/config:/app/config \
   -v $(pwd)/easy-proxy-server/data:/app/data \
-  yudejijie/easy-proxy-server:v0.0.9
+  yudejijie/easy-proxy-server:v0.1.0
 
 # web管理界面
 docker rm -f easy-proxy-web
 docker run -d \
   --name easy-proxy-web \
   --network host \
-  yudejijie/easy-proxy-web:v0.0.9
+  yudejijie/easy-proxy-web:v0.1.0
 ```
 
 ### 客户端部署 (Client)
