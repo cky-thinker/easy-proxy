@@ -46,18 +46,20 @@ sudo ufw allow 10093/tcp  # Web 管理端口
 
 ```bash
 # api服务
+docker rm -f easy-proxy-server
 docker run -d \
   --name easy-proxy-server \
   --network host \
   -v $(pwd)/easy-proxy-server/config:/app/config \
   -v $(pwd)/easy-proxy-server/data:/app/data \
-  yudejijie/easy-proxy-server:latest
+  yudejijie/easy-proxy-server:v0.0.9
 
 # web管理界面
+docker rm -f easy-proxy-web
 docker run -d \
   --name easy-proxy-web \
   --network host \
-  yudejijie/easy-proxy-web:latest
+  yudejijie/easy-proxy-web:v0.0.9
 ```
 
 ### 客户端部署 (Client)
