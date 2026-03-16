@@ -20,10 +20,12 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
     private static final Logger log = LoggerFactory.getLogger(UserProxySocketHandler.class);
     private final ProxyClient proxyClientConfig;
     private final ProxyClientRule proxyRule;
+    private final Vertx vertx;
 
-    public UserProxySocketHandler(ProxyClient proxyClientConfig, ProxyClientRule proxyRule) {
+    public UserProxySocketHandler(ProxyClient proxyClientConfig, ProxyClientRule proxyRule, Vertx vertx) {
         this.proxyClientConfig = proxyClientConfig;
         this.proxyRule = proxyRule;
+        this.vertx = vertx;
     }
 
     @Override
@@ -62,12 +64,6 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
 
     private Handler<Buffer> processRead(NetSocket userProxySocket, String userId) {
         return buffer -> {
-            // Check bandwidth limit
-            // if (TrafficStatisticManager.isRateExceeded(proxyRule.getId(), buffer.length())) {
-            //     log.debug("EP>>UserProxy>> Rate limit exceeded, pausing socket");
-            //     userProxySocket.pause();
-            //     Vertx.currentContext().owner().setTimer(1000, id -> userProxySocket.resume());
-            // }
             log.debug("EP>>UserProxy>> User socket read");
             NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
             if (dataSocket == null) {
@@ -76,8 +72,18 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
                 return;
             }
             byte[] data = buffer.getBytes();
-            TrafficStatisticManager.addUpload(userId, data.length);
-            dataSocket.write(Message.createDataMsg(userId, data));
+            // Check bandwidth limit
+            Integer ruleId = proxyRule.getId();
+            if (ruleId != null && TrafficStatisticManager.getBandwidthLimitDelay(ruleId) > 0) {
+                long delayMs = TrafficStatisticManager.getBandwidthLimitDelay(ruleId);
+                TrafficStatisticManager.sendWithBandwidthLimit(vertx, userProxySocket, data, delayMs, 0, chunk -> {
+                    TrafficStatisticManager.addUpload(userId, chunk.length);
+                    dataSocket.write(Message.createDataMsg(userId, chunk));
+                });
+            } else {
+                TrafficStatisticManager.addUpload(userId, data.length);
+                dataSocket.write(Message.createDataMsg(userId, data));
+            }
         };
     }
 

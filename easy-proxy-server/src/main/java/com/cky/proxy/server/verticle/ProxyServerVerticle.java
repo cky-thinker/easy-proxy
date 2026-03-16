@@ -195,7 +195,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
         vertx.createNetServer()
-                .connectHandler(new UserProxySocketHandler(client, rule))
+                .connectHandler(new UserProxySocketHandler(client, rule, vertx))
                 .exceptionHandler(e -> {
                     log.error("Failed listening for rule {} on port {}", rule.getName(), rule.getServerPort(), e);
                 }).listen(rule.getServerPort(), res -> {

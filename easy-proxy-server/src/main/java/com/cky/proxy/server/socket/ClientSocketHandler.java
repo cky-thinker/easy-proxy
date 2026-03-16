@@ -167,19 +167,17 @@ public class ClientSocketHandler implements Handler<NetSocket> {
             byte[] data = msg.getData();
 
             // Check bandwidth limit
-            // Integer ruleId = TrafficStatisticManager.getRuleId(userId);
-            // if (ruleId != null && TrafficStatisticManager.isRateExceeded(ruleId, data.length)) {
-            //     long waitTime = TrafficStatisticManager.getWaitTime(ruleId);
-            //     if (waitTime < 1000) {
-            //         waitTime = 1000;
-            //     }
-            //     log.debug("EP>>ServerMng>> Rate limit exceeded, pausing client socket for {} ms", waitTime);
-            //     clientSocket.pause();
-            //     vertx.setTimer(waitTime, id -> clientSocket.resume());
-            // }
-
-            TrafficStatisticManager.addDownload(userId, data.length);
-            userSocket.write(Buffer.buffer(data));
+            Integer ruleId = TrafficStatisticManager.getRuleId(userId);
+            if (ruleId != null && TrafficStatisticManager.getBandwidthLimitDelay(ruleId) > 0) {
+                long delayMs = TrafficStatisticManager.getBandwidthLimitDelay(ruleId);
+                TrafficStatisticManager.sendWithBandwidthLimit(vertx, userSocket, data, delayMs, 0, chunk -> {
+                    TrafficStatisticManager.addDownload(userId, chunk.length);
+                    userSocket.write(Buffer.buffer(chunk));
+                });
+            } else {
+                TrafficStatisticManager.addDownload(userId, data.length);
+                userSocket.write(Buffer.buffer(data));
+            }
         } else {
             log.debug("EP>>ServerMng>> Process data fail");
         }

@@ -1,6 +1,14 @@
 package com.cky.proxy.server.socket.manager;
 
-import cn.hutool.core.date.DateUtil;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cky.proxy.server.domain.entity.TsDayReport;
 import com.cky.proxy.server.domain.entity.TsHourReport;
@@ -9,13 +17,10 @@ import com.cky.proxy.server.mapper.TsDayReportMapper;
 import com.cky.proxy.server.mapper.TsHourReportMapper;
 import com.cky.proxy.server.mapper.TsReportMapper;
 import com.cky.proxy.server.util.BeanContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import cn.hutool.core.date.DateUtil;
+import io.vertx.core.Vertx;
+import io.vertx.core.net.NetSocket;
 
 /**
  * 流量统计管理器
@@ -23,6 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class TrafficStatisticManager {
     private static final Logger log = LoggerFactory.getLogger(TrafficStatisticManager.class);
+
+    private static final int CHUNK_SIZE = 8 * 1024; // 8KB chunks
 
     // userId -> Context (包含 ruleId, clientId)
     private static final Map<String, TrafficContext> connectionMap = new ConcurrentHashMap<>();
@@ -45,7 +52,7 @@ public class TrafficStatisticManager {
         final Integer ruleId;
         final AtomicLong upload = new AtomicLong(0);
         final AtomicLong download = new AtomicLong(0);
-        
+
         // Real-time speed (Passive)
         // 记录上一秒完成时的速度
         volatile long lastUploadSpeed = 0;
@@ -59,7 +66,7 @@ public class TrafficStatisticManager {
 
         // Active connections
         final AtomicLong activeConnections = new AtomicLong(0);
-        
+
         // Rate limiting
         final AtomicLong currentSecondBytes = new AtomicLong(0);
         volatile long lastResetTime = System.currentTimeMillis();
@@ -117,29 +124,65 @@ public class TrafficStatisticManager {
     }
 
     /**
+     * 获取带宽限制时延
+     * 如果没有配置限流，则返回0
+     */
+    public static long getBandwidthLimitDelay(Integer ruleId) {
+        TrafficStats stats = statsMap.get(ruleId);
+        if (stats == null || stats.limitRate == 0) {
+            return 0;
+        }
+        return (CHUNK_SIZE) / (stats.limitRate * 1000);
+    }
+
+    public static void sendWithBandwidthLimit(Vertx vertx, NetSocket socket, byte[] data, long delayMs, int offset,
+            Consumer<byte[]> chunkProcesser) {
+        if (offset >= data.length) {
+            // 所有数据已发送
+            return;
+        }
+
+        int remainingBytes = data.length - offset;
+        int currentChunkSize = Math.min(CHUNK_SIZE, remainingBytes);
+
+        byte[] chunk = new byte[currentChunkSize];
+        System.arraycopy(data, offset, chunk, 0, currentChunkSize);
+
+        chunkProcesser.accept(chunk);
+
+        vertx.setTimer(delayMs, id -> {
+            sendWithBandwidthLimit(vertx, socket, data, delayMs, offset + currentChunkSize, chunkProcesser);
+        });
+    }
+
+    /**
      * 检查是否超过带宽限制 (使用缓存的配置)
      */
     public static boolean isRateExceeded(Integer ruleId, int bytes) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null) return false;
+        if (stats == null)
+            return false;
         return isRateExceeded(ruleId, stats.limitRate, bytes);
     }
 
     /**
      * 检查是否超过带宽限制
-     * @param ruleId 规则ID
+     * 
+     * @param ruleId      规则ID
      * @param limitRateKB 限制速率(KB/s)
-     * @param bytes 当前传输字节数
+     * @param bytes       当前传输字节数
      * @return true if exceeded
      */
     public static boolean isRateExceeded(Integer ruleId, int limitRateKB, int bytes) {
-        if (limitRateKB <= 0) return false;
+        if (limitRateKB <= 0)
+            return false;
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null) return false;
-        
+        if (stats == null)
+            return false;
+
         long now = System.currentTimeMillis();
         long limitBytes = limitRateKB * 1024L;
-        
+
         synchronized (stats) {
             if (now - stats.lastResetTime >= 1000) {
                 stats.currentSecondBytes.set(0);
@@ -156,12 +199,14 @@ public class TrafficStatisticManager {
      */
     public static long getWaitTime(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null || stats.limitRate <= 0) return 0;
+        if (stats == null || stats.limitRate <= 0)
+            return 0;
 
         synchronized (stats) {
             long limitBytes = stats.limitRate * 1024L;
             long current = stats.currentSecondBytes.get();
-            if (current <= limitBytes) return 0;
+            if (current <= limitBytes)
+                return 0;
 
             return (current - limitBytes) * 1000 / limitBytes;
         }
@@ -175,7 +220,7 @@ public class TrafficStatisticManager {
         if (ctx != null) {
             TrafficStats stats = getStats(ctx);
             stats.upload.addAndGet(bytes);
-            
+
             // 惰性更新速度计算
             long now = System.currentTimeMillis();
             synchronized (stats) {
@@ -197,7 +242,7 @@ public class TrafficStatisticManager {
         if (ctx != null) {
             TrafficStats stats = getStats(ctx);
             stats.download.addAndGet(bytes);
-            
+
             // 惰性更新速度计算
             long now = System.currentTimeMillis();
             synchronized (stats) {
@@ -215,8 +260,9 @@ public class TrafficStatisticManager {
      */
     public static long getUploadSpeed(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null) return 0;
-        
+        if (stats == null)
+            return 0;
+
         long now = System.currentTimeMillis();
         // 如果超过1.5秒没有流量更新，说明当前速度早已归零
         // 这里的1500ms是一个容错值，避免因为轻微的调度延迟导致闪烁
@@ -231,8 +277,9 @@ public class TrafficStatisticManager {
      */
     public static long getDownloadSpeed(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null) return 0;
-        
+        if (stats == null)
+            return 0;
+
         long now = System.currentTimeMillis();
         if (now - stats.lastDownloadTime > 1500) {
             return 0;
@@ -286,7 +333,8 @@ public class TrafficStatisticManager {
             long up = stats.upload.getAndSet(0);
             long down = stats.download.getAndSet(0);
 
-            if (up == 0 && down == 0) continue;
+            if (up == 0 && down == 0)
+                continue;
 
             try {
                 // 1. 保存小时报告 (TsHourReport)
@@ -312,7 +360,8 @@ public class TrafficStatisticManager {
         log.info("Flush traffic statistics finished.");
     }
 
-    private static void updateDayReport(TsDayReportMapper mapper, TrafficStats stats, long up, long down, Date today, Date now) throws Exception {
+    private static void updateDayReport(TsDayReportMapper mapper, TrafficStats stats, long up, long down, Date today,
+            Date now) throws Exception {
         TsDayReport report = mapper.selectOne(new QueryWrapper<TsDayReport>()
                 .eq("proxy_client_rule_id", stats.ruleId)
                 .eq("date", today));
@@ -333,7 +382,8 @@ public class TrafficStatisticManager {
         }
     }
 
-    private static void updateTotalReport(TsReportMapper mapper, TrafficStats stats, long up, long down, Date now) throws Exception {
+    private static void updateTotalReport(TsReportMapper mapper, TrafficStats stats, long up, long down, Date now)
+            throws Exception {
         TsReport report = mapper.selectOne(new QueryWrapper<TsReport>()
                 .eq("proxy_client_rule_id", stats.ruleId));
 
@@ -353,4 +403,5 @@ public class TrafficStatisticManager {
             mapper.updateById(report);
         }
     }
+
 }
