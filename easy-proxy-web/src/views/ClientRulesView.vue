@@ -474,7 +474,7 @@ const openDetails = (row: ProxyRule) => {
   
   // Start polling
   if (timer) clearInterval(timer)
-  timer = setInterval(fetchRealtimeTraffic, 3000)
+  timer = setInterval(fetchRealtimeTraffic, 1000)
 }
 
 const closeDetailsDrawer = () => {

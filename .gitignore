@@ -191,3 +191,5 @@ data/
 .vscode/
 .trae/
 .vscode/
+*.log
+*.jfr

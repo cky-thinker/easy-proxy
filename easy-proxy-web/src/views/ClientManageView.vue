@@ -125,7 +125,7 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   createClient,
@@ -344,8 +344,81 @@ const loadClients = async () => {
   }
 }
 
+const sseController = ref<AbortController | null>(null)
+const onSseMessage = (evt: { eventType: string; data: any }) => {
+  if (evt.eventType === 'SOCKET_CLIENT_ONLINE' || evt.eventType === 'SOCKET_CLIENT_OFFLINE') {
+    loadClients()
+  }
+}
+
+const subscribeSSE = () => {
+  const token = localStorage.getItem('token') || ''
+  const controller = new AbortController()
+  sseController.value = controller
+  fetch('/api/proxyClient/subscribe', {
+    method: 'GET',
+    headers: {
+      Accept: 'text/event-stream',
+      Authorization: token ? `Bearer ${token}` : ''
+    },
+    signal: controller.signal
+  }).then(response => {
+    if (!response.ok || !response.body) throw new Error('SSE连接失败')
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder('utf-8')
+    let buffer = ''
+    const read = (): Promise<void> => {
+      return reader.read().then(({ value, done }) => {
+        if (done) {
+          if (!controller.signal.aborted) {
+            setTimeout(() => subscribeSSE(), 2000)
+          }
+          return
+        }
+        buffer += decoder.decode(value, { stream: true })
+        let idx = buffer.indexOf('\n\n')
+        while (idx !== -1) {
+          const chunk = buffer.slice(0, idx)
+          buffer = buffer.slice(idx + 2)
+          const lines = chunk.split('\n')
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              const jsonStr = line.slice(5).trim()
+              try {
+                const evt = JSON.parse(jsonStr)
+                if (evt && evt.eventType) {
+                  onSseMessage(evt)
+                }
+              } catch {}
+            }
+          }
+          idx = buffer.indexOf('\n\n')
+        }
+        return read()
+      })
+    }
+    return read()
+  }).catch(err => {
+    if (err.name === 'AbortError') {
+      return
+    }
+    console.error('SSE订阅失败:', err)
+    if (!controller.signal.aborted) {
+      setTimeout(() => subscribeSSE(), 2000)
+    }
+  })
+}
+
 onMounted(() => {
   loadClients()
+  subscribeSSE()
+})
+
+onUnmounted(() => {
+  if (sseController.value) {
+    sseController.value.abort()
+    sseController.value = null
+  }
 })
 
 // 手动查询按钮
