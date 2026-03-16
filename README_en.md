@@ -45,13 +45,13 @@ docker run -d \
   --network host \
   -v $(pwd)/config:/app/config \
   -v $(pwd)/data:/app/data \
-  easy-proxy-server
+  yudejijie/easy-proxy-server:latest
 
 # web management interface
 docker run -d \
   --name easy-proxy-web \
   --network host \
-  easy-proxy-web
+  yudejijie/easy-proxy-web:latest
 ```
 
 ### Client Deployment
@@ -62,7 +62,7 @@ docker run -d \
   --network host \
   -v $(pwd)/config:/app/config \
   -v $(pwd)/data:/app/data \
-  easy-proxy-client
+  yudejijie/easy-proxy-client:latest
 ```
 
 ## Tech Stack

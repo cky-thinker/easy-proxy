@@ -45,13 +45,13 @@ docker run -d \
   --network host \
   -v $(pwd)/config:/app/config \
   -v $(pwd)/data:/app/data \
-  easy-proxy-server
+  yudejijie/easy-proxy-server:latest
 
 # web管理界面
 docker run -d \
   --name easy-proxy-web \
   --network host \
-  easy-proxy-web
+  yudejijie/easy-proxy-web:latest
 ```
 
 ### 客户端部署 (Client)
@@ -62,7 +62,7 @@ docker run -d \
   --name easy-proxy-client \
   --network host \
   -v $(pwd)/config:/app/config \
-  easy-proxy-client
+  yudejijie/easy-proxy-client:latest
 ```
 
 ## 技术栈
