@@ -39,6 +39,12 @@ Easy Proxy 是一个基于 Vert.x 开发的高性能内网穿透工具，支持 
 ### 服务端部署 (Server)
 
 ```bash
+# ubuntu
+sudo ufw allow 10090/tcp  # 代理端口
+sudo ufw allow 10093/tcp  # Web 管理端口
+```
+
+```bash
 # api服务
 docker run -d \
   --name easy-proxy-server \
