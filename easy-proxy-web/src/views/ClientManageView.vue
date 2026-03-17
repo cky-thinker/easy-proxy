@@ -137,7 +137,13 @@
     "/>
         </el-form-item>
         <el-form-item>
-          <el-checkbox v-model="importForm.enableFlag">导入后默认启用</el-checkbox>
+           <div class="flex items-center justify-between w-full">
+            <el-checkbox v-model="importForm.enableFlag">导入后默认启用</el-checkbox>
+            <el-link type="primary" :underline="false" @click="downloadTemplate">
+              <el-icon class="mr-1"><Download /></el-icon>
+              下载模版
+            </el-link>
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -242,10 +248,10 @@ const deleteClientAction = async (client: ProxyClientConfig) => {
     await deleteClientApi((client as any).id as number)
     await loadClients()
     showToast('删除成功', 'success')
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除客户端失败:', error)
-      showToast('删除失败', 'error')
+      showToast(error.response?.data?.msg || '删除失败', 'error')
     }
   }
 }
@@ -261,10 +267,10 @@ const toggleClientStatus = async (client: ProxyClientConfig) => {
     await toggleClientStatusApi((client as any).id as number, targetStatus)
     await loadClients()
     showToast(`客户端已${targetStatus ? '启用' : '禁用'}`, 'success')
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel') {
       console.error('更新客户端状态失败:', error)
-      showToast('操作失败', 'error')
+      showToast(error.response?.data?.msg || '操作失败', 'error')
     }
   }
 }
@@ -279,10 +285,10 @@ const toggleClientEnableSwitch = async (client: ProxyClientConfig, targetStatus:
     await toggleClientStatusApi((client as any).id as number, targetStatus)
     await loadClients()
     showToast(`客户端已${targetStatus ? '启用' : '禁用'}`, 'success')
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel') {
       console.error('更新客户端状态失败:', error)
-      showToast('操作失败', 'error')
+      showToast(error.response?.data?.msg || '操作失败', 'error')
     }
   }
 }
@@ -331,6 +337,37 @@ const handleFileChange = (event: Event) => {
   }
 }
 
+const downloadTemplate = () => {
+  const template = [
+    {
+      name: "client_demo",
+      clientKey: "51932f2af92941e1bf5880d8a78ff111",
+      proxyMappings: [
+        {
+          inetPort: 10031,
+          lan: "127.0.0.1:22",
+          name: "ssh"
+        },
+        {
+          inetPort: 10032,
+          lan: "127.0.0.1:23",
+          name: "ftp"
+        }
+      ],
+      status: 1
+    }
+  ]
+  const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'import_template.json'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 const submitImport = async () => {
   if (importForm.clients.length === 0) {
     showToast('请先选择有效的JSON文件', 'error')
@@ -347,7 +384,7 @@ const submitImport = async () => {
     await loadClients()
   } catch (error: any) {
     console.error('导入失败:', error)
-    const msg = error.response?.data?.msg || '导入失败'
+    const msg = error.response?.data?.msg || error.response?.data?.msg || '导入失败'
     showToast(msg, 'error')
   } finally {
     importLoading.value = false
@@ -383,9 +420,9 @@ const saveClient = async () => {
     }
     closeModal()
     await loadClients()
-  } catch (error) {
+  } catch (error: any) {
     console.error('保存客户端失败:', error)
-    showToast('保存失败', 'error')
+    showToast(error.response?.data?.msg || '保存失败', 'error')
   }
 }
 
@@ -432,8 +469,9 @@ const loadClients = async () => {
     clients.value = result.list || []
     total.value = result.total || 0
     totalPage.value = result.totalPage || 1
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载客户端列表失败:', error)
+    showToast(error.response?.data?.msg || '加载客户端列表失败', 'error')
   } finally {
     loading.value = false
   }
