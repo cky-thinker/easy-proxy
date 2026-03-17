@@ -43,6 +43,12 @@
             </el-icon>
             新增
           </el-button>
+          <el-button type="success" @click="openImportModal" class="!ml-4">
+            <el-icon class="mr-1">
+              <Upload />
+            </el-icon>
+            导入
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -118,6 +124,27 @@
       </template>
     </el-dialog>
 
+    <!-- 导入客户端模态框 -->
+    <el-dialog v-model="showImportModal" title="导入客户端" width="480px" :close-on-click-modal="false" @close="closeImportModal">
+      <el-form :model="importForm" label-position="top">
+        <el-form-item label="选择文件">
+           <input type="file" ref="fileInput" accept=".json" @change="handleFileChange" class="block w-full text-sm text-gray-500
+      file:mr-4 file:py-2 file:px-4
+      file:rounded-full file:border-0
+      file:text-sm file:font-semibold
+      file:bg-violet-50 file:text-violet-700
+      hover:file:bg-violet-100
+    "/>
+        </el-form-item>
+        <el-form-item>
+          <el-checkbox v-model="importForm.enableFlag">导入后默认启用</el-checkbox>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="closeImportModal">取消</el-button>
+        <el-button type="primary" @click="submitImport" :loading="importLoading">导入</el-button>
+      </template>
+    </el-dialog>
     
   </div>
 </template>
@@ -132,7 +159,8 @@ import {
   deleteClient as deleteClientApi,
   getClients,
   toggleClientStatus as toggleClientStatusApi,
-  updateClient
+  updateClient,
+  importClients
 } from '../api/proxyClient'
 import type { ProxyClientConfig } from '../api/types'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
@@ -158,6 +186,14 @@ const currentClient = ref<ProxyClientConfig>({
   enableFlag: true,
   proxyRules: []
 })
+
+const showImportModal = ref(false)
+const importLoading = ref(false)
+const importForm = reactive({
+  enableFlag: true,
+  clients: [] as any[]
+})
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const clientFormRef = ref<FormInstance>()
 const clientFormRules: FormRules = {
@@ -257,6 +293,65 @@ const openAddModal = () => {
   showAddModal.value = true
   showEditModal.value = false
   showClientModal.value = true
+}
+
+const openImportModal = () => {
+  showImportModal.value = true
+  importForm.enableFlag = true
+  importForm.clients = []
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+const closeImportModal = () => {
+  showImportModal.value = false
+  importForm.clients = []
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+const handleFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0]
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string)
+        if (Array.isArray(json)) {
+          importForm.clients = json
+        } else {
+          showToast('文件格式错误，应为JSON数组', 'error')
+          target.value = ''
+        }
+      } catch (err) {
+        showToast('JSON解析失败', 'error')
+        target.value = ''
+      }
+    }
+    reader.readAsText(file)
+  }
+}
+
+const submitImport = async () => {
+  if (importForm.clients.length === 0) {
+    showToast('请先选择有效的JSON文件', 'error')
+    return
+  }
+  try {
+    importLoading.value = true
+    await importClients({
+      enableFlag: importForm.enableFlag,
+      clients: importForm.clients
+    })
+    showToast('导入成功', 'success')
+    closeImportModal()
+    await loadClients()
+  } catch (error: any) {
+    console.error('导入失败:', error)
+    const msg = error.response?.data?.msg || '导入失败'
+    showToast(msg, 'error')
+  } finally {
+    importLoading.value = false
+  }
 }
 
 // 打开编辑客户端模态框

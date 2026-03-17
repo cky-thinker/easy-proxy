@@ -113,3 +113,10 @@ export const toggleClientStatus = async (
 ): Promise<ExtendedProxyClientConfig> => {
   return updateClient(id, { enableFlag })
 }
+
+// 导入客户端
+export const importClients = async (
+  data: { enableFlag: boolean; clients: any[] }
+): Promise<void> => {
+  await apiClient.post<ApiResponse<void>>('/api/proxyClient/import', data)
+}

@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.domain.dto.PageResult;
+import com.cky.proxy.server.domain.dto.ClientImportDTO;
+import com.cky.proxy.server.domain.dto.ProxyClientImportReq;
+import com.cky.proxy.server.domain.dto.RuleImportDTO;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
 import com.cky.proxy.server.domain.entity.SysLog;
@@ -180,7 +183,102 @@ public class ProxyClientService {
         return client;
     }
 
+    /**
+     * 批量导入客户端及规则
+     */
+    public void importClients(ProxyClientImportReq req) {
+        if (req == null || req.getClients() == null || req.getClients().isEmpty()) {
+            return;
+        }
+
+        // 1. 预校验
+        for (ClientImportDTO clientDto : req.getClients()) {
+            // 校验客户端名称
+            validateNameUnique(clientDto.getName(), null);
+            // 校验Token
+            validateTokenFormat(clientDto.getClientKey());
+            validateTokenUnique(clientDto.getClientKey(), null);
+
+            // 校验规则
+            if (clientDto.getProxyMappings() != null) {
+                for (RuleImportDTO ruleDto : clientDto.getProxyMappings()) {
+                    // 校验端口
+                    validateServerPortRangeAndUnique(ruleDto.getInetPort());
+                    // 校验目标地址格式
+                    validateClientAddress(ruleDto.getLan());
+                }
+            }
+        }
+
+        // 2. 执行导入
+        for (ClientImportDTO clientDto : req.getClients()) {
+            ProxyClient client = new ProxyClient();
+            client.setName(clientDto.getName());
+            client.setToken(clientDto.getClientKey());
+            client.setEnableFlag(req.getEnableFlag());
+            client.setStatus("offline");
+            client.setCreateTime(new Date());
+            
+            proxyClientMapper.insert(client);
+            
+            // 记录日志
+            SysLog sysLog = new SysLog();
+            sysLog.setLogType("CLIENT_IMPORT");
+            sysLog.setLogContent("导入客户端: " + client.getName());
+            sysLog.setCreateTime(new Date());
+            sysLogMapper.insert(sysLog);
+            
+            EventBusUtil.publish(EventBusUtil.DB_CLIENT_ADD, client.getId());
+
+            if (clientDto.getProxyMappings() != null) {
+                for (RuleImportDTO ruleDto : clientDto.getProxyMappings()) {
+                    ProxyClientRule rule = new ProxyClientRule();
+                    rule.setProxyClientId(client.getId());
+                    rule.setName(ruleDto.getName());
+                    rule.setServerPort(ruleDto.getInetPort());
+                    rule.setClientAddress(ruleDto.getLan());
+                    rule.setEnableFlag(req.getEnableFlag());
+                    rule.setCreateTime(new Date());
+                    
+                    proxyClientRuleMapper.insert(rule);
+                    
+                    // 记录日志
+                    SysLog ruleLog = new SysLog();
+                    ruleLog.setLogType("RULE_IMPORT");
+                    ruleLog.setLogContent("导入规则: " + rule.getName());
+                    ruleLog.setCreateTime(new Date());
+                    sysLogMapper.insert(ruleLog);
+                    
+                    EventBusUtil.publish(EventBusUtil.DB_RULE_ADD, rule.getId());
+                }
+            }
+        }
+    }
+
     // ===== 私有校验方法 =====
+    private void validateServerPortRangeAndUnique(Integer port) {
+        if (port == null) return;
+        if (port < 1 || port > 65535) throw new RuntimeException("服务端口范围为 1-65535");
+        
+        QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
+        wrapper.eq("server_port", port);
+        boolean exists = !proxyClientRuleMapper.selectList(wrapper).isEmpty();
+        if (exists) throw new RuntimeException("服务端口 " + port + " 已被占用");
+    }
+
+    private void validateClientAddress(String clientAddress) {
+        if (clientAddress == null) return;
+        int idx = clientAddress.lastIndexOf(":");
+        if (idx <= 0 || idx >= clientAddress.length() - 1) throw new RuntimeException("客户端地址格式应为 host:port");
+        String portStr = clientAddress.substring(idx + 1);
+        try {
+            int p = Integer.parseInt(portStr);
+            if (p < 1 || p > 65535) throw new RuntimeException("客户端地址端口范围为 1-65535");
+        } catch (NumberFormatException ex) {
+            throw new RuntimeException("客户端地址端口格式不正确");
+        }
+    }
+
     private void validateNameUnique(String name, Integer excludeId) {
         if (name == null)
             return;

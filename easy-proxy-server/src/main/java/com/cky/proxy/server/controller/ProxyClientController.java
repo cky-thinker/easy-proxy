@@ -10,6 +10,7 @@ import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.consts.AddGroup;
 import com.cky.proxy.server.consts.UpdateGroup;
 import com.cky.proxy.server.domain.dto.PageResult;
+import com.cky.proxy.server.domain.dto.ProxyClientImportReq;
 import com.cky.proxy.server.domain.dto.SseEvent;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.service.ProxyClientService;
@@ -53,6 +54,8 @@ public class ProxyClientController {
         router.get("/api/proxyClient/subscribe").handler(this::subscribeStatus);
         // 添加客户端
         router.post("/api/proxyClient").handler(this::addProxyClient);
+        // 导入客户端
+        router.post("/api/proxyClient/import").handler(this::importProxyClients);
         // 更新客户端
         router.put("/api/proxyClient").handler(this::updateProxyClient);
         // 删除客户端
@@ -147,6 +150,20 @@ public class ProxyClientController {
         ValidateUtil.validate(proxyClient, AddGroup.class);
         ProxyClient newClient = proxyClientService.addProxyClient(proxyClient);
         ResponseUtil.success(ctx, newClient);
+    }
+
+    private void importProxyClients(RoutingContext ctx) {
+        ProxyClientImportReq req = RequestUtil.getBodyObj(ctx, ProxyClientImportReq.class);
+        if (req == null || req.getClients() == null) {
+            ResponseUtil.error(ctx, 400, "Request body is required and must contain clients");
+            return;
+        }
+        try {
+            proxyClientService.importClients(req);
+            ResponseUtil.success(ctx, null);
+        } catch (Exception e) {
+            ResponseUtil.error(ctx, 400, "导入失败: " + e.getMessage());
+        }
     }
 
     private void updateProxyClient(RoutingContext ctx) {
