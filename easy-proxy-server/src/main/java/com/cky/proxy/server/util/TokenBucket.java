@@ -7,9 +7,6 @@ import io.vertx.core.net.NetSocket;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
-import com.cky.proxy.common.domain.Message;
-import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
-
 public class TokenBucket {
     public static final int CHUNK_SIZE = 8 * 1024; // 分片长度
     private static final int REFILL_INTERVAL = 100; // 补充速度 单位 ms
@@ -30,7 +27,7 @@ public class TokenBucket {
      */
     public TokenBucket(Vertx vertx, int refillRatePerSec) {
         this.vertx = vertx;
-        this.capacity = refillRatePerSec * 1 / 4; // 令牌桶容量，应对250ms突发窗口
+        this.capacity = refillRatePerSec * 1 / 4; // 令牌桶容量，应对500ms突发窗口
         this.tokens = capacity;
         int maxQueueSize = (int) (capacity * 2.5 / CHUNK_SIZE); // 最大等待队列长度 桶容量 * 2.5 / CHUNCK_SIZE
         this.waitQueue = new LinkedBlockingQueue<>(maxQueueSize); // 最大等待队列长度 桶容量 * 2.5 / CHUNCK_SIZE

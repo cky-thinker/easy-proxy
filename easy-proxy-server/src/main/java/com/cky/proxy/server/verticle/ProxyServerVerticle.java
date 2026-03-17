@@ -169,6 +169,8 @@ public class ProxyServerVerticle extends AbstractVerticle {
                         proxySocket.close();
                     }
                     RuleListenSocketManager.userConnectionClose(userId);
+                    // Delte bandwidth limit
+                    TrafficStatisticManager.deleteRateLimit(ruleId);
                 }
             }
             if (completionHandler != null) {
@@ -194,6 +196,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
+        
         vertx.createNetServer()
                 .connectHandler(new UserProxySocketHandler(client, rule, vertx))
                 .exceptionHandler(e -> {
@@ -203,6 +206,8 @@ public class ProxyServerVerticle extends AbstractVerticle {
                     if (res.succeeded()) {
                         log.info("Listening for rule {} on port {}", rule.getName(), rule.getServerPort());
                         RuleListenSocketManager.addRuleListenSocket(rule.getId(), serverSocket);
+                        // Update bandwidth limit
+                        TrafficStatisticManager.initRateLimit(vertx, client.getId(), rule.getId(), rule.getLimitRate());
                     } else {
                         log.error("Failed listening for rule {}", rule.getName(), res.cause());
                     }

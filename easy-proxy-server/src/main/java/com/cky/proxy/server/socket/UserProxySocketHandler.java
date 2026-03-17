@@ -53,10 +53,6 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
         RuleListenSocketManager.userConnectionOnline(proxyRule.getId(), userId, userConnection);
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
-        // Update bandwidth limit
-        if (proxyRule.getLimitRate() != null && proxyRule.getLimitRate() > 0) {
-            TrafficStatisticManager.updateRuleLimit(vertx, proxyRule.getId(), proxyRule.getLimitRate());
-        }
         // reuse after client data connection create success
         log.debug("EP>>UserProxy>> User connected, Send connect msg");
         userConnection.pause();
@@ -82,8 +78,8 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
                 TokenBucket upBucket = TrafficStatisticManager.getUpRateLimitBucket(ruleId);
                 // 限速分片写入
                 upBucket.writeWithLimit(dataSocket, data, chunk -> {
-                    TrafficStatisticManager.addDownload(userId, chunk.length);
-                    dataSocket.write(Buffer.buffer(chunk));
+                    TrafficStatisticManager.addUpload(userId, chunk.length);
+                    dataSocket.write(Message.createDataMsg(userId, chunk));
                 });
             } else {
                 TrafficStatisticManager.addUpload(userId, data.length);

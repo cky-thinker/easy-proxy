@@ -30,8 +30,6 @@ import io.vertx.core.net.NetSocket;
 public class TrafficStatisticManager {
     private static final Logger log = LoggerFactory.getLogger(TrafficStatisticManager.class);
 
-    private static final int CHUNK_SIZE = 8 * 1024; // 8KB chunks
-
     // userId -> Context (包含 ruleId, clientId)
     private static final Map<String, TrafficContext> connectionMap = new ConcurrentHashMap<>();
 
@@ -68,13 +66,9 @@ public class TrafficStatisticManager {
         // Active connections
         final AtomicLong activeConnections = new AtomicLong(0);
 
-        // Rate limiting
-        final AtomicLong currentSecondBytes = new AtomicLong(0);
-        volatile long lastResetTime = System.currentTimeMillis();
         // Rate limiting config (KB/s)
         volatile TokenBucket upBucket;
         volatile TokenBucket downBucket;
-
 
         TrafficStats(Integer clientId, Integer ruleId) {
             this.clientId = clientId;
@@ -117,14 +111,32 @@ public class TrafficStatisticManager {
     }
 
     /**
-     * 更新规则限流配置
+     * 初始化流控信息
      */
-    public static void updateRuleLimit(Vertx vertx, Integer ruleId, Integer limitRate) {
-        TrafficStats stats = statsMap.get(ruleId);
-        if (stats != null && limitRate != null) {
+    public static void initRateLimit(Vertx vertx, Integer clientId, Integer ruleId, Integer limitRate) {
+        TrafficStats stats = getStats(clientId, ruleId);
+        if (limitRate != null) {
             // 设置令牌桶
             stats.upBucket = new TokenBucket(vertx, limitRate * 1024);
             stats.downBucket = new TokenBucket(vertx, limitRate * 1024);
+        }
+    }
+
+    /**
+     * 移除流控信息
+     */
+    public static void deleteRateLimit(Integer ruleId) {
+        TrafficStats stats = statsMap.get(ruleId);
+        if (stats != null) {
+            // 设置令牌桶
+            if (stats.upBucket != null) {
+                stats.upBucket.stop();
+                stats.upBucket = null;
+            }
+            if (stats.downBucket != null) {
+                stats.downBucket.stop();
+                stats.downBucket = null;
+            }
         }
     }
 
@@ -249,7 +261,7 @@ public class TrafficStatisticManager {
         return statsMap.computeIfAbsent(ctx.ruleId, k -> new TrafficStats(ctx.clientId, ctx.ruleId));
     }
 
-    private static TrafficStats getStats(Integer ruleId, Integer clientId) {
+    private static TrafficStats getStats(Integer clientId, Integer ruleId) {
         return statsMap.computeIfAbsent(ruleId, k -> new TrafficStats(clientId, ruleId));
     }
 
