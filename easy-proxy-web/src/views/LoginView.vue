@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen flex bg-gray-50 lg:bg-white">
+  <div class="h-screen flex overflow-hidden bg-gray-50 lg:bg-white">
     <!-- Left Side - Architecture Diagram (Only on Large Screens) -->
     <div class="hidden lg:flex lg:w-7/12 bg-gradient-to-br from-blue-600 to-indigo-900 flex-col items-center justify-center p-12 relative overflow-hidden">
-      <div class="relative z-10 w-full max-w-4xl flex flex-col items-center">
+      <div class="relative z-10 w-full max-w-2xl flex flex-col items-center">
         <h1 class="text-4xl font-bold text-white mb-2 tracking-wide">Easy Proxy</h1>
-        <p class="text-blue-100 text-lg mb-12 font-light">安全 · 高效 · 稳定 的内网穿透服务</p>
-        <div class="w-full aspect-[4/3] bg-white/5 backdrop-blur-sm rounded-3xl p-4 shadow-2xl border border-white/10">
+        <p class="text-blue-100 text-lg mb-8 font-light">安全 · 高效 · 稳定 的内网穿透服务</p>
+        <div class="w-full max-w-lg aspect-[4/3] bg-white/5 backdrop-blur-sm rounded-3xl p-4 shadow-2xl border border-white/10">
           <LoginArchitecture />
         </div>
       </div>
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Right Side - Login Form -->
-    <div class="w-full lg:w-5/12 flex items-center justify-center p-4 sm:p-6 lg:p-12">
+    <div class="w-full lg:w-5/12 flex items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto h-full">
       <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl lg:shadow-none border border-gray-100 lg:border-none">
         <div>
           <h2 class="mt-2 text-center text-3xl font-extrabold text-gray-900 lg:text-left">
