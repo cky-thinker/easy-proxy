@@ -108,7 +108,7 @@
 
     <!-- 分页组件：切换为 Element Plus el-pagination -->
 
-    <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage + 1" :page-size="pageSize"
+    <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage" :page-size="pageSize"
       :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
 
     <!-- 新增/编辑账号模态框 -->
@@ -196,7 +196,7 @@ import PageIllustration from '@/components/PageIllustration.vue'
 // 响应式数据
 const users = ref<User[]>([])
 // 分页与加载状态
-const currentPage = ref(0)
+const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const totalPage = ref(1)
@@ -466,7 +466,7 @@ const loadUsers = async () => {
 }
 
 const handleQuery = async () => {
-  currentPage.value = 0
+  currentPage.value = 1
   await loadUsers()
 }
 
@@ -478,21 +478,21 @@ onMounted(() => {
 watch(
   () => [queryForm.searchQuery, queryForm.enableFilter],
   async () => {
-    currentPage.value = 0
+    currentPage.value = 1
     await loadUsers()
   }
 )
 
 // 分页处理
 const onPageChange = async (page: number) => {
-  if (page < 0) return
+  if (page < 1) return
   currentPage.value = page
   await loadUsers()
 }
 
 // el-pagination 事件（页面为 1 基坐标）
 const onCurrentPageChange = async (page: number) => {
-  await onPageChange(page - 1)
+  await onPageChange(page)
 }
 
 // 页大小固定为 10，如后端需要可调整组件支持

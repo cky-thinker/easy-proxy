@@ -83,7 +83,7 @@
       </div>
     </div>
     <!-- 分页组件：切换为 Element Plus el-pagination -->
-    <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage + 1" :page-size="pageSize"
+    <el-pagination class="mt-4 flex justify-end" background :current-page="currentPage" :page-size="pageSize"
       :total="total" layout="prev, pager, next, total" @current-change="onCurrentPageChange" />
     <!-- 新增规则模态框（使用 Element Plus el-dialog 替代） -->
     <el-dialog v-model="showAddRuleModal" title="新增规则" width="600px" :close-on-click-modal="false"
@@ -202,7 +202,7 @@ const clientNameMap = computed<Record<number, string>>(() => {
 const loading = ref(false)
 const route = useRoute()
 // 分页状态
-const currentPage = ref(0)
+const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const totalPage = ref(1)
@@ -284,20 +284,21 @@ onMounted(async () => {
 
 // 监听筛选变化，自动刷新
 const handleQuery = async () => {
-  currentPage.value = 0
+  currentPage.value = 1
   await reload()
 }
 
 // 分页切换
 const onPageChange = async (page: number) => {
-  if (page < 0) return
+  if (page < 1) return
+  console.log('onPageChange', page)
   currentPage.value = page
   await reload()
 }
 
 // el-pagination 事件（页面为 1 基坐标）
 const onCurrentPageChange = async (page: number) => {
-  await onPageChange(page - 1)
+  await onPageChange(page)
 }
 
 // 编辑规则模态与方法
