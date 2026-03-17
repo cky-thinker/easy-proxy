@@ -52,23 +52,29 @@ export const getRuleTrafficTrend = async (
   let url = ''
   const params: any = { 
     proxyClientRuleId: ruleId,
-    pageSize: 30,
-    page: 1 // Assuming default page is 1
+    pageSize: 100, // 增加到100以防止30天数据被截断
+    page: 1
   }
   
   const now = new Date()
   const startDate = new Date(now)
+  let points = 24
   
   if (period === 'day') {
     url = '/api/traffic/hourReport'
-    startDate.setDate(now.getDate() - 1)
+    points = 24
+    startDate.setHours(now.getHours() - 23, 0, 0, 0)
   } else {
     // For week and month, use day report
     url = '/api/traffic/dayReport'
     if (period === 'week') {
-      startDate.setDate(now.getDate() - 7)
+      points = 7
+      startDate.setDate(now.getDate() - 6)
+      startDate.setHours(0, 0, 0, 0)
     } else {
-      startDate.setDate(now.getDate() - 30)
+      points = 30
+      startDate.setDate(now.getDate() - 29)
+      startDate.setHours(0, 0, 0, 0)
     }
   }
   
@@ -83,11 +89,67 @@ export const getRuleTrafficTrend = async (
   const response = await apiClient.get<ApiResponse<PageResult<any>>>(url, { params })
   const list = response.data.data.list || []
   
-  // Transform to TrafficTrend
-  // Backend returns TsHourReport or TsDayReport which has date (Date/number), uploadBytes, downloadBytes
-  return list.map((item: any) => ({
-    time: item.date,
-    upload: item.uploadBytes || 0,
-    download: item.downloadBytes || 0
-  })).sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime())
+  // 创建 Map 用于快速查找已有数据
+  const dataMap = new Map<string, any>()
+  list.forEach((item: any) => {
+    const d = new Date(item.date)
+    if (period === 'day') {
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`
+      dataMap.set(key, item)
+    } else {
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+      dataMap.set(key, item)
+    }
+  })
+
+  const result: TrafficTrend[] = []
+  
+  // 遍历所有需要的时间点进行0值补全
+  if (period === 'day') {
+    for (let i = points - 1; i >= 0; i--) {
+      const d = new Date(now)
+      d.setHours(now.getHours() - i)
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`
+      
+      if (dataMap.has(key)) {
+        const item = dataMap.get(key)
+        result.push({
+          time: item.date,
+          upload: item.uploadBytes || 0,
+          download: item.downloadBytes || 0
+        })
+      } else {
+        d.setMinutes(0, 0, 0)
+        result.push({
+          time: formatDate(d),
+          upload: 0,
+          download: 0
+        })
+      }
+    }
+  } else {
+    for (let i = points - 1; i >= 0; i--) {
+      const d = new Date(now)
+      d.setDate(now.getDate() - i)
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+      
+      if (dataMap.has(key)) {
+        const item = dataMap.get(key)
+        result.push({
+          time: item.date,
+          upload: item.uploadBytes || 0,
+          download: item.downloadBytes || 0
+        })
+      } else {
+        d.setHours(0, 0, 0, 0)
+        result.push({
+          time: formatDate(d),
+          upload: 0,
+          download: 0
+        })
+      }
+    }
+  }
+  
+  return result
 }
