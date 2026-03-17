@@ -18,8 +18,8 @@ onMounted(() => {
     <div v-if="!['/login', '/init'].includes(route.path)" class="flex flex-col min-h-screen bg-gray-50">
         <NavBar />
 
-        <div class="flex-1 relative z-10">
-            <main class="min-h-[calc(100vh-64px)]">
+        <div class="flex-1 relative z-10 flex flex-col">
+            <main class="flex-1 flex flex-col">
                 <RouterView />
             </main>
         </div>

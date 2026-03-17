@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-gray-50 min-h-screen">
+  <div class="p-6 flex-1">
     <!-- 使用 Element Plus 消息通知（ElMessage）替代自定义 Toast -->
 
     <!-- 页面标题 -->

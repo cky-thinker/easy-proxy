@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 bg-gray-50 min-h-screen">
+  <div class="p-6 flex-1">
     <!-- 页面标题和操作按钮 -->
     <div class="relative mb-6 h-24 flex items-center overflow-hidden">
       <div class="z-10">
