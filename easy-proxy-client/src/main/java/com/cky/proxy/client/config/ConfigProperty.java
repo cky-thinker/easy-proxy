@@ -1,6 +1,9 @@
 package com.cky.proxy.client.config;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.cky.proxy.common.util.PathUtil;
 
@@ -25,10 +28,9 @@ public class ConfigProperty {
         if (instance == null) {
             synchronized (ConfigProperty.class) {
                 if (instance == null) {
-                    String jarFilePath = PathUtil.getJarFilePath(ConfigProperty.class);
-                    String configFilePath = jarFilePath.substring(0, jarFilePath.lastIndexOf(File.separator)) + File.separator + "config.yaml";
-                    if (FileUtil.exist(configFilePath)) {
-                        instance = YamlUtil.loadByPath(configFilePath, ConfigProperty.class);
+                    Path target = Paths.get("config").resolve("config.yaml");
+                    if (Files.exists(target)) {
+                        instance = YamlUtil.loadByPath(target.toAbsolutePath().toString(), ConfigProperty.class);
                     } else {
                         instance = YamlUtil.loadByPath("config.yaml", ConfigProperty.class);
                     }
