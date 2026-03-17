@@ -26,11 +26,11 @@ public class H2ConsoleBootstrap {
                 // 启动H2 Web Console（核心，浏览器访问）
                 webServer = Server.createWebServer(
                         "-web", // 启用Web控制台
-                        "-webPort", "10093", // 指定Web端口（默认8082，可自定义）
+                        "-webPort", "21093", // 指定Web端口（默认8082，可自定义）
                         "-webAllowOthers" // 允许其他机器访问（仅测试用）
                 ).start();
-                log.info("✅ H2 Web Console启动成功，访问地址：http://localhost:10093");
-                log.info("🔑 推荐JDBC URL：jdbc:h2:tcp://localhost:10093/./data/database");
+                log.info("✅ H2 Web Console启动成功，访问地址：http://localhost:21093");
+                log.info("🔑 推荐JDBC URL：jdbc:h2:tcp://localhost:21093/./data/database");
 
                 // 保持程序运行（否则控制台启动后会立即退出）
                 synchronized (H2ConsoleBootstrap.class) {

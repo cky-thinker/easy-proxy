@@ -18,6 +18,6 @@ COPY --from=build-stage /app/dist /usr/share/nginx/html
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 10093
+EXPOSE 21093
 
 CMD ["nginx", "-g", "daemon off;"]

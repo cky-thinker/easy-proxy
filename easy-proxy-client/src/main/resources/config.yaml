@@ -1,5 +1,5 @@
 server:
   ip: 127.0.0.1
-  port: 10090
-  webPort: 10091
+  port: 21090
+  webPort: 21091
   token: d58f5f9e08295ab8e3009ba9d788a853

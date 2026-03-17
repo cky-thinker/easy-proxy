@@ -53,7 +53,7 @@ docker run -d \
 
 #### 配置流程
 
-1. 访问 `http://server-ip:10093` 即可打开 Web 管理界面。(**server-ip为服务端ip**)
+1. 访问 `http://server-ip:21093` 即可打开 Web 管理界面。(**server-ip为服务端ip**)
 2. 初始化管理员账号。
 3. 新建客户端，生成token。(**客户端需要使用该token与服务端建立连接**)
 4. 新建转发规则，指定公网端口和客户端转发地址。
@@ -79,7 +79,7 @@ docker run -d \
 ```yaml
 server:
   address: "server-ip" # 服务端ip
-  port: 10092
+  port: 21092
   token: "client-token" # 客户端token
 ```
 
@@ -94,8 +94,8 @@ docker restart easy-proxy-client
 ### 服务端无法访问、代理服务无法访问
 
 1. 确保防火墙或安全策略开放对应的端口。
-- 端口10090: 流量转发端口
-- 端口10092: web管理页面端口
+- 端口21090: 流量转发端口
+- 端口21092: web管理页面端口
 - 代理端口：根据配置的转发规则，开放对应公网端口。
 
 ### 客户端无法连接服务端
