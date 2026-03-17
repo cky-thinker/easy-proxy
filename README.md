@@ -32,6 +32,8 @@ Easy Proxy 是一个基于 Vert.x 开发的高性能内网穿透工具，支持 
 
 ```bash
 # api服务
+
+docker pull yudejijie/easy-proxy-server:latest
 docker rm -f easy-proxy-server
 docker run -d \
   --name easy-proxy-server \
@@ -43,6 +45,8 @@ docker run -d \
   yudejijie/easy-proxy-server:latest
 
 # web管理界面
+
+docker pull yudejijie/easy-proxy-web:latest
 docker rm -f easy-proxy-web
 docker run -d \
   --name easy-proxy-web \
@@ -62,6 +66,8 @@ docker run -d \
 
 ```bash
 # 客户端服务
+docker pull yudejijie/easy-proxy-client:latest
+docker rm -f easy-proxy-client
 docker run -d \
   --name easy-proxy-client \
   --network host \

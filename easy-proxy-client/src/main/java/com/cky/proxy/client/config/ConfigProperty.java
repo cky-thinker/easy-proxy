@@ -1,13 +1,9 @@
 package com.cky.proxy.client.config;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.cky.proxy.common.util.PathUtil;
-
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.setting.yaml.YamlUtil;
 import lombok.Getter;
 import lombok.Setter;
