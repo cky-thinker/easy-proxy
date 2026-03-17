@@ -61,52 +61,24 @@ public class GlobalRateLimitTcpServer {
      * 带背压的读取处理（不丢数据、不OOM）
      */
     private static void handleReadWithBackpressure(Vertx vertx, NetSocket socket, Buffer buffer) {
-        // 1. 等待队列过长 → 背压：暂停读取
-        if (globalUpBucket.isBackpressure()) {
-            socket.pause();
-            // 50ms 后恢复读取，给令牌桶消费时间
-            vertx.setTimer(50, t -> socket.resume());
-            return;
-        }
-
         byte[] data = buffer.getBytes();
-        int offset = 0;
-        int remaining = data.length;
 
-        // 分片限速发送，防止单块过大
-        while (remaining > 0) {
-            int chunkSize = Math.min(remaining, TokenBucket.CHUNK_SIZE);
-            byte[] chunk = new byte[chunkSize];
-            System.arraycopy(data, offset, chunk, 0, chunkSize);
-
-            // 2. 全局上行限速
-            boolean ok = globalUpBucket.acquire(chunkSize, okBytes -> {
-                // 3. 拿到令牌后，下行也走全局限速
-                writeWithRateLimit(socket, chunk);
-            });
-
-            if (!ok) {
-                // 队列满，触发背压
-                socket.pause();
-                vertx.setTimer(100, t -> socket.resume());
-                break;
-            }
-
-            offset += chunkSize;
-            remaining -= chunkSize;
-        }
+        globalUpBucket.writeWithLimit(socket, data, chunk -> {
+            // 拿到令牌后，下行也走全局限速
+            writeWithRateLimit(socket, chunk);
+        });
     }
 
     /**
      * 下行全局限速 + 写队列保护
      */
     private static void writeWithRateLimit(NetSocket socket, byte[] data) {
-        globalDownBucket.acquire(data.length, okBytes -> {
+        globalDownBucket.writeWithLimit(socket, data, chunk -> {
             // 处理Vert.x写队列满，防止内存暴涨
             if (socket.writeQueueFull()) {
-                socket.drainHandler(v -> socket.write(Buffer.buffer(data)));
+                socket.drainHandler(v -> socket.write(Buffer.buffer(chunk)));
             } else {
-                socket.write(Buffer.buffer(data));
+                socket.write(Buffer.buffer(chunk));
             }
         });
     }
