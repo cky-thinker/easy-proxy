@@ -42,7 +42,7 @@ public class ProxyClientService {
      * 分页查询代理客户端，支持 name、status、enableFlag 条件
      */
     public PageResult<ProxyClient> getProxyClientsPageable(cn.hutool.db.Page hutoolPage, String name, String status,
-                                                           Boolean enableFlag) {
+            Boolean enableFlag) {
 
         QueryWrapper<ProxyClient> wrapper = new QueryWrapper<>();
         if (name != null && !name.isEmpty()) {
@@ -193,17 +193,14 @@ public class ProxyClientService {
 
         // 1. 预校验
         for (ClientImportDTO clientDto : req.getClients()) {
-            // 校验客户端名称
-            validateNameUnique(clientDto.getName(), null);
             // 校验Token
             validateTokenFormat(clientDto.getClientKey());
-            validateTokenUnique(clientDto.getClientKey(), null);
 
             // 校验规则
             if (clientDto.getProxyMappings() != null) {
                 for (RuleImportDTO ruleDto : clientDto.getProxyMappings()) {
                     // 校验端口
-                    validateServerPortRangeAndUnique(ruleDto.getInetPort());
+                    validateServerPortRange(ruleDto.getInetPort());
                     // 校验目标地址格式
                     validateClientAddress(ruleDto.getLan());
                 }
@@ -212,26 +209,36 @@ public class ProxyClientService {
 
         // 2. 执行导入
         for (ClientImportDTO clientDto : req.getClients()) {
-            ProxyClient client = new ProxyClient();
-            client.setName(clientDto.getName());
-            client.setToken(clientDto.getClientKey());
-            client.setEnableFlag(req.getEnableFlag());
-            client.setStatus("offline");
-            client.setCreateTime(new Date());
-            
-            proxyClientMapper.insert(client);
-            
-            // 记录日志
-            SysLog sysLog = new SysLog();
-            sysLog.setLogType("CLIENT_IMPORT");
-            sysLog.setLogContent("导入客户端: " + client.getName());
-            sysLog.setCreateTime(new Date());
-            sysLogMapper.insert(sysLog);
-            
-            EventBusUtil.publish(EventBusUtil.DB_CLIENT_ADD, client.getId());
+            ProxyClient client = proxyClientMapper.getByToken(clientDto.getClientKey());
+            if (client != null) {
+                log.error("客户端 token {} 已存在，跳过新增", clientDto.getClientKey());
+            } else {
+                client = new ProxyClient();
+                client.setName(clientDto.getName());
+                client.setToken(clientDto.getClientKey());
+                client.setEnableFlag(req.getEnableFlag());
+                client.setStatus("offline");
+                client.setCreateTime(new Date());
+
+                proxyClientMapper.insert(client);
+
+                // 记录日志
+                SysLog sysLog = new SysLog();
+                sysLog.setLogType("CLIENT_IMPORT");
+                sysLog.setLogContent("导入客户端: " + client.getName());
+                sysLog.setCreateTime(new Date());
+                sysLogMapper.insert(sysLog);
+
+                EventBusUtil.publish(EventBusUtil.DB_CLIENT_ADD, client.getId());
+            }
 
             if (clientDto.getProxyMappings() != null) {
                 for (RuleImportDTO ruleDto : clientDto.getProxyMappings()) {
+                    boolean exists = proxyClientRuleMapper.getByServerPort(ruleDto.getInetPort()) != null;
+                    if (exists) {
+                        log.error("规则端口 {} 已存在规则，直接跳过", ruleDto.getInetPort());
+                        continue;
+                    }
                     ProxyClientRule rule = new ProxyClientRule();
                     rule.setProxyClientId(client.getId());
                     rule.setName(ruleDto.getName());
@@ -239,16 +246,16 @@ public class ProxyClientService {
                     rule.setClientAddress(ruleDto.getLan());
                     rule.setEnableFlag(req.getEnableFlag());
                     rule.setCreateTime(new Date());
-                    
+
                     proxyClientRuleMapper.insert(rule);
-                    
+
                     // 记录日志
                     SysLog ruleLog = new SysLog();
                     ruleLog.setLogType("RULE_IMPORT");
                     ruleLog.setLogContent("导入规则: " + rule.getName());
                     ruleLog.setCreateTime(new Date());
                     sysLogMapper.insert(ruleLog);
-                    
+
                     EventBusUtil.publish(EventBusUtil.DB_RULE_ADD, rule.getId());
                 }
             }
@@ -256,24 +263,24 @@ public class ProxyClientService {
     }
 
     // ===== 私有校验方法 =====
-    private void validateServerPortRangeAndUnique(Integer port) {
-        if (port == null) return;
-        if (port < 1 || port > 65535) throw new RuntimeException("服务端口范围为 1-65535");
-        
-        QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
-        wrapper.eq("server_port", port);
-        boolean exists = !proxyClientRuleMapper.selectList(wrapper).isEmpty();
-        if (exists) throw new RuntimeException("服务端口 " + port + " 已被占用");
+    private void validateServerPortRange(Integer port) {
+        if (port == null)
+            return;
+        if (port < 1 || port > 65535)
+            throw new RuntimeException("服务端口范围为 1-65535");
     }
 
     private void validateClientAddress(String clientAddress) {
-        if (clientAddress == null) return;
+        if (clientAddress == null)
+            return;
         int idx = clientAddress.lastIndexOf(":");
-        if (idx <= 0 || idx >= clientAddress.length() - 1) throw new RuntimeException("客户端地址格式应为 host:port");
+        if (idx <= 0 || idx >= clientAddress.length() - 1)
+            throw new RuntimeException("客户端地址格式应为 host:port");
         String portStr = clientAddress.substring(idx + 1);
         try {
             int p = Integer.parseInt(portStr);
-            if (p < 1 || p > 65535) throw new RuntimeException("客户端地址端口范围为 1-65535");
+            if (p < 1 || p > 65535)
+                throw new RuntimeException("客户端地址端口范围为 1-65535");
         } catch (NumberFormatException ex) {
             throw new RuntimeException("客户端地址端口格式不正确");
         }
