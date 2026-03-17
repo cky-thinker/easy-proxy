@@ -18,7 +18,7 @@ public class ProxyServer {
 
     public static void main(String[] args) {
         // 检查并复制默认配置文件
-        ConfigBootstrap.initConfigs();
+        ConfigBootstrap.initConfigs(ConfigProperty.CONFIG_FILE);
         // 初始化对象管理器
         BeanContext.getInstance().init();
         // 检查并生成证书：不存在则生成JKS证书+导出PEM公钥

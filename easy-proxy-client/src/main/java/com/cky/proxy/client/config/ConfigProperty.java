@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ConfigProperty {
+    public static final String CONFIG_FILE = "client.yaml";
     private static volatile ConfigProperty instance;
 
     private ServerProperty server;
@@ -24,11 +25,11 @@ public class ConfigProperty {
         if (instance == null) {
             synchronized (ConfigProperty.class) {
                 if (instance == null) {
-                    Path target = Paths.get("config").resolve("config.yaml");
+                    Path target = Paths.get("config").resolve(CONFIG_FILE);
                     if (Files.exists(target)) {
                         instance = YamlUtil.loadByPath(target.toAbsolutePath().toString(), ConfigProperty.class);
                     } else {
-                        instance = YamlUtil.loadByPath("config.yaml", ConfigProperty.class);
+                        instance = YamlUtil.loadByPath(CONFIG_FILE, ConfigProperty.class);
                     }
                 }
             }

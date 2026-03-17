@@ -17,6 +17,7 @@ import com.cky.proxy.server.mapper.TsDayReportMapper;
 import com.cky.proxy.server.mapper.TsHourReportMapper;
 import com.cky.proxy.server.mapper.TsReportMapper;
 import com.cky.proxy.server.util.BeanContext;
+import com.cky.proxy.server.util.TokenBucket;
 
 import cn.hutool.core.date.DateUtil;
 import io.vertx.core.Vertx;
@@ -71,7 +72,9 @@ public class TrafficStatisticManager {
         final AtomicLong currentSecondBytes = new AtomicLong(0);
         volatile long lastResetTime = System.currentTimeMillis();
         // Rate limiting config (KB/s)
-        volatile int limitRate = 0;
+        volatile TokenBucket upBucket;
+        volatile TokenBucket downBucket;
+
 
         TrafficStats(Integer clientId, Integer ruleId) {
             this.clientId = clientId;
@@ -116,100 +119,33 @@ public class TrafficStatisticManager {
     /**
      * 更新规则限流配置
      */
-    public static void updateRuleLimit(Integer ruleId, Integer limitRate) {
+    public static void updateRuleLimit(Vertx vertx, Integer ruleId, Integer limitRate) {
         TrafficStats stats = statsMap.get(ruleId);
         if (stats != null && limitRate != null) {
-            stats.limitRate = limitRate;
+            // 设置令牌桶
+            stats.upBucket = new TokenBucket(vertx, limitRate * 1024);
+            stats.downBucket = new TokenBucket(vertx, limitRate * 1024);
         }
     }
 
-    /**
-     * 获取带宽限制时延
-     * 如果没有配置限流，则返回0
-     */
-    public static long getBandwidthLimitDelay(Integer ruleId) {
+    public static boolean hasUpRateLimit(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null || stats.limitRate == 0) {
-            return 0;
-        }
-        return (CHUNK_SIZE) / (stats.limitRate * 1000);
+        return stats != null && stats.upBucket != null;
     }
 
-    public static void sendWithBandwidthLimit(Vertx vertx, NetSocket socket, byte[] data, long delayMs, int offset,
-            Consumer<byte[]> chunkProcesser) {
-        if (offset >= data.length) {
-            // 所有数据已发送
-            return;
-        }
-
-        int remainingBytes = data.length - offset;
-        int currentChunkSize = Math.min(CHUNK_SIZE, remainingBytes);
-
-        byte[] chunk = new byte[currentChunkSize];
-        System.arraycopy(data, offset, chunk, 0, currentChunkSize);
-
-        chunkProcesser.accept(chunk);
-
-        vertx.setTimer(delayMs, id -> {
-            sendWithBandwidthLimit(vertx, socket, data, delayMs, offset + currentChunkSize, chunkProcesser);
-        });
-    }
-
-    /**
-     * 检查是否超过带宽限制 (使用缓存的配置)
-     */
-    public static boolean isRateExceeded(Integer ruleId, int bytes) {
+    public static TokenBucket getUpRateLimitBucket(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null)
-            return false;
-        return isRateExceeded(ruleId, stats.limitRate, bytes);
+        return stats != null && stats.upBucket != null ? stats.upBucket : null;
     }
 
-    /**
-     * 检查是否超过带宽限制
-     * 
-     * @param ruleId      规则ID
-     * @param limitRateKB 限制速率(KB/s)
-     * @param bytes       当前传输字节数
-     * @return true if exceeded
-     */
-    public static boolean isRateExceeded(Integer ruleId, int limitRateKB, int bytes) {
-        if (limitRateKB <= 0)
-            return false;
+    public static boolean hasDownRateLimit(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null)
-            return false;
-
-        long now = System.currentTimeMillis();
-        long limitBytes = limitRateKB * 1024L;
-
-        synchronized (stats) {
-            if (now - stats.lastResetTime >= 1000) {
-                stats.currentSecondBytes.set(0);
-                stats.lastResetTime = now;
-            }
-            long current = stats.currentSecondBytes.addAndGet(bytes);
-            return current > limitBytes;
-        }
+        return stats != null && stats.downBucket != null;
     }
 
-    /**
-     * Get recommended wait time in ms based on current usage and limit.
-     * Should be called immediately after isRateExceeded returns true.
-     */
-    public static long getWaitTime(Integer ruleId) {
+    public static TokenBucket getDownRateLimitBucket(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
-        if (stats == null || stats.limitRate <= 0)
-            return 0;
-
-        synchronized (stats) {
-            long limitBytes = stats.limitRate * 1024L;
-            long current = stats.currentSecondBytes.get();
-            if (current <= limitBytes)
-                return 0;
-
-            return (current - limitBytes) * 1000 / limitBytes;
-        }
+        return stats != null && stats.downBucket != null ? stats.downBucket : null;
     }
 
     /**

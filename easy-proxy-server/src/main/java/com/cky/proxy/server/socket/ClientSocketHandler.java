@@ -19,6 +19,7 @@ import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
+import com.cky.proxy.server.util.TokenBucket;
 
 import cn.hutool.core.util.StrUtil;
 import io.vertx.core.Handler;
@@ -168,9 +169,11 @@ public class ClientSocketHandler implements Handler<NetSocket> {
 
             // Check bandwidth limit
             Integer ruleId = TrafficStatisticManager.getRuleId(userId);
-            if (ruleId != null && TrafficStatisticManager.getBandwidthLimitDelay(ruleId) > 0) {
-                long delayMs = TrafficStatisticManager.getBandwidthLimitDelay(ruleId);
-                TrafficStatisticManager.sendWithBandwidthLimit(vertx, userSocket, data, delayMs, 0, chunk -> {
+            if (ruleId != null && TrafficStatisticManager.hasDownRateLimit(ruleId)) {
+                // 获取下行令牌桶
+                TokenBucket downBucket = TrafficStatisticManager.getDownRateLimitBucket(ruleId);
+                // 限速分片写入
+                downBucket.writeWithLimit(userSocket, data, chunk -> {
                     TrafficStatisticManager.addDownload(userId, chunk.length);
                     userSocket.write(Buffer.buffer(chunk));
                 });

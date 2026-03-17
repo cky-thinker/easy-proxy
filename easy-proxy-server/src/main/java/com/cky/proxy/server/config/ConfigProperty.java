@@ -11,6 +11,7 @@ import java.io.File;
 
 @Data
 public class ConfigProperty {
+    public static final String CONFIG_FILE = "server.yaml";
     private static volatile ConfigProperty instance;
 
     private ServerProperty server;
@@ -26,11 +27,11 @@ public class ConfigProperty {
             synchronized (ConfigProperty.class) {
                 if (instance == null) {
                     String jarFilePath = PathUtil.getJarFilePath(ConfigProperty.class);
-                    String configFilePath = jarFilePath + File.separator + "config.yaml";
+                    String configFilePath = jarFilePath + File.separator + CONFIG_FILE;
                     if (FileUtil.exist(configFilePath)) {
                         instance = YamlUtil.loadByPath(configFilePath, ConfigProperty.class);
                     } else {
-                        instance = YamlUtil.loadByPath("config.yaml", ConfigProperty.class);
+                        instance = YamlUtil.loadByPath(CONFIG_FILE, ConfigProperty.class);
                     }
                     if (instance != null) {
                         instance.overrideWithEnv();

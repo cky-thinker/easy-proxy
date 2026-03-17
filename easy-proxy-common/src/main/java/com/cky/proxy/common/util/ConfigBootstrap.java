@@ -13,9 +13,9 @@ import java.nio.file.Paths;
 
 @Slf4j
 public class ConfigBootstrap {
-    public static void initConfigs() {
+    public static void initConfigs(String filename) {
         Path configDir = Paths.get("config");
-        copyIfAbsent(configDir, "config.yaml");
+        copyIfAbsent(configDir, filename);
     }
 
     private static void copyIfAbsent(Path configDir, String resourceName) {

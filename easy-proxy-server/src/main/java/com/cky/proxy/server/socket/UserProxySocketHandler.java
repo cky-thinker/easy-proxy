@@ -8,6 +8,7 @@ import com.cky.proxy.server.socket.manager.ClientDataSocketManager;
 import com.cky.proxy.server.socket.manager.ClientSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
+import com.cky.proxy.server.util.TokenBucket;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -32,7 +33,8 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
     public void handle(NetSocket userConnection) {
         NetSocket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
         if (clientSocket == null) {
-            log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(), proxyRule.getName());
+            log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(),
+                    proxyRule.getName());
             userConnection.close();
             return;
         }
@@ -41,7 +43,8 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         if (proxyRule.getLimitConn() != null && proxyRule.getLimitConn() > 0) {
             long activeConns = TrafficStatisticManager.getActiveConnections(proxyRule.getId());
             if (activeConns >= proxyRule.getLimitConn()) {
-                log.warn("EP>>UserProxy>> Connection limit exceeded for rule {}: {}/{}", proxyRule.getName(), activeConns, proxyRule.getLimitConn());
+                log.warn("EP>>UserProxy>> Connection limit exceeded for rule {}: {}/{}", proxyRule.getName(),
+                        activeConns, proxyRule.getLimitConn());
                 userConnection.close();
                 return;
             }
@@ -52,7 +55,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
         // Update bandwidth limit
         if (proxyRule.getLimitRate() != null && proxyRule.getLimitRate() > 0) {
-            TrafficStatisticManager.updateRuleLimit(proxyRule.getId(), proxyRule.getLimitRate());
+            TrafficStatisticManager.updateRuleLimit(vertx, proxyRule.getId(), proxyRule.getLimitRate());
         }
         // reuse after client data connection create success
         log.debug("EP>>UserProxy>> User connected, Send connect msg");
@@ -74,11 +77,13 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
             byte[] data = buffer.getBytes();
             // Check bandwidth limit
             Integer ruleId = proxyRule.getId();
-            if (ruleId != null && TrafficStatisticManager.getBandwidthLimitDelay(ruleId) > 0) {
-                long delayMs = TrafficStatisticManager.getBandwidthLimitDelay(ruleId);
-                TrafficStatisticManager.sendWithBandwidthLimit(vertx, userProxySocket, data, delayMs, 0, chunk -> {
-                    TrafficStatisticManager.addUpload(userId, chunk.length);
-                    dataSocket.write(Message.createDataMsg(userId, chunk));
+            if (ruleId != null && TrafficStatisticManager.hasUpRateLimit(ruleId)) {
+                // 获取上行令牌桶
+                TokenBucket upBucket = TrafficStatisticManager.getUpRateLimitBucket(ruleId);
+                // 限速分片写入
+                upBucket.writeWithLimit(dataSocket, data, chunk -> {
+                    TrafficStatisticManager.addDownload(userId, chunk.length);
+                    dataSocket.write(Buffer.buffer(chunk));
                 });
             } else {
                 TrafficStatisticManager.addUpload(userId, data.length);
