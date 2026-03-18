@@ -182,19 +182,10 @@ public class BeanContext {
     private void initializeData() throws SQLException {
         try {
             // 初始化客户端状态
-            initializeClientOffline();
+            getProxyClientMapper().updateAllOffline();
         } catch (Exception e) {
             log.error("初始化默认数据失败", e);
-            log.info("初始化默认数据失败: " + e.getMessage());
             throw e;
         }
-    }
-
-    private void initializeClientOffline() {
-        List<ProxyClient> proxyClients = getProxyClientMapper().selectList(new QueryWrapper<>());
-        proxyClients.forEach(client -> {
-            client.setStatus("offline");
-            getProxyClientMapper().updateById(client);
-        });
     }
 }

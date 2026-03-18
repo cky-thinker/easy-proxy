@@ -48,12 +48,12 @@ public class ProxyClientRule {
     /**
      * 连接数限制
      */
-    @TableField("limit_conn")
+    @TableField(value = "limit_conn", updateStrategy = com.baomidou.mybatisplus.annotation.FieldStrategy.ALWAYS)
     private Integer limitConn;
     /**
      * 带宽限制 KB/s
      */
-    @TableField("limit_rate")
+    @TableField(value = "limit_rate", updateStrategy = com.baomidou.mybatisplus.annotation.FieldStrategy.ALWAYS)
     private Integer limitRate;
     /**
      * 启用标记
