@@ -93,6 +93,18 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
             log.debug("EP>>UserProxy>> User proxy socket closed");
             NetSocket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
             if (clientSocket != null) {
+                Integer ruleId = proxyRule.getId();
+                if (ruleId != null && TrafficStatisticManager.hasUpRateLimit(ruleId)) {
+                    TokenBucket upBucket = TrafficStatisticManager.getUpRateLimitBucket(ruleId);
+                    if (upBucket != null) {
+                        upBucket.acquire(0, ok -> {
+                            clientSocket.write(Message.createDisConnectMsg(userId));
+                            RuleListenSocketManager.userConnectionOffline(userId);
+                            TrafficStatisticManager.removeConnection(userId);
+                        });
+                        return;
+                    }
+                }
                 clientSocket.write(Message.createDisConnectMsg(userId));
                 RuleListenSocketManager.userConnectionOffline(userId);
                 TrafficStatisticManager.removeConnection(userId);

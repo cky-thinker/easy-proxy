@@ -5,7 +5,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.net.NetSocket;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -18,9 +19,19 @@ public class TokenBucket {
     private final int refillTokens; // 每次补充令牌数
     private int tokens; // 当前令牌数
 
-    private final LinkedBlockingQueue<Handler<Long>> waitQueue;
+    private final Queue<TokenRequest> waitQueue;
     private final int backpressureThreshold; // 背压阈值
     private final long timerId;
+
+    private static class TokenRequest {
+        final long bytes;
+        final Handler<Long> callback;
+
+        TokenRequest(long bytes, Handler<Long> callback) {
+            this.bytes = bytes;
+            this.callback = callback;
+        }
+    }
 
     /**
      * @param vertx            Vertx实例
@@ -30,7 +41,7 @@ public class TokenBucket {
         this.vertx = vertx;
         this.capacity = refillRatePerSec / 4; // 令牌桶容量，应对250ms突发窗口
         this.tokens = capacity;
-        this.waitQueue = new LinkedBlockingQueue<>();
+        this.waitQueue = new LinkedList<>();
         // 不限制队列长度，仅用于背压处理，防止数据丢失
         int maxQueueSize = (int) (capacity * 2.5 / CHUNK_SIZE); // 最大等待队列长度 桶容量 * 2.5 / CHUNCK_SIZE
         this.backpressureThreshold = (int) (maxQueueSize * 0.75); // 背压阈值 桶容量 * 0.75
@@ -58,15 +69,10 @@ public class TokenBucket {
             System.arraycopy(data, offset, chunk, 0, chunkSize);
 
             // 2. 全局上行限速
-            boolean ok = acquire(chunkSize, okBytes -> {
+            acquire(chunkSize, okBytes -> {
                 // 3. 拿到分片后转写
                 writeAction.accept(chunk);
             });
-
-            if (!ok) {
-                // 异常情况，chunk会丢失没有写入
-                log.error("Token bucket acquire fail, Data may be lost.");
-            }
 
             offset += chunkSize;
             remaining -= chunkSize;
@@ -74,43 +80,57 @@ public class TokenBucket {
     }
 
     // 定时补令牌
-    private void refill() {
+    private synchronized void refill() {
         tokens = Math.min(capacity, tokens + refillTokens);
         drainQueue();
     }
 
     /**
      * 异步获取令牌
-     *
-     * @return true=加入队列成功, false=队列已满
      */
-    public boolean acquire(long bytes, Handler<Long> callback) {
-        if (tokens >= bytes) {
-            tokens -= bytes;
-            callback.handle(bytes);
-            return true;
-        } else {
-            // 加入等待队列
-            return waitQueue.offer(callback);
+    public synchronized void acquire(long bytes, Handler<Long> callback) {
+        // 严格 FIFO：如果队列不为空，或者令牌不足，都必须入队等待
+        if (waitQueue.isEmpty()) {
+            if (tokens >= bytes) {
+                tokens -= bytes;
+                callback.handle(bytes);
+                return;
+            } else if (bytes > capacity && tokens >= capacity) {
+                // 特殊处理：请求大小超过桶容量，且桶已满 -> 允许透支
+                tokens -= bytes;
+                callback.handle(bytes);
+                return;
+            }
         }
+        
+        // 加入等待队列
+        waitQueue.offer(new TokenRequest(bytes, callback));
+        // 尝试消费
+        drainQueue();
     }
 
     // 消费等待队列
-    private void drainQueue() {
-        while (!waitQueue.isEmpty() && tokens > 0) {
-            Handler<Long> handler = waitQueue.poll();
-            if (handler == null)
+    private synchronized void drainQueue() {
+        while (!waitQueue.isEmpty()) {
+            TokenRequest req = waitQueue.peek();
+            if (tokens >= req.bytes) {
+                waitQueue.poll();
+                tokens -= req.bytes;
+                req.callback.handle(req.bytes);
+            } else if (req.bytes > capacity && tokens >= capacity) {
+                // 特殊处理：请求大小超过桶容量，且桶已满 -> 允许透支
+                waitQueue.poll();
+                tokens -= req.bytes;
+                req.callback.handle(req.bytes);
+            } else {
+                // 头部请求令牌不足，停止处理，保证顺序
                 break;
-
-            // 每次最多发一个分片，保证平滑
-            long take = Math.min(tokens, CHUNK_SIZE);
-            tokens -= take;
-            handler.handle(take);
+            }
         }
     }
 
     // 用于背压判断
-    public int waitingQueueSize() {
+    public synchronized int waitingQueueSize() {
         return waitQueue.size();
     }
 
@@ -118,7 +138,16 @@ public class TokenBucket {
         return waitingQueueSize() >= backpressureThreshold;
     }
 
-    public void stop() {
+    /**
+     * 停止并立即发送所有积压数据
+     */
+    public synchronized void flush() {
         vertx.cancelTimer(timerId);
+        while (!waitQueue.isEmpty()) {
+            TokenRequest req = waitQueue.poll();
+            // 忽略令牌限制，直接发送
+            req.callback.handle(req.bytes);
+        }
+        log.info("TokenBucket flushed {} requests.", tokens); 
     }
 }

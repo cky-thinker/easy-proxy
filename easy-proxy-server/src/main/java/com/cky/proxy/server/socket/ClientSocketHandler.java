@@ -72,7 +72,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                 // remove related user sockets
                 String userId = ClientDataSocketManager.getUserId(socket);
                 ClientDataSocketManager.offline(userId);
-                RuleListenSocketManager.userConnectionClose(userId);
+                closeUserConnectionGracefully(userId);
             } else {
                 log.info("EP>>Client>> Client socket closed {}", SocketUtil.getSocketName(socket));
                 // remove all related user sockets and data sockets
@@ -190,6 +190,20 @@ public class ClientSocketHandler implements Handler<NetSocket> {
         log.debug("EP>>ServerMng>> Process disconnect");
         String userId = msg.getToken();
         ClientDataSocketManager.closeDataSocket(userId);
+        closeUserConnectionGracefully(userId);
+    }
+
+    private void closeUserConnectionGracefully(String userId) {
+        Integer ruleId = TrafficStatisticManager.getRuleId(userId);
+        if (ruleId != null && TrafficStatisticManager.hasDownRateLimit(ruleId)) {
+            TokenBucket downBucket = TrafficStatisticManager.getDownRateLimitBucket(ruleId);
+            if (downBucket != null) {
+                downBucket.acquire(0, ok -> {
+                    RuleListenSocketManager.userConnectionClose(userId);
+                });
+                return;
+            }
+        }
         RuleListenSocketManager.userConnectionClose(userId);
     }
 }
