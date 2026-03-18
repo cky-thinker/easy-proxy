@@ -3,6 +3,7 @@ package com.cky.proxy.server.service;
 import java.util.Date;
 import java.util.List;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.server.domain.dto.PageResult;
@@ -56,7 +57,7 @@ public class ProxyClientRuleService {
         if (proxyClientId != null) {
             wrapper.eq("proxy_client_id", proxyClientId);
         }
-        
+
         IPage<ProxyClientRule> mybatisPage = PageUtil.toMybatisPage(page);
         IPage<ProxyClientRule> result = proxyClientRuleMapper.selectPage(mybatisPage, wrapper);
         return PageUtil.toPageResult(page, result);
@@ -78,16 +79,16 @@ public class ProxyClientRuleService {
         rule.setCreateTime(new Date());
         if (rule.getEnableFlag() == null) rule.setEnableFlag(Boolean.TRUE);
         proxyClientRuleMapper.insert(rule);
-        
+
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("RULE_ADD");
         sysLog.setLogContent("添加规则: " + rule.getName());
         sysLog.setCreateTime(new Date());
         sysLogMapper.insert(sysLog);
-        
+
         EventBusUtil.publish(EventBusUtil.DB_RULE_ADD, rule.getId());
-        
+
         return rule;
     }
 
@@ -112,29 +113,25 @@ public class ProxyClientRuleService {
         if (rule.getClientAddress() != null && !rule.getClientAddress().equals(existingRule.getClientAddress())) {
             existingRule.setClientAddress(rule.getClientAddress());
         }
-        if (rule.getLimitConn() != null) {
-            existingRule.setLimitConn(rule.getLimitConn());
-        }
-        if (rule.getLimitRate() != null) {
-            existingRule.setLimitRate(rule.getLimitRate());
-        }
         if (rule.getEnableFlag() != null) {
             existingRule.setEnableFlag(rule.getEnableFlag());
         }
+        existingRule.setLimitConn(rule.getLimitConn());
+        existingRule.setLimitRate(rule.getLimitRate());
         existingRule.setUpdateBy("system");
         existingRule.setUpdateTime(new Date());
 
         proxyClientRuleMapper.updateById(existingRule);
-        
+
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("RULE_UPDATE");
         sysLog.setLogContent("更新规则: " + existingRule.getName());
         sysLog.setCreateTime(new Date());
         sysLogMapper.insert(sysLog);
-        
+
         EventBusUtil.publish(EventBusUtil.DB_RULE_UPDATE, existingRule.getId());
-        
+
         return existingRule;
     }
 
@@ -148,16 +145,16 @@ public class ProxyClientRuleService {
         }
 
         proxyClientRuleMapper.deleteById(id);
-        
+
         // 记录日志
         SysLog sysLog = new SysLog();
         sysLog.setLogType("RULE_DELETE");
         sysLog.setLogContent("删除规则: " + existingRule.getName());
         sysLog.setCreateTime(new Date());
         sysLogMapper.insert(sysLog);
-        
+
         EventBusUtil.publish(EventBusUtil.DB_RULE_DELETE, id);
-        
+
         return true;
     }
 
@@ -176,7 +173,7 @@ public class ProxyClientRuleService {
     private void validateServerPortRangeAndUnique(Integer port, Integer excludeId) {
         if (port == null) return;
         if (port < 1 || port > 65535) throw new RuntimeException("服务端口范围为 1-65535");
-        
+
         QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
         wrapper.eq("server_port", port);
         if (excludeId != null) {

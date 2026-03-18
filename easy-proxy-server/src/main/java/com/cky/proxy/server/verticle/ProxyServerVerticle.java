@@ -141,6 +141,24 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void stopRuleServer(Integer ruleId, Runnable completionHandler) {
+        // Delete bandwidth limit
+        TrafficStatisticManager.deleteRateLimit(ruleId);
+        // TODO 根据规则关闭用户连接通道 Repeat
+        Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
+        if (userIds != null) {
+            for (String userId : userIds) {
+                NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+                if (dataSocket != null) {
+                    dataSocket.close();
+                }
+                ClientDataSocketManager.closeDataSocket(userId);
+                NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
+                if (proxySocket != null) {
+                    proxySocket.close();
+                }
+                RuleListenSocketManager.userConnectionClose(userId);
+            }
+        }
         // 关闭规则端口监听
         NetServer server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
         if (server == null) {
@@ -155,30 +173,12 @@ public class ProxyServerVerticle extends AbstractVerticle {
             } else {
                 log.error("Failed to stop server for rule {}", ruleId, res.cause());
             }
-            // TODO 根据规则关闭用户连接通道 Repeat
-            Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
-            if (userIds != null) {
-                for (String userId : userIds) {
-                    NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
-                    if (dataSocket != null) {
-                        dataSocket.close();
-                    }
-                    ClientDataSocketManager.closeDataSocket(userId);
-                    NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
-                    if (proxySocket != null) {
-                        proxySocket.close();
-                    }
-                    RuleListenSocketManager.userConnectionClose(userId);
-                    // Delte bandwidth limit
-                    TrafficStatisticManager.deleteRateLimit(ruleId);
-                }
-            }
             if (completionHandler != null) {
                 completionHandler.run();
             }
         });
-        
-        
+
+
     }
 
     private void updateRuleServer(Integer ruleId) {
@@ -196,7 +196,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
-        
+
         vertx.createNetServer()
                 .connectHandler(new UserProxySocketHandler(client, rule, vertx))
                 .exceptionHandler(e -> {
