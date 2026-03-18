@@ -18,7 +18,6 @@ public class TokenBucket {
     private final int refillTokens; // 每次补充令牌数
     private int tokens; // 当前令牌数
 
-    // 有界等待队列，防止OOM
     private final LinkedBlockingQueue<Handler<Long>> waitQueue;
     private final int backpressureThreshold; // 背压阈值
     private final long timerId;
@@ -31,8 +30,9 @@ public class TokenBucket {
         this.vertx = vertx;
         this.capacity = refillRatePerSec / 4; // 令牌桶容量，应对250ms突发窗口
         this.tokens = capacity;
+        this.waitQueue = new LinkedBlockingQueue<>();
+        // 不限制队列长度，仅用于背压处理，防止数据丢失
         int maxQueueSize = (int) (capacity * 2.5 / CHUNK_SIZE); // 最大等待队列长度 桶容量 * 2.5 / CHUNCK_SIZE
-        this.waitQueue = new LinkedBlockingQueue<>(); // 最大等待队列长度 桶容量 * 2.5 / CHUNCK_SIZE
         this.backpressureThreshold = (int) (maxQueueSize * 0.75); // 背压阈值 桶容量 * 0.75
         // 每100ms补充一次令牌，更平滑
         this.timerId = vertx.setPeriodic(REFILL_INTERVAL, id -> refill());
@@ -45,6 +45,7 @@ public class TokenBucket {
             socket.pause();
             // 100ms 后恢复读取，给令牌桶产出时间
             vertx.setTimer(100, t -> socket.resume());
+            log.debug("TokenBucket >> Backpressure, pause socket");
         }
 
         int offset = 0;
