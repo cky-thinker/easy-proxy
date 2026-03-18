@@ -173,7 +173,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
                 // 获取下行令牌桶
                 TokenBucket downBucket = TrafficStatisticManager.getDownRateLimitBucket(ruleId);
                 // 限速分片写入
-                downBucket.writeWithLimit(userSocket, data, chunk -> {
+                downBucket.writeWithLimit(clientSocket, data, chunk -> {
                     TrafficStatisticManager.addDownload(userId, chunk.length);
                     userSocket.write(Buffer.buffer(chunk));
                 });

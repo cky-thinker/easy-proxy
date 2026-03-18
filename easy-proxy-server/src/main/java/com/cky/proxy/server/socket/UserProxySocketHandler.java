@@ -77,7 +77,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
                 // 获取上行令牌桶
                 TokenBucket upBucket = TrafficStatisticManager.getUpRateLimitBucket(ruleId);
                 // 限速分片写入
-                upBucket.writeWithLimit(dataSocket, data, chunk -> {
+                upBucket.writeWithLimit(userProxySocket, data, chunk -> {
                     TrafficStatisticManager.addUpload(userId, chunk.length);
                     dataSocket.write(Message.createDataMsg(userId, chunk));
                 });
