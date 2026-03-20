@@ -28,7 +28,7 @@ public class ProxyClientRuleService {
     /**
      * 查询所有代理客户端规则，支持按名称、服务端口、客户端ID筛选
      */
-    public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId) {
+    public List<ProxyClientRule> getAllProxyClientRules(String name, Integer serverPort, Integer proxyClientId, Boolean enableFlag) {
         QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
         if (name != null && !name.isEmpty()) {
             wrapper.like("name", name);
@@ -38,6 +38,9 @@ public class ProxyClientRuleService {
         }
         if (proxyClientId != null) {
             wrapper.eq("proxy_client_id", proxyClientId);
+        }
+        if (enableFlag != null) {
+            wrapper.eq("enable_flag", enableFlag);
         }
         return proxyClientRuleMapper.selectList(wrapper);
     }
@@ -46,7 +49,7 @@ public class ProxyClientRuleService {
      * 分页查询代理客户端规则，支持按名称、服务端口、客户端ID筛选
      */
     public PageResult<ProxyClientRule> getProxyClientRulesPageable(Page page, String name, Integer serverPort,
-            Integer proxyClientId) {
+            Integer proxyClientId, Boolean enableFlag) {
         QueryWrapper<ProxyClientRule> wrapper = new QueryWrapper<>();
         if (name != null && !name.isEmpty()) {
             wrapper.like("name", name);
@@ -56,6 +59,9 @@ public class ProxyClientRuleService {
         }
         if (proxyClientId != null) {
             wrapper.eq("proxy_client_id", proxyClientId);
+        }
+        if (enableFlag != null) {
+            wrapper.eq("enable_flag", enableFlag);
         }
 
         IPage<ProxyClientRule> mybatisPage = PageUtil.toMybatisPage(page);

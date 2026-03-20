@@ -20,6 +20,7 @@ import java.util.List;
 
 import static com.cky.proxy.server.util.RequestUtil.getParam;
 import static com.cky.proxy.server.util.RequestUtil.getParamInt;
+import static com.cky.proxy.server.util.RequestUtil.getParamBool;
 
 public class ProxyClientRuleController {
     private final Router router;
@@ -50,7 +51,7 @@ public class ProxyClientRuleController {
 
     private void getAllProxyClientRules(RoutingContext ctx) {
         // 执行查询
-        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(getParam(ctx, "name"), getParamInt(ctx, "serverPort"), getParamInt(ctx, "proxyClientId"));
+        List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(getParam(ctx, "name"), getParamInt(ctx, "serverPort"), getParamInt(ctx, "proxyClientId"), getParamBool(ctx, "enableFlag"));
         // 返回结果
         ResponseUtil.success(ctx, rules);
     }
@@ -61,7 +62,8 @@ public class ProxyClientRuleController {
         // 执行分页查询
         PageResult<ProxyClientRule> result = proxyClientRuleService.getProxyClientRulesPageable(page, getParam(ctx, "name"),
             getParamInt(ctx, "serverPort"),
-            getParamInt(ctx, "proxyClientId"));
+            getParamInt(ctx, "proxyClientId"),
+            getParamBool(ctx, "enableFlag"));
 
         // 返回结果
         ResponseUtil.success(ctx, result);

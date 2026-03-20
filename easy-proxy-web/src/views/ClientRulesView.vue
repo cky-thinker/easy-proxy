@@ -30,6 +30,13 @@
         <el-form-item label="端口">
           <el-input v-model="queryForm.portQuery" clearable placeholder="端口" class="w-40" />
         </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="queryForm.enableFlag" clearable placeholder="全部" class="w-24">
+            <el-option label="全部" :value="undefined" />
+            <el-option label="启用" :value="true" />
+            <el-option label="停用" :value="false" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery">
             <el-icon class="mr-1">
@@ -206,10 +213,11 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const totalPage = ref(1)
-const queryForm = reactive<{ nameQuery: string; portQuery?: number; clientFilter?: number }>({
+const queryForm = reactive<{ nameQuery: string; portQuery?: number; clientFilter?: number; enableFlag?: boolean }>({
   nameQuery: '',
   portQuery: undefined,
-  clientFilter: undefined
+  clientFilter: undefined,
+  enableFlag: undefined
 })
 
 // 新增规则模态与表单
@@ -258,9 +266,10 @@ const reload = async () => {
     const pageData = await getClientRulesPage({
       page: currentPage.value.toString(),
       pageSize: pageSize.value,
-      proxyClientId: queryForm.clientFilter,
+      proxyClientId: queryForm.clientFilter || undefined,
       name: queryForm.nameQuery || undefined,
-      serverPort: queryForm.portQuery
+      serverPort: queryForm.portQuery || undefined,
+      enableFlag: queryForm.enableFlag === '' as any ? undefined : queryForm.enableFlag
     })
     rules.value = pageData.list || []
     total.value = pageData.total || 0

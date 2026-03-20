@@ -19,6 +19,7 @@ export interface ProxyRuleQuery extends PageQuery{
   proxyClientId?: number;
   name?: string;
   serverPort?: number;
+  enableFlag?: boolean;
 }
 
 // 代理客户端配置接口

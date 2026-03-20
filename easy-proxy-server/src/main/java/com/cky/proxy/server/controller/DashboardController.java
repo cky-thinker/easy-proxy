@@ -92,7 +92,7 @@ public class DashboardController {
         // 预取规则名称
         java.util.Map<Integer, String> ruleMap = new java.util.HashMap<>();
         if (!results.isEmpty()) {
-            for (ProxyClientRule r : proxyClientRuleService.getAllProxyClientRules(null, null, null)) {
+            for (ProxyClientRule r : proxyClientRuleService.getAllProxyClientRules(null, null, null, null)) {
                 ruleMap.put(r.getId(), r.getName());
             }
         }

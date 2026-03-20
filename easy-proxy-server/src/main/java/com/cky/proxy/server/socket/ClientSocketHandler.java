@@ -85,7 +85,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
 
                 EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, token);
 
-                List<ProxyClientRule> rules = proxyRuleService.getAllProxyClientRules(token, null, null);
+                List<ProxyClientRule> rules = proxyRuleService.getAllProxyClientRules(token, null, null, null);
                 // TODO 根据规则关闭用户连接通道
                 for (ProxyClientRule rule : rules) {
                     Set<String> userIds = RuleListenSocketManager.getOnlineUsers(rule.getId());
