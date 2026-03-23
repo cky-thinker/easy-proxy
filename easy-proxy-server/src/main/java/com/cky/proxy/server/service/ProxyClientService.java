@@ -3,6 +3,8 @@ package com.cky.proxy.server.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.common.consts.OnlineStatus;
+import com.cky.proxy.server.config.ConfigProperty;
+import com.cky.proxy.server.domain.dto.ClientStatus;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.dto.ClientImportDTO;
 import com.cky.proxy.server.domain.dto.ProxyClientImportReq;
@@ -16,8 +18,14 @@ import com.cky.proxy.server.mapper.SysLogMapper;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.util.PageUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -26,6 +34,10 @@ public class ProxyClientService {
     private final ProxyClientMapper proxyClientMapper = BeanContext.getProxyClientMapper();
     private final ProxyClientRuleMapper proxyClientRuleMapper = BeanContext.getProxyClientRuleMapper();
     private final SysLogMapper sysLogMapper = BeanContext.getSysLogMapper();
+
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
 
     /**
      * 查询所有代理客户端
@@ -179,6 +191,35 @@ public class ProxyClientService {
         sysLog.setLogContent("客户端状态更新: [" + client.getName() + "] [" + OnlineStatus.valueOf(status).getDesc() + "]");
         sysLog.setCreateTime(new Date());
         sysLogMapper.insert(sysLog);
+
+        // 推送Webhook
+        String webhook = ConfigProperty.getInstance().getServer().getWebhook();
+        if (StrUtil.isNotBlank(webhook)) {
+            try {
+                ClientStatus clientStatus = OnlineStatus.online.name().equals(status) ?
+                        ClientStatus.online(client.getToken()) : ClientStatus.offline(client.getToken());
+                
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(webhook))
+                        .timeout(Duration.ofSeconds(5))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(clientStatus.toJson()))
+                        .build();
+                        
+                HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                        .whenComplete((response, throwable) -> {
+                            if (throwable != null) {
+                                log.error("Webhook推送失败, token: {}, error: {}", client.getToken(), throwable.getMessage());
+                            } else if (response.statusCode() >= 400) {
+                                log.error("Webhook推送失败, token: {}, status code: {}", client.getToken(), response.statusCode());
+                            } else {
+                                log.info("Webhook推送成功, token: {}", client.getToken());
+                            }
+                        });
+            } catch (Exception e) {
+                log.error("Webhook推送异常, token: {}", client.getToken(), e);
+            }
+        }
 
         return client;
     }

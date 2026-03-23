@@ -76,5 +76,10 @@ public class ConfigProperty {
         if (StrUtil.isNotBlank(certPassword)) {
             this.server.setCertPassword(certPassword);
         }
+
+        String webhook = System.getenv("SERVER_WEBHOOK");
+        if (StrUtil.isNotBlank(webhook)) {
+            this.server.setWebhook(webhook);
+        }
     }
 }

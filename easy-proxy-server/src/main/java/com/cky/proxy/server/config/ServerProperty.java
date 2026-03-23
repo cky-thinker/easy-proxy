@@ -10,4 +10,5 @@ public class ServerProperty {
     private String publicHost;
     private int certValidityDays;
     private String certPassword;
+    private String webhook;
 }
