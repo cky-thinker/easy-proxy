@@ -40,6 +40,10 @@ public class ClientSocketHandler implements Handler<NetSocket> {
     @Override
     public void handle(NetSocket clientSocket) {
         handleRead(clientSocket);
+        clientSocket.exceptionHandler(t -> {
+            log.error("EP>>Client>> Client socket error: {}", t.getMessage());
+            clientSocket.close();
+        });
         handleClose(clientSocket);
     }
 

@@ -58,6 +58,10 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         userConnection.pause();
         clientSocket.write(Message.createConnectMsg(userId, proxyRule.getClientAddress()));
         userConnection.handler(processRead(userConnection, userId));
+        userConnection.exceptionHandler(t -> {
+            log.error("EP>>UserProxy>> User proxy socket error: {}", t.getMessage());
+            userConnection.close();
+        });
         userConnection.closeHandler(processClose(userId));
     }
 
@@ -110,6 +114,8 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
                 TrafficStatisticManager.removeConnection(userId);
             } else {
                 log.debug("EP>>UserProxy>> Mng proxy is null");
+                RuleListenSocketManager.userConnectionOffline(userId);
+                TrafficStatisticManager.removeConnection(userId);
             }
         };
     }
