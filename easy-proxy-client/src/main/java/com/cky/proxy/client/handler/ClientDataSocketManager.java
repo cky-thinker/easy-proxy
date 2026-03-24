@@ -24,7 +24,15 @@ public class ClientDataSocketManager {
         dataSocket.write(Message.createConnectMsg(userId));
         handleRead();
         handleClose();
+        handleException();
         proxySocket.resume();
+    }
+
+    private void handleException() {
+        dataSocket.exceptionHandler(t -> {
+            log.error("EP>>ClientData>> Data socket error: {}", t.getMessage());
+            dataSocket.close();
+        });
     }
 
     private void handleRead() {
@@ -57,6 +65,7 @@ public class ClientDataSocketManager {
             proxySocket.write(Buffer.buffer(msg.getData()));
         } else {
             log.error("EP>>ClientData>> Proxy socket is null");
+            dataSocket.close();
         }
     }
 }

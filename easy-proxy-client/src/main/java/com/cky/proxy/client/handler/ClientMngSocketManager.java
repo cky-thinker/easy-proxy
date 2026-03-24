@@ -33,6 +33,14 @@ public class ClientMngSocketManager {
         sendAuth();
         handleRead();
         handleClose();
+        handleException();
+    }
+
+    private void handleException() {
+        mngSocket.exceptionHandler(t -> {
+            log.error("EP>>ClientMng>> Mng socket error: {}", t.getMessage());
+            mngSocket.close();
+        });
     }
 
     public void sendAuth() {
@@ -90,11 +98,16 @@ public class ClientMngSocketManager {
     private void handleClose() {
         mngSocket.closeHandler(v -> {
             log.info("EP>>ClientMng>> Mng socket closed");
-            MngSocketContext.offline();
-            DataSocketContext.closeAll();
-            ProxySocketContext.closeAll();
-            if (closeHandler != null) {
-                closeHandler.handle(null);
+            try {
+                MngSocketContext.offline();
+                DataSocketContext.closeAll();
+                ProxySocketContext.closeAll();
+            } catch (Exception e) {
+                log.error("EP>>ClientMng>> Error during closeAll", e);
+            } finally {
+                if (closeHandler != null) {
+                    closeHandler.handle(null);
+                }
             }
         });
     }

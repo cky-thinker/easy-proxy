@@ -29,6 +29,7 @@ public class ClientProxySocketManager {
         ProxySocketContext.online(userId, proxySocket);
         handleRead();
         handleClose();
+        handleException();
         // pause util data socket success
         proxySocket.pause();
 
@@ -45,8 +46,19 @@ public class ClientProxySocketManager {
                     manager.init();
                 }).onFailure(e -> {
                     log.error("EP>>ClientProxy>> Create data socket failed", e);
-                    MngSocketContext.getMngSocket().write(Message.createDisConnectMsg(userId));
+                    NetSocket mngSocket = MngSocketContext.getMngSocket();
+                    if (mngSocket != null) {
+                        mngSocket.write(Message.createDisConnectMsg(userId));
+                    }
+                    proxySocket.close();
                 });
+    }
+
+    private void handleException() {
+        proxySocket.exceptionHandler(t -> {
+            log.error("EP>>ClientProxy>> Proxy socket error: {}", t.getMessage());
+            proxySocket.close();
+        });
     }
 
     private void handleClose() {
