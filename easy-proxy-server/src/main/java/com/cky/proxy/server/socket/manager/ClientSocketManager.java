@@ -1,22 +1,22 @@
 package com.cky.proxy.server.socket.manager;
 
 import cn.hutool.core.map.BiMap;
-import io.vertx.core.net.NetSocket;
+import java.net.Socket;
 
 import java.util.HashMap;
 
 public class ClientSocketManager {
-    private final static BiMap<String, NetSocket> clientSocketMap = new BiMap<>(new HashMap<>());
+    private final static BiMap<String, Socket> clientSocketMap = new BiMap<>(new HashMap<>());
 
-    public static NetSocket getClientSocket(String token) {
+    public static Socket getClientSocket(String token) {
         return clientSocketMap.get(token);
     }
 
-    public static void online(String token, NetSocket clientSocket) {
+    public static void online(String token, Socket clientSocket) {
         clientSocketMap.put(token, clientSocket);
     }
 
-    public static String offline(NetSocket clientSocket) {
+    public static String offline(Socket clientSocket) {
         String token = clientSocketMap.getKey(clientSocket);
         clientSocketMap.remove(token);
         return token;

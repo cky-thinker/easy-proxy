@@ -1,6 +1,15 @@
 package com.cky.proxy.server.socket;
 
-import cn.hutool.core.util.IdUtil;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.server.domain.entity.ProxyClient;
 import com.cky.proxy.server.domain.entity.ProxyClientRule;
@@ -10,32 +19,26 @@ import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.TokenBucket;
 
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetSocket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import cn.hutool.core.util.IdUtil;
 
-public class UserProxySocketHandler implements Handler<NetSocket> {
+public class UserProxySocketHandler implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(UserProxySocketHandler.class);
     private final ProxyClient proxyClientConfig;
     private final ProxyClientRule proxyRule;
-    private final Vertx vertx;
+    private final Socket userConnection;
 
-    public UserProxySocketHandler(ProxyClient proxyClientConfig, ProxyClientRule proxyRule, Vertx vertx) {
+    public UserProxySocketHandler(ProxyClient proxyClientConfig, ProxyClientRule proxyRule, Socket userConnection) {
         this.proxyClientConfig = proxyClientConfig;
         this.proxyRule = proxyRule;
-        this.vertx = vertx;
+        this.userConnection = userConnection;
     }
 
     @Override
-    public void handle(NetSocket userConnection) {
-        NetSocket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
+    public void run() {
+        Socket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
         if (clientSocket == null) {
-            log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(),
-                    proxyRule.getName());
-            userConnection.close();
+            log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(), proxyRule.getName());
+            closeUserConnection();
             return;
         }
 
@@ -45,7 +48,7 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
             if (activeConns >= proxyRule.getLimitConn()) {
                 log.warn("EP>>UserProxy>> Connection limit exceeded for rule {}: {}/{}", proxyRule.getName(),
                         activeConns, proxyRule.getLimitConn());
-                userConnection.close();
+                closeUserConnection();
                 return;
             }
         }
@@ -53,70 +56,79 @@ public class UserProxySocketHandler implements Handler<NetSocket> {
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
         RuleListenSocketManager.userConnectionOnline(proxyRule.getId(), userId, userConnection);
         TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
-        // reuse after client data connection create success
-        log.debug("EP>>UserProxy>> User connected, Send connect msg");
-        userConnection.pause();
-        clientSocket.write(Message.createConnectMsg(userId, proxyRule.getClientAddress()));
-        userConnection.handler(processRead(userConnection, userId));
-        userConnection.exceptionHandler(t -> {
-            log.error("EP>>UserProxy>> User proxy socket error: {}", t.getMessage());
-            userConnection.close();
-        });
-        userConnection.closeHandler(processClose(userId));
-    }
 
-    private Handler<Buffer> processRead(NetSocket userProxySocket, String userId) {
-        return buffer -> {
-            log.debug("EP>>UserProxy>> User socket read");
-            NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+        log.debug("EP>>UserProxy>> User connected, Send connect msg");
+        try {
+            CompletableFuture<Socket> dataSocketFuture = ClientDataSocketManager.getWaitFuture(userId);
+            Message.createConnectMsg(userId, proxyRule.getClientAddress()).writeTo(new java.io.DataOutputStream(clientSocket.getOutputStream()));
+            
+            // Wait for data socket connection from client (timeout e.g., 10 seconds)
+            Socket dataSocket = dataSocketFuture.get(10, TimeUnit.SECONDS);
+
             if (dataSocket == null) {
-                log.error("EP>>UserProxy>> Can't found data socket by userId {}", userId);
-                userProxySocket.close();
+                log.error("EP>>UserProxy>> Data socket is null for userId {}", userId);
+                closeUserConnectionGracefully(userId);
                 return;
             }
-            byte[] data = buffer.getBytes();
-            // Check bandwidth limit
-            Integer ruleId = proxyRule.getId();
-            if (ruleId != null && TrafficStatisticManager.hasUpRateLimit(ruleId)) {
-                // 获取上行令牌桶
-                TokenBucket upBucket = TrafficStatisticManager.getUpRateLimitBucket(ruleId);
-                // 限速分片写入
-                upBucket.writeWithLimit(userProxySocket, data, chunk -> {
-                    TrafficStatisticManager.addUpload(userId, chunk.length);
-                    dataSocket.write(Message.createDataMsg(userId, chunk));
-                });
-            } else {
-                TrafficStatisticManager.addUpload(userId, data.length);
-                dataSocket.write(Message.createDataMsg(userId, data));
-            }
-        };
-    }
 
-    private Handler<Void> processClose(String userId) {
-        return v -> {
-            log.debug("EP>>UserProxy>> User proxy socket closed");
-            NetSocket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
-            if (clientSocket != null) {
+            // Start reading from user socket and writing to data socket
+            byte[] buffer = new byte[8192];
+            InputStream in = userConnection.getInputStream();
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                log.debug("EP>>UserProxy>> User socket read");
+                byte[] data = new byte[bytesRead];
+                System.arraycopy(buffer, 0, data, 0, bytesRead);
+
                 Integer ruleId = proxyRule.getId();
                 if (ruleId != null && TrafficStatisticManager.hasUpRateLimit(ruleId)) {
                     TokenBucket upBucket = TrafficStatisticManager.getUpRateLimitBucket(ruleId);
                     if (upBucket != null) {
-                        upBucket.acquire(0, ok -> {
-                            clientSocket.write(Message.createDisConnectMsg(userId));
-                            RuleListenSocketManager.userConnectionOffline(userId);
-                            TrafficStatisticManager.removeConnection(userId);
-                        });
-                        return;
+                        upBucket.acquire(bytesRead); // block until permits are available
                     }
                 }
-                clientSocket.write(Message.createDisConnectMsg(userId));
-                RuleListenSocketManager.userConnectionOffline(userId);
-                TrafficStatisticManager.removeConnection(userId);
-            } else {
-                log.debug("EP>>UserProxy>> Mng proxy is null");
-                RuleListenSocketManager.userConnectionOffline(userId);
-                TrafficStatisticManager.removeConnection(userId);
+                
+                TrafficStatisticManager.addUpload(userId, bytesRead);
+                Message.createDataMsg(userId, data).writeTo(new java.io.DataOutputStream(dataSocket.getOutputStream()));
             }
-        };
+
+        } catch (TimeoutException e) {
+            log.error("EP>>UserProxy>> Wait for data socket timeout userId {}", userId);
+        } catch (Exception e) {
+            log.error("EP>>UserProxy>> User proxy socket error: {}", e.getMessage());
+        } finally {
+            processClose(userId);
+        }
+    }
+
+    private void processClose(String userId) {
+        log.debug("EP>>UserProxy>> User proxy socket closed");
+        Socket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
+        if (clientSocket != null) {
+            try {
+                Message.createDisConnectMsg(userId).writeTo(new java.io.DataOutputStream(clientSocket.getOutputStream()));
+            } catch (IOException e) {
+                // ignore
+            }
+        } else {
+            log.debug("EP>>UserProxy>> Mng proxy is null");
+        }
+        RuleListenSocketManager.userConnectionOffline(userId);
+        TrafficStatisticManager.removeConnection(userId);
+        closeUserConnection();
+    }
+
+    private void closeUserConnection() {
+        try {
+            if (userConnection != null) {
+                userConnection.close();
+            }
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+
+    private void closeUserConnectionGracefully(String userId) {
+        processClose(userId);
     }
 }

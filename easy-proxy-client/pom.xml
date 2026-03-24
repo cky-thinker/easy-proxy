@@ -13,7 +13,7 @@
     <name>easy-proxy-client</name>
     <description>easy-proxy-server</description>
     <properties>
-        <java.version>17</java.version>
+        <java.version>25</java.version>
         <main.verticle>com.cky.proxy.client.verticle.MainVerticle</main.verticle>
         <launcher.class>com.cky.proxy.client.ProxyClient</launcher.class>
     </properties>

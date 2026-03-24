@@ -1,12 +1,14 @@
 package com.cky.proxy.server.socket;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.common.domain.Message;
 import com.cky.proxy.common.util.SocketUtil;
 import com.cky.proxy.server.domain.entity.ProxyClient;
@@ -22,98 +24,103 @@ import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.util.TokenBucket;
 
 import cn.hutool.core.util.StrUtil;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetSocket;
 
-public class ClientSocketHandler implements Handler<NetSocket> {
+public class ClientSocketHandler implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(ClientSocketHandler.class);
     private final ProxyClientService proxyClientService = BeanContext.getProxyClientService();
     private final ProxyClientRuleService proxyRuleService = BeanContext.getProxyClientRuleService();
-    private final Vertx vertx;
+    
+    private final Socket clientSocket;
 
-    public ClientSocketHandler(Vertx vertx) {
-        this.vertx = vertx;
+    public ClientSocketHandler(Socket clientSocket) {
+        this.clientSocket = clientSocket;
     }
 
     @Override
-    public void handle(NetSocket clientSocket) {
-        handleRead(clientSocket);
-        clientSocket.exceptionHandler(t -> {
-            log.error("EP>>Client>> Client socket error: {}", t.getMessage());
-            clientSocket.close();
-        });
-        handleClose(clientSocket);
-    }
-
-    private void handleRead(NetSocket clientSocket) {
-        Message.decodeMsg(clientSocket, msg -> {
-            log.debug("EP>>ServerMng>> Read msg {}", msg.getType());
-            switch (msg.getType()) {
-                case Message.AUTH:
-                    processAuth(msg, clientSocket);
-                    break;
-                case Message.CONNECT:
-                    processConnect(msg, clientSocket);
-                    break;
-                case Message.DATA:
-                    processData(msg, clientSocket);
-                    break;
-                case Message.DISCONNECT:
-                    processDisconnect(msg);
-                    break;
-                default:
-                    break;
-            }
-        });
-    }
-
-    private void handleClose(NetSocket socket) {
-        socket.closeHandler(v -> {
-            if (ClientDataSocketManager.isDataSocket(socket)) {
-                log.info("EP>>Client>> Data socket closed {}", SocketUtil.getSocketName(socket));
-                // remove related user sockets
-                String userId = ClientDataSocketManager.getUserId(socket);
-                ClientDataSocketManager.offline(userId);
-                closeUserConnectionGracefully(userId);
-            } else {
-                log.info("EP>>Client>> Client socket closed {}", SocketUtil.getSocketName(socket));
-                // remove all related user sockets and data sockets
-                String token = ClientSocketManager.offline(socket);
-                // Update offline status
-                if (StrUtil.isBlank(token)) {
-                    log.warn("EP>>ServerMng>> Client token is blank");
-                    return;
+    public void run() {
+        try {
+            DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+            while (true) {
+                Message msg = Message.readMsg(in);
+                log.debug("EP>>ServerMng>> Read msg {}", msg.getType());
+                switch (msg.getType()) {
+                    case Message.AUTH:
+                        processAuth(msg, clientSocket);
+                        break;
+                    case Message.CONNECT:
+                        processConnect(msg, clientSocket);
+                        break;
+                    case Message.DATA:
+                        processData(msg, clientSocket);
+                        break;
+                    case Message.DISCONNECT:
+                        processDisconnect(msg);
+                        break;
+                    default:
+                        break;
                 }
+            }
+        } catch (IOException e) {
+            log.error("EP>>Client>> Client socket error or closed: {}", e.getMessage());
+        } finally {
+            handleClose(clientSocket);
+        }
+    }
 
-                EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, token);
+    private void handleClose(Socket socket) {
+        if (ClientDataSocketManager.isDataSocket(socket)) {
+            log.info("EP>>Client>> Data socket closed {}", SocketUtil.getSocketName(socket));
+            // remove related user sockets
+            String userId = ClientDataSocketManager.getUserId(socket);
+            ClientDataSocketManager.offline(userId);
+            closeUserConnectionGracefully(userId);
+        } else {
+            log.info("EP>>Client>> Client socket closed {}", SocketUtil.getSocketName(socket));
+            // remove all related user sockets and data sockets
+            String token = ClientSocketManager.offline(socket);
+            // Update offline status
+            if (StrUtil.isBlank(token)) {
+                log.warn("EP>>ServerMng>> Client token is blank");
+                return;
+            }
 
-                List<ProxyClientRule> rules = proxyRuleService.getAllProxyClientRules(token, null, null, null);
-                // TODO 根据规则关闭用户连接通道
-                for (ProxyClientRule rule : rules) {
-                    Set<String> userIds = RuleListenSocketManager.getOnlineUsers(rule.getId());
-                    if (userIds != null) {
-                        for (String userId : userIds) {
-                            NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
-                            if (dataSocket != null) {
+            EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_OFFLINE, token);
+
+            List<ProxyClientRule> rules = proxyRuleService.getAllProxyClientRules(token, null, null, null);
+            // 根据规则关闭用户连接通道
+            for (ProxyClientRule rule : rules) {
+                Set<String> userIds = RuleListenSocketManager.getOnlineUsers(rule.getId());
+                if (userIds != null) {
+                    for (String userId : userIds) {
+                        Socket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+                        if (dataSocket != null) {
+                            try {
                                 dataSocket.close();
+                            } catch (IOException e) {
                             }
-                            ClientDataSocketManager.closeDataSocket(userId);
-                            NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
-                            if (proxySocket != null) {
-                                proxySocket.close();
-                            }
-                            RuleListenSocketManager.userConnectionClose(userId);
                         }
+                        ClientDataSocketManager.closeDataSocket(userId);
+                        Socket proxySocket = RuleListenSocketManager.getProxySocket(userId);
+                        if (proxySocket != null) {
+                            try {
+                                proxySocket.close();
+                            } catch (IOException e) {
+                            }
+                        }
+                        RuleListenSocketManager.userConnectionClose(userId);
                     }
                 }
             }
-        });
+        }
+        try {
+            socket.close();
+        } catch (IOException e) {
+            // ignore
+        }
     }
 
     // client connection auth, register if success
-    private void processAuth(Message msg, NetSocket sMngSocket) {
+    private void processAuth(Message msg, Socket sMngSocket) throws IOException {
         log.debug("EP>>ServerMng>> Process auth");
         String token = msg.getToken();
 
@@ -140,7 +147,7 @@ public class ClientSocketHandler implements Handler<NetSocket> {
             return;
         }
 
-        NetSocket existedMngSocket = ClientSocketManager.getClientSocket(token);
+        Socket existedMngSocket = ClientSocketManager.getClientSocket(token);
         if (existedMngSocket != null) {
             log.info("EP>>ServerMng>> Socket {} is connected, Can't connect again {}",
                     SocketUtil.getSocketName(existedMngSocket), SocketUtil.getSocketName(sMngSocket));
@@ -150,40 +157,31 @@ public class ClientSocketHandler implements Handler<NetSocket> {
         log.debug("EP>>ServerMng>> Process auth success");
     }
 
-    private void processConnect(Message msg, NetSocket dataSocket) {
+    private void processConnect(Message msg, Socket dataSocket) {
         log.debug("EP>>ServerMng>> Process connect");
         String userId = msg.getToken();
         ClientDataSocketManager.online(userId, dataSocket);
-        NetSocket userProxySocket = RuleListenSocketManager.getProxySocket(userId);
-        if (userProxySocket != null) {
-            userProxySocket.resume();
-            log.debug("EP>>ServerMng>> Process connect success");
-        } else {
-            log.debug("EP>>ServerMng>> Process connect fail");
-        }
+        log.debug("EP>>ServerMng>> Process connect success");
     }
 
-    private void processData(Message msg, NetSocket clientSocket) {
+    private void processData(Message msg, Socket clientSocket) throws IOException {
         log.debug("EP>>ServerMng>> Process data");
         String userId = msg.getToken();
-        NetSocket userSocket = RuleListenSocketManager.getProxySocket(userId);
-        if (userSocket != null) {
+        Socket userSocket = RuleListenSocketManager.getProxySocket(userId);
+        if (userSocket != null && !userSocket.isClosed()) {
             log.debug("EP>>ServerMng>> Process data success");
             byte[] data = msg.getData();
 
             // Check bandwidth limit
             Integer ruleId = TrafficStatisticManager.getRuleId(userId);
             if (ruleId != null && TrafficStatisticManager.hasDownRateLimit(ruleId)) {
-                // 获取下行令牌桶
                 TokenBucket downBucket = TrafficStatisticManager.getDownRateLimitBucket(ruleId);
-                // 限速分片写入
-                downBucket.writeWithLimit(clientSocket, data, chunk -> {
-                    TrafficStatisticManager.addDownload(userId, chunk.length);
-                    userSocket.write(Buffer.buffer(chunk));
-                });
+                downBucket.writeWithLimit(userSocket.getOutputStream(), data);
+                TrafficStatisticManager.addDownload(userId, data.length); 
             } else {
                 TrafficStatisticManager.addDownload(userId, data.length);
-                userSocket.write(Buffer.buffer(data));
+                userSocket.getOutputStream().write(data);
+                userSocket.getOutputStream().flush();
             }
         } else {
             log.debug("EP>>ServerMng>> Process data fail");
@@ -198,16 +196,6 @@ public class ClientSocketHandler implements Handler<NetSocket> {
     }
 
     private void closeUserConnectionGracefully(String userId) {
-        Integer ruleId = TrafficStatisticManager.getRuleId(userId);
-        if (ruleId != null && TrafficStatisticManager.hasDownRateLimit(ruleId)) {
-            TokenBucket downBucket = TrafficStatisticManager.getDownRateLimitBucket(ruleId);
-            if (downBucket != null) {
-                downBucket.acquire(0, ok -> {
-                    RuleListenSocketManager.userConnectionClose(userId);
-                });
-                return;
-            }
-        }
         RuleListenSocketManager.userConnectionClose(userId);
     }
 }

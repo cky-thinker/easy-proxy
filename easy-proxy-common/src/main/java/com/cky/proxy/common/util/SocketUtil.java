@@ -1,9 +1,9 @@
 package com.cky.proxy.common.util;
 
-import io.vertx.core.net.NetSocket;
+import java.net.Socket;
 
 public class SocketUtil {
-    public static String getSocketName(NetSocket socket) {
-        return socket.localAddress() + ":" + socket.remoteAddress();
+    public static String getSocketName(Socket socket) {
+        return socket.getLocalSocketAddress() + ":" + socket.getRemoteSocketAddress();
     }
 }

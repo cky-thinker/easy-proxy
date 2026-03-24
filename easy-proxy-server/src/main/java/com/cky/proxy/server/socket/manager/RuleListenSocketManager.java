@@ -4,18 +4,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import io.vertx.core.net.NetServer;
-import io.vertx.core.net.NetSocket;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.IOException;
 
 /**
  * 规则监听socket管理类
  */
 public class RuleListenSocketManager {
     // 服务端规则监听socket
-    private final static Map<Integer, NetServer> ruleListenSocketMap = new ConcurrentHashMap<>();
+    private final static Map<Integer, ServerSocket> ruleListenSocketMap = new ConcurrentHashMap<>();
     // 服务端用户连接socket
-    private final static Map<String, NetSocket> userIdUserSocketMap = new ConcurrentHashMap<>();
+    private final static Map<String, Socket> userIdUserSocketMap = new ConcurrentHashMap<>();
     private final static Map<String, String> userIdRuleIdMap = new ConcurrentHashMap<>();
 
     /**
@@ -24,7 +24,7 @@ public class RuleListenSocketManager {
      * @param ruleId 规则ID
      * @return 用户连接监听socket
      */
-    public static NetServer getRuleListenSocket(Integer ruleId) {
+    public static ServerSocket getRuleListenSocket(Integer ruleId) {
         return ruleListenSocketMap.get(ruleId);
     }
 
@@ -34,7 +34,7 @@ public class RuleListenSocketManager {
      * @param ruleId 规则ID
      * @return 用户连接监听socket
      */
-    public static NetServer removeRuleListenSocket(Integer ruleId) {
+    public static ServerSocket removeRuleListenSocket(Integer ruleId) {
         return ruleListenSocketMap.remove(ruleId);
     }
 
@@ -45,15 +45,15 @@ public class RuleListenSocketManager {
      * @param netServer 用户连接监听socket
      * @return 用户连接监听socket
      */
-    public static NetServer addRuleListenSocket(Integer ruleId, NetServer netServer) {
+    public static ServerSocket addRuleListenSocket(Integer ruleId, ServerSocket netServer) {
         return ruleListenSocketMap.put(ruleId, netServer);
     }
 
-    public static NetSocket getProxySocket(String userId) {
+    public static Socket getProxySocket(String userId) {
         return userIdUserSocketMap.get(userId);
     }
 
-    public static void userConnectionOnline(Integer ruleId, String userId, NetSocket userProxySocket) {
+    public static void userConnectionOnline(Integer ruleId, String userId, Socket userProxySocket) {
         userIdUserSocketMap.put(userId, userProxySocket);
         userIdRuleIdMap.put(userId, ruleId.toString());
     }
@@ -64,9 +64,13 @@ public class RuleListenSocketManager {
     }
 
     public static void userConnectionClose(String userId) {
-        NetSocket userSocket = getProxySocket(userId);
+        Socket userSocket = getProxySocket(userId);
         if (userSocket != null) {
-            userSocket.close();
+            try {
+                userSocket.close();
+            } catch (IOException e) {
+                // ignore
+            }
             userConnectionOffline(userId);
         }
     }

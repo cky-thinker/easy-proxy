@@ -1,6 +1,7 @@
 package com.cky.proxy.client.context;
 
-import io.vertx.core.net.NetSocket;
+import java.net.Socket;
+import java.io.IOException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,13 +10,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * userId -> proxySocket 应用socket 上下文
  */
 public class ProxySocketContext {
-    private final static Map<String, NetSocket> userIdProxySocketMap = new ConcurrentHashMap<>();
+    private final static Map<String, Socket> userIdProxySocketMap = new ConcurrentHashMap<>();
 
-    public static NetSocket getProxySocket(String token) {
+    public static Socket getProxySocket(String token) {
         return userIdProxySocketMap.get(token);
     }
 
-    public static void online(String token, NetSocket mngSocket) {
+    public static void online(String token, Socket mngSocket) {
         userIdProxySocketMap.put(token, mngSocket);
     }
 
@@ -24,7 +25,7 @@ public class ProxySocketContext {
     }
 
     public static void close(String userId) {
-        NetSocket proxySocket = userIdProxySocketMap.remove(userId);
+        Socket proxySocket = userIdProxySocketMap.remove(userId);
         if (proxySocket != null) {
             try {
                 proxySocket.close();
@@ -35,7 +36,7 @@ public class ProxySocketContext {
     }
 
     public static void closeAll() {
-        for (NetSocket proxySocket : userIdProxySocketMap.values().toArray(new NetSocket[0])) {
+        for (Socket proxySocket : userIdProxySocketMap.values().toArray(new Socket[0])) {
             try {
                 proxySocket.close();
             } catch (Exception e) {

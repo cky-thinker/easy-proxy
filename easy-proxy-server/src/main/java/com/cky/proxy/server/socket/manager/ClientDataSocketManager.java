@@ -1,37 +1,57 @@
 package com.cky.proxy.server.socket.manager;
 
 import cn.hutool.core.map.BiMap;
-import io.vertx.core.net.NetSocket;
+import java.net.Socket;
+import java.io.IOException;
 
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientDataSocketManager {
-    private final static BiMap<String, NetSocket> userIdDataSocketMap = new BiMap<>(new HashMap<>());
+    private final static BiMap<String, Socket> userIdDataSocketMap = new BiMap<>(new HashMap<>());
+    private final static ConcurrentHashMap<String, CompletableFuture<Socket>> waitMap = new ConcurrentHashMap<>();
 
-    public static NetSocket getDataSocket(String userId) {
+    public static Socket getDataSocket(String userId) {
         return userIdDataSocketMap.get(userId);
     }
 
-    public static boolean isDataSocket(NetSocket socket) {
+    public static CompletableFuture<Socket> getWaitFuture(String userId) {
+        return waitMap.computeIfAbsent(userId, k -> new CompletableFuture<>());
+    }
+
+    public static boolean isDataSocket(Socket socket) {
         return userIdDataSocketMap.getKey(socket) != null;
     }
 
-    public static String getUserId(NetSocket socket) {
+    public static String getUserId(Socket socket) {
         return userIdDataSocketMap.getKey(socket);
     }
 
-    public static void online(String userId, NetSocket dataSocket) {
+    public static void online(String userId, Socket dataSocket) {
         userIdDataSocketMap.put(userId, dataSocket);
+        CompletableFuture<Socket> future = waitMap.remove(userId);
+        if (future != null) {
+            future.complete(dataSocket);
+        }
     }
 
     public static void offline(String userId) {
         userIdDataSocketMap.remove(userId);
+        CompletableFuture<Socket> future = waitMap.remove(userId);
+        if (future != null) {
+            future.cancel(true);
+        }
     }
 
     public static void closeDataSocket(String userId) {
-        NetSocket dataSocket = getDataSocket(userId);
+        Socket dataSocket = getDataSocket(userId);
         if (dataSocket != null) {
-            dataSocket.close();
+            try {
+                dataSocket.close();
+            } catch (IOException e) {
+                // ignore
+            }
             ClientDataSocketManager.offline(userId);
         }
     }

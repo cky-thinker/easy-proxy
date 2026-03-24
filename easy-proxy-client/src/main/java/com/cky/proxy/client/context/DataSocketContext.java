@@ -1,6 +1,7 @@
 package com.cky.proxy.client.context;
 
-import io.vertx.core.net.NetSocket;
+import java.net.Socket;
+import java.io.IOException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,9 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * userId -> dataSocket 数据socket 上下文
  */
 public class DataSocketContext {
-    private static final Map<String, NetSocket> userIdSocketMap = new ConcurrentHashMap<>();
+    private static final Map<String, Socket> userIdSocketMap = new ConcurrentHashMap<>();
 
-    public static void online(String userId, NetSocket dataSocket) {
+    public static void online(String userId, Socket dataSocket) {
         userIdSocketMap.put(userId, dataSocket);
     }
 
@@ -20,7 +21,7 @@ public class DataSocketContext {
     }
 
     public static void closeAll() {
-        for (NetSocket dataSocket : userIdSocketMap.values().toArray(new NetSocket[0])) {
+        for (Socket dataSocket : userIdSocketMap.values().toArray(new Socket[0])) {
             try {
                 dataSocket.close();
             } catch (Exception e) {
@@ -31,7 +32,7 @@ public class DataSocketContext {
     }
 
     public static void close(String userId) {
-        NetSocket dataSocket = userIdSocketMap.remove(userId);
+        Socket dataSocket = userIdSocketMap.remove(userId);
         if (dataSocket != null) {
             try {
                 dataSocket.close();
@@ -41,7 +42,7 @@ public class DataSocketContext {
         }
     }
 
-    public static NetSocket getDataSocket(String userId) {
+    public static Socket getDataSocket(String userId) {
         return userIdSocketMap.get(userId);
     }
 }

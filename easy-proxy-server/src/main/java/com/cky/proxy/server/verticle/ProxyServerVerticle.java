@@ -1,8 +1,18 @@
 package com.cky.proxy.server.verticle;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.security.KeyStore;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.config.ServerProperty;
@@ -21,9 +31,7 @@ import com.cky.proxy.server.util.EventBusUtil;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.NetServer;
-import io.vertx.core.net.NetServerOptions;
 import io.vertx.core.net.NetSocket;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ProxyServerVerticle extends AbstractVerticle {
     private ProxyClientService proxyClientService = BeanContext.getProxyClientService();
     private ProxyClientRuleService proxyClientRuleService = BeanContext.getProxyClientRuleService();
+
+    private ServerSocket mainServerSocket;
 
     @Override
     public void start(Promise<Void> startPromise) {
@@ -40,17 +50,41 @@ public class ProxyServerVerticle extends AbstractVerticle {
         ServerProperty server = ConfigProperty.getInstance().getServer();
         Integer proxyPort = server.getProxyPort();
         log.info("Init client server {}", proxyPort);
-        NetServerOptions options = new NetServerOptions()
-                .setPort(proxyPort)
-                .setSsl(true)
-                .setUseAlpn(true)
-                .setKeyCertOptions(new JksOptions().setPath(CertGenerator.getJksCertPath())
-                        .setPassword(CertGenerator.getCertPassword()));
-        vertx.createNetServer(options)
-                .connectHandler(new ClientSocketHandler(vertx))
-                .listen(proxyPort)
-                .onFailure(t -> log.error("Server start failed", t))
-                .onSuccess(v -> log.info("Server started on port {}", proxyPort));
+        
+        try {
+            KeyStore ks = KeyStore.getInstance("JKS");
+            char[] password = CertGenerator.getCertPassword().toCharArray();
+            try (FileInputStream fis = new FileInputStream(CertGenerator.getJksCertPath())) {
+                ks.load(fis, password);
+            }
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(ks, password);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), null, null);
+            SSLServerSocketFactory ssf = sslContext.getServerSocketFactory();
+            
+            mainServerSocket = ssf.createServerSocket(proxyPort);
+            
+            Thread.ofVirtual().start(() -> {
+                log.info("Server started on port {}", proxyPort);
+                while (!mainServerSocket.isClosed()) {
+                    try {
+                        Socket clientSocket = mainServerSocket.accept();
+                        Thread.ofVirtual().start(new ClientSocketHandler(clientSocket));
+                    } catch (IOException e) {
+                        if (!mainServerSocket.isClosed()) {
+                            log.error("Server accept failed", e);
+                        }
+                    }
+                }
+            });
+            startPromise.complete();
+        } catch (Exception e) {
+            log.error("Server start failed", e);
+            startPromise.fail(e);
+            return;
+        }
 
         initRuleServers();
 
@@ -62,6 +96,13 @@ public class ProxyServerVerticle extends AbstractVerticle {
     public void stop() {
         log.info("Server stopping, flush traffic stats...");
         TrafficStatisticManager.flush();
+        if (mainServerSocket != null) {
+            try {
+                mainServerSocket.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
 
     private void startTrafficStatisticsTask() {
@@ -147,38 +188,39 @@ public class ProxyServerVerticle extends AbstractVerticle {
         Set<String> userIds = RuleListenSocketManager.getOnlineUsers(ruleId);
         if (userIds != null) {
             for (String userId : userIds) {
-                NetSocket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+                Socket dataSocket = ClientDataSocketManager.getDataSocket(userId);
                 if (dataSocket != null) {
-                    dataSocket.close();
+                    try {
+                        dataSocket.close();
+                    } catch (IOException e) {}
                 }
                 ClientDataSocketManager.closeDataSocket(userId);
-                NetSocket proxySocket = RuleListenSocketManager.getProxySocket(userId);
+                Socket proxySocket = RuleListenSocketManager.getProxySocket(userId);
                 if (proxySocket != null) {
-                    proxySocket.close();
+                    try {
+                        proxySocket.close();
+                    } catch (IOException e) {}
                 }
                 RuleListenSocketManager.userConnectionClose(userId);
             }
         }
         // 关闭规则端口监听
-        NetServer server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
+        ServerSocket server = RuleListenSocketManager.removeRuleListenSocket(ruleId);
         if (server == null) {
             if (completionHandler != null) {
                 completionHandler.run();
             }
             return;
         }
-        server.close(res -> {
-            if (res.succeeded()) {
-                log.info("Stopped server for rule {}", ruleId);
-            } else {
-                log.error("Failed to stop server for rule {}", ruleId, res.cause());
-            }
-            if (completionHandler != null) {
-                completionHandler.run();
-            }
-        });
-
-
+        try {
+            server.close();
+            log.info("Stopped server for rule {}", ruleId);
+        } catch (IOException e) {
+            log.error("Failed to stop server for rule {}", ruleId, e);
+        }
+        if (completionHandler != null) {
+            completionHandler.run();
+        }
     }
 
     private void updateRuleServer(Integer ruleId) {
@@ -196,23 +238,29 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(rule.getServerPort());
+            log.info("Listening for rule {} on port {}", rule.getName(), rule.getServerPort());
+            RuleListenSocketManager.addRuleListenSocket(rule.getId(), serverSocket);
+            // Update bandwidth limit
+            TrafficStatisticManager.initRateLimit(client.getId(), rule.getId(), rule.getLimitRate());
 
-        vertx.createNetServer()
-                .connectHandler(new UserProxySocketHandler(client, rule, vertx))
-                .exceptionHandler(e -> {
-                    log.error("Failed listening for rule {} on port {}", rule.getName(), rule.getServerPort(), e);
-                }).listen(rule.getServerPort(), res -> {
-                    NetServer serverSocket = res.result();
-                    if (res.succeeded()) {
-                        log.info("Listening for rule {} on port {}", rule.getName(), rule.getServerPort());
-                        RuleListenSocketManager.addRuleListenSocket(rule.getId(), serverSocket);
-                        // Update bandwidth limit
-                        TrafficStatisticManager.initRateLimit(vertx, client.getId(), rule.getId(), rule.getLimitRate());
-                    } else {
-                        log.error("Failed listening for rule {}", rule.getName(), res.cause());
+            Thread.ofVirtual().start(() -> {
+                while (!serverSocket.isClosed()) {
+                    try {
+                        Socket userSocket = serverSocket.accept();
+                        Thread.ofVirtual().start(new UserProxySocketHandler(client, rule, userSocket));
+                    } catch (IOException e) {
+                        if (!serverSocket.isClosed()) {
+                            log.error("Failed listening for rule {} on port {}", rule.getName(), rule.getServerPort(), e);
+                        }
                     }
-                });
-        log.debug("EP>> Init rule {} {} -> {}", rule.getName(), rule.getServerPort(), rule.getClientAddress());
+                }
+            });
+            log.debug("EP>> Init rule {} {} -> {}", rule.getName(), rule.getServerPort(), rule.getClientAddress());
+        } catch (IOException e) {
+            log.error("Failed listening for rule {}", rule.getName(), e);
+        }
     }
 
     private void updateClientServers(Integer clientId) {

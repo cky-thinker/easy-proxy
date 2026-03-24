@@ -113,12 +113,12 @@ public class TrafficStatisticManager {
     /**
      * 初始化流控信息
      */
-    public static void initRateLimit(Vertx vertx, Integer clientId, Integer ruleId, Integer limitRate) {
+    public static void initRateLimit(Integer clientId, Integer ruleId, Integer limitRate) {
         TrafficStats stats = getStats(clientId, ruleId);
         if (limitRate != null && limitRate > 0) {
             // 设置令牌桶
-            stats.upBucket = new TokenBucket(vertx, limitRate * 1024);
-            stats.downBucket = new TokenBucket(vertx, limitRate * 1024);
+            stats.upBucket = new TokenBucket(limitRate * 1024);
+            stats.downBucket = new TokenBucket(limitRate * 1024);
         }
     }
 

@@ -14,7 +14,7 @@
     <name>easy-proxy-server</name>
     <description>easy-proxy-server</description>
     <properties>
-        <java.version>17</java.version>
+        <java.version>25</java.version>
         <main.verticle>com.cky.proxy.server.verticle.ProxyServerVerticle</main.verticle>
         <launcher.class>com.cky.proxy.server.ProxyServer</launcher.class>
     </properties>
