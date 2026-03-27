@@ -22,7 +22,6 @@
             <groupId>com.cky</groupId>
             <artifactId>easy-proxy-common</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

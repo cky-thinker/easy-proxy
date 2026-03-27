@@ -1,12 +1,13 @@
 package com.cky.proxy.server.util;
 
-import io.reactivex.rxjava3.annotations.Nullable;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 /**
- * 对Vertx事件总线的封装，管理事件类型与业务事件的分发订阅
+ * 自定义事件总线，管理事件类型与业务事件的分发订阅
  */
 public class EventBusUtil {
     // 数据库 相关事件
@@ -37,17 +38,24 @@ public class EventBusUtil {
     // 客户端在线
     public static final String SOCKET_CLIENT_ONLINE = "socket.client.online";
 
-    private static Vertx vertx;
+    private static final Map<String, List<Consumer<Object>>> subscribers = new ConcurrentHashMap<>();
 
-    public static void init(Vertx vertx) {
-        EventBusUtil.vertx = vertx;
+    public static void init() {
+        // initialization logic if any
     }
 
-    public static void publish(String var1, @Nullable Object var2) {
-        vertx.eventBus().publish(var1, var2);
+    public static void publish(String topic, Object message) {
+        List<Consumer<Object>> list = subscribers.get(topic);
+        if (list != null) {
+            for (Consumer<Object> consumer : list) {
+                Thread.ofVirtual().start(() -> consumer.accept(message));
+            }
+        }
     }
 
-    public static <T> void subscribe(String var1, Handler<Message<T>> var2) {
-        vertx.eventBus().consumer(var1, var2);
+    @SuppressWarnings("unchecked")
+    public static <T> void subscribe(String topic, Consumer<T> handler) {
+        subscribers.computeIfAbsent(topic, k -> new CopyOnWriteArrayList<>())
+                .add(obj -> handler.accept((T) obj));
     }
 }

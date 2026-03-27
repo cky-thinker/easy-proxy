@@ -9,8 +9,8 @@ import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.ResponseUtil;
 
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
+import com.cky.proxy.server.http.HttpContext;
+import com.cky.proxy.server.http.HttpRouter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,11 +23,11 @@ import com.cky.proxy.server.domain.entity.ProxyClientRule;
 
 @Slf4j
 public class DashboardController {
-    private final Router router;
+    private final HttpRouter router;
     private final ProxyClientService proxyClientService;
     private final ProxyClientRuleService proxyClientRuleService;
 
-    public DashboardController(Router router) {
+    public DashboardController(HttpRouter router) {
         this.router = router;
         this.proxyClientService = BeanContext.getProxyClientService();
         this.proxyClientRuleService = BeanContext.getProxyClientRuleService();
@@ -35,14 +35,14 @@ public class DashboardController {
     }
 
     private void initRoutes() {
-        router.get("/api/dashboard/stats").handler(this::getDashboardStats);
-        router.get("/api/dashboard/trafficRanking").handler(this::getTrafficRanking);
-        router.get("/api/dashboard/trafficTrend").handler(this::getTrafficTrend);
-        router.get("/api/dashboard/recentActivities").handler(this::getRecentActivities);
+        router.get("/api/dashboard/stats", this::getDashboardStats);
+        router.get("/api/dashboard/trafficRanking", this::getTrafficRanking);
+        router.get("/api/dashboard/trafficTrend", this::getTrafficTrend);
+        router.get("/api/dashboard/recentActivities", this::getRecentActivities);
     }
 
     @SneakyThrows
-    private void getDashboardStats(RoutingContext ctx) {
+    private void getDashboardStats(HttpContext ctx) {
             List<ProxyClient> clients = proxyClientService.getProxyClients();
             int online = 0, offline = 0;
             for (ProxyClient c : clients) {
@@ -63,8 +63,8 @@ public class DashboardController {
     }
 
     @SneakyThrows
-    private void getTrafficRanking(RoutingContext ctx) {
-        String period = ctx.request().getParam("period");
+    private void getTrafficRanking(HttpContext ctx) {
+        String period = ctx.getParam("period");
         if (period == null || period.isEmpty())
             period = "day";
         java.util.Calendar cal = java.util.Calendar.getInstance();
@@ -111,8 +111,8 @@ public class DashboardController {
     }
 
     @SneakyThrows
-    private void getTrafficTrend(RoutingContext ctx) {
-        String period = ctx.request().getParam("period");
+    private void getTrafficTrend(HttpContext ctx) {
+        String period = ctx.getParam("period");
         if (period == null || period.isEmpty())
             period = "day";
         java.util.Calendar cal = java.util.Calendar.getInstance();
@@ -154,7 +154,7 @@ public class DashboardController {
     }
 
     @SneakyThrows
-    private void getRecentActivities(RoutingContext ctx) {
+    private void getRecentActivities(HttpContext ctx) {
             // 取最近10条系统日志
             var page = new cn.hutool.db.Page(0, 5);
             var service = BeanContext.getSysLogService();

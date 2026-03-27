@@ -1,51 +1,45 @@
 package com.cky.proxy.server.util;
 
 import com.cky.proxy.server.domain.dto.Result;
+import com.cky.proxy.server.http.HttpContext;
 
-import io.vertx.ext.web.RoutingContext;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class ResponseUtil {
 
-    /**
-     * 响应成功结果
-     */
-    public static <T> void response(RoutingContext ctx, Result<T> result) {
-        ctx.response()
-                .setStatusCode(200)
-                .putHeader("content-type", "application/json")
-                .end(JsonUtil.toJson(result));
+    public static <T> void response(HttpContext ctx, Result<T> result) {
+        sendResponse(ctx, 200, JsonUtil.toJson(result));
     }
 
-    /**
-     * 响应成功结果（带数据）
-     */
-    public static <T> void success(RoutingContext ctx, T data) {
+    public static <T> void success(HttpContext ctx, T data) {
         response(ctx, Result.success(data));
     }
 
-    /**
-     * 响应成功结果（带数据和消息）
-     */
-    public static <T> void success(RoutingContext ctx, T data, String message) {
+    public static <T> void success(HttpContext ctx, T data, String message) {
         response(ctx, Result.success(data, message));
     }
 
-    /**
-     * 响应错误结果
-     */
-    public static void error(RoutingContext ctx, String message) {
+    public static void error(HttpContext ctx, String message) {
         response(ctx, Result.error(message));
     }
 
-    /**
-     * 响应错误结果（带状态码）
-     */
-    public static void error(RoutingContext ctx, int statusCode, String message) {
+    public static void error(HttpContext ctx, int statusCode, String message) {
         Result<Object> result = Result.error(message);
         result.code = statusCode;
-        ctx.response()
-                .setStatusCode(statusCode)
-                .putHeader("content-type", "application/json")
-                .end(JsonUtil.toJson(result));
+        sendResponse(ctx, statusCode, JsonUtil.toJson(result));
+    }
+
+    private static void sendResponse(HttpContext ctx, int statusCode, String json) {
+        try {
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            ctx.getExchange().getResponseHeaders().add("Content-Type", "application/json;charset=UTF-8");
+            ctx.getExchange().sendResponseHeaders(statusCode, bytes.length);
+            try (OutputStream os = ctx.getExchange().getResponseBody()) {
+                os.write(bytes);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to write response", e);
+        }
     }
 }

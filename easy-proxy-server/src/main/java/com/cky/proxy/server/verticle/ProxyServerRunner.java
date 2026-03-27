@@ -8,10 +8,12 @@ import java.security.KeyStore;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
 import com.cky.proxy.server.config.ConfigProperty;
@@ -29,21 +31,17 @@ import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.CertGenerator;
 import com.cky.proxy.server.util.EventBusUtil;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
-import io.vertx.core.net.NetServer;
-import io.vertx.core.net.NetSocket;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ProxyServerVerticle extends AbstractVerticle {
+public class ProxyServerRunner {
     private ProxyClientService proxyClientService = BeanContext.getProxyClientService();
     private ProxyClientRuleService proxyClientRuleService = BeanContext.getProxyClientRuleService();
 
     private ServerSocket mainServerSocket;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    @Override
-    public void start(Promise<Void> startPromise) {
+    public void start() {
         // 注册事件订阅
         eventBusSubscribe();
 
@@ -79,11 +77,9 @@ public class ProxyServerVerticle extends AbstractVerticle {
                     }
                 }
             });
-            startPromise.complete();
         } catch (Exception e) {
             log.error("Server start failed", e);
-            startPromise.fail(e);
-            return;
+            throw new RuntimeException(e);
         }
 
         initRuleServers();
@@ -92,7 +88,6 @@ public class ProxyServerVerticle extends AbstractVerticle {
         startTrafficStatisticsTask();
     }
 
-    @Override
     public void stop() {
         log.info("Server stopping, flush traffic stats...");
         TrafficStatisticManager.flush();
@@ -103,6 +98,7 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 // ignore
             }
         }
+        scheduler.shutdown();
     }
 
     private void startTrafficStatisticsTask() {
@@ -120,13 +116,13 @@ public class ProxyServerVerticle extends AbstractVerticle {
         long delay = nextTime - now;
 
         log.info("Traffic statistics task will start in {} ms", delay);
-        vertx.setTimer(delay, id -> {
+        scheduler.schedule(() -> {
             TrafficStatisticManager.flush();
             // 之后每小时执行一次
-            vertx.setPeriodic(3600000L, timerId -> {
+            scheduler.scheduleAtFixedRate(() -> {
                 TrafficStatisticManager.flush();
-            });
-        });
+            }, 3600000L, 3600000L, TimeUnit.MILLISECONDS);
+        }, delay, TimeUnit.MILLISECONDS);
     }
 
     private void initRuleServers() {
@@ -146,37 +142,29 @@ public class ProxyServerVerticle extends AbstractVerticle {
     }
 
     private void eventBusSubscribe() {
-        EventBusUtil.subscribe(EventBusUtil.DB_RULE_UPDATE, msg -> {
-            Integer ruleId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_RULE_UPDATE, ruleId -> {
             updateRuleServer(ruleId);
         });
 
-        EventBusUtil.subscribe(EventBusUtil.DB_RULE_ADD, msg -> {
-            Integer ruleId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_RULE_ADD, ruleId -> {
             updateRuleServer(ruleId);
         });
-        EventBusUtil.subscribe(EventBusUtil.DB_RULE_DISABLE, msg -> {
-            Integer ruleId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_RULE_DISABLE, ruleId -> {
             stopRuleServer(ruleId, null);
         });
-        EventBusUtil.subscribe(EventBusUtil.DB_RULE_DELETE, msg -> {
-            Integer ruleId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_RULE_DELETE, ruleId -> {
             stopRuleServer(ruleId, null);
         });
-        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_UPDATE, msg -> {
-            Integer clientId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_CLIENT_UPDATE, clientId -> {
             updateClientServers(clientId);
         });
-        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_ADD, msg -> {
-            Integer clientId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_CLIENT_ADD, clientId -> {
             updateClientServers(clientId);
         });
-        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_DISABLE, msg -> {
-            Integer clientId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_CLIENT_DISABLE, clientId -> {
             stopClientServers(clientId);
         });
-        EventBusUtil.subscribe(EventBusUtil.DB_CLIENT_DELETE, msg -> {
-            Integer clientId = (Integer) msg.body();
+        EventBusUtil.<Integer>subscribe(EventBusUtil.DB_CLIENT_DELETE, clientId -> {
             stopClientServers(clientId);
         });
     }
@@ -192,14 +180,16 @@ public class ProxyServerVerticle extends AbstractVerticle {
                 if (dataSocket != null) {
                     try {
                         dataSocket.close();
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                    }
                 }
                 ClientDataSocketManager.closeDataSocket(userId);
                 Socket proxySocket = RuleListenSocketManager.getProxySocket(userId);
                 if (proxySocket != null) {
                     try {
                         proxySocket.close();
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                    }
                 }
                 RuleListenSocketManager.userConnectionClose(userId);
             }
@@ -252,7 +242,8 @@ public class ProxyServerVerticle extends AbstractVerticle {
                         Thread.ofVirtual().start(new UserProxySocketHandler(client, rule, userSocket));
                     } catch (IOException e) {
                         if (!serverSocket.isClosed()) {
-                            log.error("Failed listening for rule {} on port {}", rule.getName(), rule.getServerPort(), e);
+                            log.error("Failed listening for rule {} on port {}", rule.getName(), rule.getServerPort(),
+                                    e);
                         }
                     }
                 }

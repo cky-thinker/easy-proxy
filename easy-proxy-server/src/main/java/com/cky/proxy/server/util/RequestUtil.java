@@ -3,7 +3,7 @@ package com.cky.proxy.server.util;
 import cn.hutool.db.Page;
 import cn.hutool.db.sql.Direction;
 import cn.hutool.db.sql.Order;
-import io.vertx.ext.web.RoutingContext;
+import com.cky.proxy.server.http.HttpContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.ParseException;
@@ -13,23 +13,14 @@ import java.util.Date;
 @Slf4j
 public class RequestUtil {
 
-    /**
-     * 从请求上下文中创建分页对象
-     *
-     * @param ctx 路由上下文
-     * @return 分页对象
-     */
-    public static Page getPage(RoutingContext ctx) {
-        // 获取分页参数
-        int page = Integer.parseInt(ctx.request().getParam("page", "1"));
-        int pageSize = Integer.parseInt(ctx.request().getParam("pageSize", "10"));
+    public static Page getPage(HttpContext ctx) {
+        int page = Integer.parseInt(ctx.getParam("page", "1"));
+        int pageSize = Integer.parseInt(ctx.getParam("pageSize", "10"));
 
-        // 创建分页对象
         Page hutoolPage = new Page(page, pageSize);
 
-        // 获取排序参数
-        String sortField = ctx.request().getParam("sortField");
-        String sortOrder = ctx.request().getParam("sortOrder");
+        String sortField = ctx.getParam("sortField");
+        String sortOrder = ctx.getParam("sortOrder");
         if (sortField != null && !sortField.isEmpty()) {
             Direction direction = "desc".equalsIgnoreCase(sortOrder) ? Direction.DESC : Direction.ASC;
             hutoolPage.addOrder(new Order(sortField, direction));
@@ -38,16 +29,16 @@ public class RequestUtil {
         return hutoolPage;
     }
 
-    public static <T> T getBodyObj(RoutingContext ctx, Class<T> clazz) {
-        String bodyStr = ctx.body().asString();
+    public static <T> T getBodyObj(HttpContext ctx, Class<T> clazz) {
+        String bodyStr = ctx.getBodyAsString();
         if (bodyStr == null || bodyStr.isEmpty()) {
             return null;
         }
         return JsonUtil.parseJson(bodyStr, clazz);
     }
 
-    public static Integer getParamInt(RoutingContext ctx, String paramName) {
-        String paramStr = ctx.request().getParam(paramName);
+    public static Integer getParamInt(HttpContext ctx, String paramName) {
+        String paramStr = ctx.getParam(paramName);
         if (paramStr == null || paramStr.isEmpty()) {
             return null;
         }
@@ -59,12 +50,11 @@ public class RequestUtil {
         }
     }
 
-    public static Date getParamDate(RoutingContext ctx, String name) {
-        String val = ctx.request().getParam(name);
+    public static Date getParamDate(HttpContext ctx, String name) {
+        String val = ctx.getParam(name);
         if (val == null || val.isEmpty())
             return null;
         try {
-            // 支持 yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss
             SimpleDateFormat sdf = val.length() > 10 ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
                     : new SimpleDateFormat("yyyy-MM-dd");
             return sdf.parse(val);
@@ -73,12 +63,12 @@ public class RequestUtil {
         }
     }
 
-    public static String getParam(RoutingContext ctx, String paramName) {
-        return ctx.request().getParam(paramName);
+    public static String getParam(HttpContext ctx, String paramName) {
+        return ctx.getParam(paramName);
     }
 
-    public static Boolean getParamBool(RoutingContext ctx, String paramName) {
-        String paramStr = ctx.request().getParam(paramName);
+    public static Boolean getParamBool(HttpContext ctx, String paramName) {
+        String paramStr = ctx.getParam(paramName);
         if (paramStr == null || paramStr.isEmpty()) {
             return null;
         }

@@ -20,8 +20,6 @@ import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.TokenBucket;
 
 import cn.hutool.core.date.DateUtil;
-import io.vertx.core.Vertx;
-import io.vertx.core.net.NetSocket;
 
 /**
  * 流量统计管理器

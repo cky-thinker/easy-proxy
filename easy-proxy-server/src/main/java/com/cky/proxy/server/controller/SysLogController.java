@@ -7,27 +7,27 @@ import com.cky.proxy.server.service.SysLogService;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
+import com.cky.proxy.server.http.HttpContext;
+import com.cky.proxy.server.http.HttpRouter;
 
 import static com.cky.proxy.server.util.RequestUtil.getParam;
 
 public class SysLogController {
-    private final Router router;
+    private final HttpRouter router;
     private final SysLogService sysLogService;
 
-    public SysLogController(Router router) {
+    public SysLogController(HttpRouter router) {
         this.router = router;
         this.sysLogService = BeanContext.getSysLogService();
         initRoutes();
     }
 
     private void initRoutes() {
-        // 分页查询系统日志
-        router.get("/api/sysLog").handler(this::getSysLogsPageable);
+        // 分页查询日志
+        router.get("/api/sysLog", this::getSysLogsPageable);
     }
 
-    private void getSysLogsPageable(RoutingContext ctx) {
+    private void getSysLogsPageable(HttpContext ctx) {
         Page page = RequestUtil.getPage(ctx);
         PageResult<SysLog> result = sysLogService.getSysLogsPageable(page, getParam(ctx, "logType"), getParam(ctx, "keyword"));
         ResponseUtil.success(ctx, result);

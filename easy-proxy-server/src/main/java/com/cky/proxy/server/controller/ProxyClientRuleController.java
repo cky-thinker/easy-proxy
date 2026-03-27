@@ -12,9 +12,8 @@ import com.cky.proxy.server.util.RequestUtil;
 import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
 import com.cky.proxy.server.util.EventBusUtil;
-import io.vertx.core.Vertx;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
+import com.cky.proxy.server.http.HttpContext;
+import com.cky.proxy.server.http.HttpRouter;
 
 import java.util.List;
 
@@ -23,40 +22,38 @@ import static com.cky.proxy.server.util.RequestUtil.getParamInt;
 import static com.cky.proxy.server.util.RequestUtil.getParamBool;
 
 public class ProxyClientRuleController {
-    private final Router router;
-    private final Vertx vertx;
+    private final HttpRouter router;
     private final ProxyClientRuleService proxyClientRuleService;
 
-    public ProxyClientRuleController(Router router, Vertx vertx) {
+    public ProxyClientRuleController(HttpRouter router) {
         this.router = router;
-        this.vertx = vertx;
         this.proxyClientRuleService = BeanContext.getProxyClientRuleService();
         initRoutes();
     }
 
     private void initRoutes() {
         // 查询转发规则
-        router.get("/api/proxyClientRule/all").handler(this::getAllProxyClientRules);
+        router.get("/api/proxyClientRule/all", this::getAllProxyClientRules);
         // 分页查询转发规则
-        router.get("/api/proxyClientRule").handler(this::getProxyClientRulesPageable);
+        router.get("/api/proxyClientRule", this::getProxyClientRulesPageable);
         // 查询转发规则详情
-        router.get("/api/proxyClientRule/detail").handler(this::getProxyClientRuleDetail);
+        router.get("/api/proxyClientRule/detail", this::getProxyClientRuleDetail);
         // 新增转发规则
-        router.post("/api/proxyClientRule").handler(this::addProxyClientRule);
+        router.post("/api/proxyClientRule", this::addProxyClientRule);
         // 修改转发规则（使用请求参数 id）
-        router.put("/api/proxyClientRule").handler(this::updateProxyClientRule);
+        router.put("/api/proxyClientRule", this::updateProxyClientRule);
         // 删除转发规则（使用请求参数 id）
-        router.delete("/api/proxyClientRule").handler(this::deleteProxyClientRule);
+        router.delete("/api/proxyClientRule", this::deleteProxyClientRule);
     }
 
-    private void getAllProxyClientRules(RoutingContext ctx) {
+    private void getAllProxyClientRules(HttpContext ctx) {
         // 执行查询
         List<ProxyClientRule> rules = proxyClientRuleService.getAllProxyClientRules(getParam(ctx, "name"), getParamInt(ctx, "serverPort"), getParamInt(ctx, "proxyClientId"), getParamBool(ctx, "enableFlag"));
         // 返回结果
         ResponseUtil.success(ctx, rules);
     }
 
-    private void getProxyClientRulesPageable(RoutingContext ctx) {
+    private void getProxyClientRulesPageable(HttpContext ctx) {
         // 创建分页对象
         Page page = RequestUtil.getPage(ctx);
         // 执行分页查询
@@ -69,7 +66,7 @@ public class ProxyClientRuleController {
         ResponseUtil.success(ctx, result);
     }
 
-    private void getProxyClientRuleDetail(RoutingContext ctx) {
+    private void getProxyClientRuleDetail(HttpContext ctx) {
         // 获取ID参数
         Integer id = getParamInt(ctx, "id");
         if (id == null) {
@@ -88,7 +85,7 @@ public class ProxyClientRuleController {
         ResponseUtil.success(ctx, rule);
     }
 
-    private void addProxyClientRule(RoutingContext ctx) {
+    private void addProxyClientRule(HttpContext ctx) {
         ProxyClientRule rule = RequestUtil.getBodyObj(ctx, ProxyClientRule.class);
         if (rule == null) {
             ResponseUtil.error(ctx, 400, "Request body is required");
@@ -102,7 +99,7 @@ public class ProxyClientRuleController {
         ResponseUtil.success(ctx, newRule);
     }
 
-    private void updateProxyClientRule(RoutingContext ctx) {
+    private void updateProxyClientRule(HttpContext ctx) {
         ProxyClientRule rule = RequestUtil.getBodyObj(ctx, ProxyClientRule.class);
         if (rule == null) {
             ResponseUtil.error(ctx, 400, "Request body is required");
@@ -115,7 +112,7 @@ public class ProxyClientRuleController {
         ResponseUtil.success(ctx, existingRule);
     }
 
-    private void deleteProxyClientRule(RoutingContext ctx) {
+    private void deleteProxyClientRule(HttpContext ctx) {
         // 获取ID参数
         Integer id = getParamInt(ctx, "id");
         if (id == null) {

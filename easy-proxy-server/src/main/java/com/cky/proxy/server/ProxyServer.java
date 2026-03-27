@@ -6,10 +6,9 @@ import com.cky.proxy.common.util.ConfigBootstrap;
 import com.cky.proxy.server.util.EventBusUtil;
 import com.cky.proxy.server.util.H2ConsoleBootstrap;
 import com.cky.proxy.server.util.CertGenerator;
-import com.cky.proxy.server.verticle.ProxyServerVerticle;
-import com.cky.proxy.server.verticle.WebManageVerticle;
+import com.cky.proxy.server.verticle.ProxyServerRunner;
+import com.cky.proxy.server.verticle.WebManageServer;
 
-import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,32 +27,28 @@ public class ProxyServer {
             log.error("generate cert fail!", e);
         }
 
-        Vertx vertx = Vertx.vertx();
-        EventBusUtil.init(vertx);
-        BeanContext.getInstance().initUserService(vertx);
-        vertx.exceptionHandler(t -> {
-            log.error(t.getMessage(), t);
+        EventBusUtil.init();
+        BeanContext.getInstance().initUserService();
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            log.error(e.getMessage(), e);
         });
+
         log.info("ProxyServer start...");
-        vertx.deployVerticle(ProxyServerVerticle.class.getCanonicalName(), res -> {
-            if (res.succeeded()) {
-                log.info("ProxyServer start success!");
-            } else {
-                log.error("ProxyServer start fail!", res.cause());
-            }
-        });
+        Thread.ofVirtual().start(() -> new ProxyServerRunner().start());
+        
         log.info("WebManage start...");
-        vertx.deployVerticle(WebManageVerticle.class.getCanonicalName(), res -> {
-            if (res.succeeded()) {
-                log.info("WebManage start success!");
-            } else {
-                log.error("WebManage start fail!", res.cause());
-            }
-        });
+        Thread.ofVirtual().start(() -> new WebManageServer().start());
 
         // 启动H2 Console
         if (ConfigProperty.getInstance().getDb().isH2ConsoleEnable()) {
             H2ConsoleBootstrap.startup();
+        }
+        
+        // Block main thread
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }

@@ -19,8 +19,6 @@ import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.service.SysLogService;
 import com.cky.proxy.server.service.TrafficStatisticService;
 import com.cky.proxy.server.service.UserService;
-
-import io.vertx.core.Vertx;
 import lombok.Data;
 
 import org.apache.ibatis.jdbc.ScriptRunner;
@@ -143,9 +141,9 @@ public class BeanContext {
         trafficStatisticService = new TrafficStatisticService();
     }
 
-    public void initUserService(Vertx vertx) {
+    public void initUserService() {
         if (userService == null) {
-            userService = new UserService(vertx);
+            userService = new UserService();
         }
     }
 
@@ -169,7 +167,8 @@ public class BeanContext {
             runner.setAutoCommit(true);
             runner.setStopOnError(true);
             runner.setLogWriter(null); // 禁止输出详细日志，避免刷屏
-            runner.runScript(new InputStreamReader(BeanContext.class.getClassLoader().getResourceAsStream("schema.sql")));
+            runner.runScript(
+                    new InputStreamReader(BeanContext.class.getClassLoader().getResourceAsStream("schema.sql")));
             log.info("Schema initialized.");
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize database tables", e);

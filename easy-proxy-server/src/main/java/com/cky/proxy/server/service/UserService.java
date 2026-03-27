@@ -23,30 +23,22 @@ import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.Page;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.JWTOptions;
-import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import cn.hutool.cache.CacheUtil;
+import cn.hutool.cache.impl.TimedCache;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.signers.JWTSignerUtil;
 
 public class UserService {
     private final SysUserMapper userMapper;
-    private final JWTAuth jwtAuth;
-    private final Vertx vertx;
-    // 验证码缓存，key为验证码ID，value为验证码文本
-    private final Map<String, String> captchaCache = new ConcurrentHashMap<>();
-    // 验证码有效期（毫秒）
+    
+    // 验证码缓存，有效期5分钟
     private static final long CAPTCHA_EXPIRE_TIME = 5 * 60 * 1000;
+    private final TimedCache<String, String> captchaCache = CacheUtil.newTimedCache(CAPTCHA_EXPIRE_TIME);
 
-    public UserService(Vertx vertx) {
+    public UserService() {
         this.userMapper = BeanContext.getUserMapper();
-        this.vertx = vertx;
-        // 配置JWT
-        JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()
-                .addPubSecKey(new io.vertx.ext.auth.PubSecKeyOptions()
-                        .setAlgorithm("HS256")
-                        .setBuffer("easy-proxy-secret-key-for-jwt-authentication"));
-        this.jwtAuth = JWTAuth.create(vertx, jwtAuthOptions);
+        // 启动定时清理任务
+        this.captchaCache.schedulePrune(CAPTCHA_EXPIRE_TIME);
     }
 
     // ===== 私有校验方法 =====
@@ -145,13 +137,13 @@ public class UserService {
             }
 
             // 生成JWT令牌
-            JWTOptions options = new JWTOptions()
-                    .setExpiresInMinutes(60) // 令牌有效期60分钟
-                    .setIssuer("easy-proxy");
-
-            String token = jwtAuth.generateToken(
-                    new JsonObject().put("userId", sysUser.getId()).put("username", sysUser.getUsername()),
-                    options);
+            String token = JWT.create()
+                    .setIssuer("easy-proxy")
+                    .setExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000)) // 令牌有效期60分钟
+                    .setPayload("userId", sysUser.getId())
+                    .setPayload("username", sysUser.getUsername())
+                    .setKey("easy-proxy-secret-key-for-jwt-authentication".getBytes())
+                    .sign();
 
             // 检查用户是否启用
             if (!sysUser.getEnableFlag()) {
@@ -190,11 +182,8 @@ public class UserService {
         captcha.createCode();
         String code = captcha.getCode();
 
-        // 将验证码存入缓存
+        // 将验证码存入缓存，TimedCache 自动处理过期
         captchaCache.put(captchaId, code);
-
-        // 设置定时任务，在验证码过期后从缓存中移除
-        vertx.setTimer(CAPTCHA_EXPIRE_TIME, timerId -> captchaCache.remove(captchaId));
 
         // 构建响应数据
         CaptchaImage captchaImage = new CaptchaImage();

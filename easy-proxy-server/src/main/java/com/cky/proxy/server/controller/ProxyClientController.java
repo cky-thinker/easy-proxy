@@ -22,22 +22,17 @@ import com.cky.proxy.server.util.ResponseUtil;
 import com.cky.proxy.server.util.ValidateUtil;
 
 import cn.hutool.db.Page;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
+import com.cky.proxy.server.http.HttpContext;
+import com.cky.proxy.server.http.HttpRouter;
+import java.io.OutputStream;
 
 public class ProxyClientController {
-    private final Router router;
-    private final Vertx vertx;
+    private final HttpRouter router;
     private final ProxyClientService proxyClientService;
-    private final Set<HttpServerResponse> sseConnections = ConcurrentHashMap.newKeySet();
+    private final Set<OutputStream> sseConnections = ConcurrentHashMap.newKeySet();
 
-    public ProxyClientController(Router router, Vertx vertx) {
+    public ProxyClientController(HttpRouter router) {
         this.router = router;
-        this.vertx = vertx;
         this.proxyClientService = BeanContext.getProxyClientService();
         initRoutes();
         initEventBus();
@@ -45,33 +40,31 @@ public class ProxyClientController {
 
     private void initRoutes() {
         // 分页查询客户端
-        router.get("/api/proxyClient").handler(this::getProxyClientsPageable);
+        router.get("/api/proxyClient", this::getProxyClientsPageable);
         // 查询所有客户端
-        router.get("/api/proxyClient/all").handler(this::getAllProxyClients);
+        router.get("/api/proxyClient/all", this::getAllProxyClients);
         // 查询明细
-        router.get("/api/proxyClient/detail").handler(this::getProxyClientDetail);
+        router.get("/api/proxyClient/detail", this::getProxyClientDetail);
         // SSE 订阅
-        router.get("/api/proxyClient/subscribe").handler(this::subscribeStatus);
+        router.get("/api/proxyClient/subscribe", this::subscribeStatus);
         // 添加客户端
-        router.post("/api/proxyClient").handler(this::addProxyClient);
+        router.post("/api/proxyClient", this::addProxyClient);
         // 导入客户端
-        router.post("/api/proxyClient/import").handler(this::importProxyClients);
+        router.post("/api/proxyClient/import", this::importProxyClients);
         // 更新客户端
-        router.put("/api/proxyClient").handler(this::updateProxyClient);
+        router.put("/api/proxyClient", this::updateProxyClient);
         // 删除客户端
-        router.delete("/api/proxyClient").handler(this::deleteProxyClient);
+        router.delete("/api/proxyClient", this::deleteProxyClient);
     }
 
     private void initEventBus() {
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, (Message<String> msg) -> {
-            String token = msg.body();
+        EventBusUtil.<String>subscribe(EventBusUtil.SOCKET_CLIENT_ONLINE, token -> {
             ProxyClient proxyClient = proxyClientService.updateClientStatus(token, OnlineStatus.online.name());
             if (proxyClient != null) {
                 sendSseEvent(EventBusUtil.SOCKET_CLIENT_ONLINE, proxyClient.getId().toString());
             }
         });
-        EventBusUtil.subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, (Message<String> msg) -> {
-            String token = msg.body();
+        EventBusUtil.<String>subscribe(EventBusUtil.SOCKET_CLIENT_OFFLINE, token -> {
             ProxyClient proxyClient = proxyClientService.updateClientStatus(token, OnlineStatus.offline.name());
             if (proxyClient != null) {
                 sendSseEvent(EventBusUtil.SOCKET_CLIENT_OFFLINE, proxyClient.getId().toString());
@@ -85,9 +78,11 @@ public class ProxyClientController {
         eventBody.setData(data);
         String json = JsonUtil.toJson(eventBody);
         String event = "data: " + json + "\n\n";
-        for (HttpServerResponse resp : sseConnections) {
+        byte[] bytes = event.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        for (OutputStream resp : sseConnections) {
             try {
-                resp.write(event);
+                resp.write(bytes);
+                resp.flush();
             } catch (Exception e) {
                 // Ignore write errors, connection might be closed
                 sseConnections.remove(resp);
@@ -95,28 +90,36 @@ public class ProxyClientController {
         }
     }
 
-    private void subscribeStatus(RoutingContext ctx) {
-        HttpServerResponse response = ctx.response();
-        response.putHeader("Content-Type", "text/event-stream")
-                .putHeader("Cache-Control", "no-cache")
-                .putHeader("Connection", "keep-alive")
-                .setChunked(true);
-
-        sseConnections.add(response);
-
-        response.closeHandler(v -> sseConnections.remove(response));
+    private void subscribeStatus(HttpContext ctx) {
+        com.sun.net.httpserver.HttpExchange exchange = ctx.getExchange();
+        exchange.getResponseHeaders().add("Content-Type", "text/event-stream");
+        exchange.getResponseHeaders().add("Cache-Control", "no-cache");
+        exchange.getResponseHeaders().add("Connection", "keep-alive");
+        
+        try {
+            exchange.sendResponseHeaders(200, 0);
+            OutputStream response = exchange.getResponseBody();
+            sseConnections.add(response);
+            
+            while (!Thread.currentThread().isInterrupted()) {
+                Thread.sleep(10000);
+                response.write(":\n\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                response.flush();
+            }
+        } catch (Exception e) {
+            // disconnected
+        }
     }
 
-    private void getAllProxyClients(RoutingContext ctx) {
+    private void getAllProxyClients(HttpContext ctx) {
         List<ProxyClient> list = proxyClientService.getProxyClients();
         ResponseUtil.success(ctx, list);
     }
 
-    private void getProxyClientsPageable(RoutingContext ctx) {
+    private void getProxyClientsPageable(HttpContext ctx) {
         Page page = RequestUtil.getPage(ctx);
-        MultiMap params = ctx.request().params();
-        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, params.get("q"),
-                params.get("status"), getParamBool(ctx, "enableFlag"));
+        PageResult<ProxyClient> result = proxyClientService.getProxyClientsPageable(page, ctx.getParam("q"),
+                ctx.getParam("status"), getParamBool(ctx, "enableFlag"));
 
         PageResult<ProxyClient> extendedPage = new PageResult<>(
                 result.getPage(),
@@ -127,7 +130,7 @@ public class ProxyClientController {
         ResponseUtil.success(ctx, extendedPage);
     }
 
-    private void getProxyClientDetail(RoutingContext ctx) {
+    private void getProxyClientDetail(HttpContext ctx) {
         Integer id = RequestUtil.getParamInt(ctx, "id");
         if (id == null) {
             ResponseUtil.error(ctx, 400, "Missing required parameter: id");
@@ -141,7 +144,7 @@ public class ProxyClientController {
         ResponseUtil.success(ctx, proxyClient);
     }
 
-    private void addProxyClient(RoutingContext ctx) {
+    private void addProxyClient(HttpContext ctx) {
         ProxyClient proxyClient = RequestUtil.getBodyObj(ctx, ProxyClient.class);
         if (proxyClient == null) {
             ResponseUtil.error(ctx, 400, "Request body is required");
@@ -152,7 +155,7 @@ public class ProxyClientController {
         ResponseUtil.success(ctx, newClient);
     }
 
-    private void importProxyClients(RoutingContext ctx) {
+    private void importProxyClients(HttpContext ctx) {
         ProxyClientImportReq req = RequestUtil.getBodyObj(ctx, ProxyClientImportReq.class);
         if (req == null || req.getClients() == null) {
             ResponseUtil.error(ctx, 400, "Request body is required and must contain clients");
@@ -166,7 +169,7 @@ public class ProxyClientController {
         }
     }
 
-    private void updateProxyClient(RoutingContext ctx) {
+    private void updateProxyClient(HttpContext ctx) {
         ProxyClient proxyClient = RequestUtil.getBodyObj(ctx, ProxyClient.class);
         if (proxyClient == null) {
             ResponseUtil.error(ctx, 400, "Request body is required");
@@ -181,7 +184,7 @@ public class ProxyClientController {
         ResponseUtil.success(ctx, updated);
     }
 
-    private void deleteProxyClient(RoutingContext ctx) {
+    private void deleteProxyClient(HttpContext ctx) {
         Integer id = RequestUtil.getParamInt(ctx, "id");
         if (id == null) {
             ResponseUtil.error(ctx, 400, "Missing required parameter: id");
