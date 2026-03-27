@@ -1,4 +1,4 @@
-package com.cky.proxy.client.verticle;
+package com.cky.proxy.client;
 
 import java.net.Socket;
 
@@ -8,26 +8,22 @@ import com.cky.proxy.client.context.MngSocketContext;
 import com.cky.proxy.client.handler.ClientMngSocketManager;
 import com.cky.proxy.client.util.SslUtil;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class MainVerticle extends AbstractVerticle {
+public class ClientRunner {
     private String serverIp;
     private Integer serverPort;
     private String token;
     private int waitTime = 1000;
 
-    @Override
-    public void start(Promise<Void> startPromise) {
+    public void start() {
         ServerProperty server = ConfigProperty.getInstance().getServer();
         serverIp = server.getIp();
         serverPort = server.getPort();
         token = server.getToken();
         
         Thread.ofVirtual().start(this::connectMngServer);
-        startPromise.complete();
     }
 
     private void connectMngServer() {
@@ -56,9 +52,17 @@ public class MainVerticle extends AbstractVerticle {
         }
         waitTime = waitTime * 2;
         log.info("next connect wait time {}ms", waitTime);
-        vertx.setTimer(waitTime, (time) -> {
+        
+        Thread.ofVirtual().start(() -> {
+            try {
+                Thread.sleep(waitTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Retry interrupted", e);
+                return;
+            }
             log.info("try connect {}:{}...", serverIp, serverPort);
-            Thread.ofVirtual().start(this::connectMngServer);
+            connectMngServer();
         });
     }
 }

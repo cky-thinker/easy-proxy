@@ -14,7 +14,6 @@
     <description>easy-proxy-server</description>
     <properties>
         <java.version>25</java.version>
-        <main.verticle>com.cky.proxy.client.verticle.MainVerticle</main.verticle>
         <launcher.class>com.cky.proxy.client.ProxyClient</launcher.class>
     </properties>
     <dependencies>
@@ -33,12 +32,6 @@
             <artifactId>logback-classic</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-junit5</artifactId>
-            <version>${vertx.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -86,7 +79,6 @@
                                     implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
                                         <Main-Class>${launcher.class}</Main-Class>
-                                        <Main-Verticle>${main.verticle}</Main-Verticle>
                                     </manifestEntries>
                                 </transformer>
                                 <transformer
