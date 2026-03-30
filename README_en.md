@@ -2,7 +2,7 @@ English | [中文](./README.md)
 
 ## Easy Proxy
 
-Easy Proxy is a high-performance intranet penetration tool developed based on Vert.x, supporting TCP traffic forwarding. It includes a server, a client, and a Web management interface, aiming to provide easy-to-use intranet penetration services.
+Easy Proxy is a high-performance intranet penetration tool developed based on Java 25 native NIO and HttpServer, supporting TCP traffic forwarding. It includes a server, a client, and a Web management interface, aiming to provide easy-to-use intranet penetration services.
 
 <p align="center">
   <img src="wiki/asserts/images/architecture.png" alt="Architecture" width="48%">
@@ -19,7 +19,7 @@ Easy Proxy is a high-performance intranet penetration tool developed based on Ve
 
 | Feature | Description | Status |
 | :---------- | :------------------------------------------------ | :---- |
-| **TCP Intranet Penetration** | Based on Vert.x event-driven model, achieves high-performance TCP traffic forwarding, supports bidirectional data transparent transmission, suitable for various TCP application scenarios. | ✅ Supported |
+| **TCP Intranet Penetration** | Based on Java native NIO and virtual threads, achieves high-performance TCP traffic forwarding, supports bidirectional data transparent transmission, suitable for various TCP application scenarios. | ✅ Supported |
 | **TLS Encrypted Transmission** | Supports TLS encryption for server-client communication, automatically generates/downloads certificates to prevent data eavesdropping or tampering during transmission. | ✅ Supported |
 | **Flow Control Management** | Supports rule-based bandwidth limiting (KB/s) and connection count limiting, adopts token bucket algorithm to precisely control traffic rate and prevent abuse. | ✅ Supported |
 | **Traffic Analysis** | Provides multi-dimensional traffic statistics, supports connection monitoring and historical report queries, helping users understand traffic trends. | ✅ Supported |
@@ -104,6 +104,6 @@ docker restart easy-proxy-client
 
 ## Tech Stack
 
-- **Backend**: Java 17, Vert.x 4
+- **Backend**: Java 25
 - **Frontend**: Vue 3, TypeScript, Element Plus, Vite
 - **Build Tools**: Maven, npm

@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY target/*-fat.jar app.jar
 COPY deploy/start.sh /app/start.sh
