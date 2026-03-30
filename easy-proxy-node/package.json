@@ -1,0 +1,26 @@
+{
+  "name": "easy-proxy-node",
+  "version": "1.0.0",
+  "description": "Node.js SDK for Easy Proxy",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "easy-proxy",
+    "proxy",
+    "sdk"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
+  }
+}
