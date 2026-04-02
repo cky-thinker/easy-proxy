@@ -1,7 +1,6 @@
 package com.cky.proxy.client.handler;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -40,14 +39,14 @@ public class ClientMngSocketManager implements Runnable {
                 Message msg = Message.readMsg(in);
                 log.debug("EP>>ClientMng>> read {}", msg.getType());
                 switch (msg.getType()) {
-                    case Message.CONNECT:
-                        processConnect(msg);
-                        break;
-                    case Message.DISCONNECT:
-                        processDisconnect(msg);
-                        break;
-                    default:
-                        break;
+                case Message.CONNECT:
+                    processConnect(msg);
+                    break;
+                case Message.DISCONNECT:
+                    processDisconnect(msg);
+                    break;
+                default:
+                    break;
                 }
             }
         } catch (Exception e) {
@@ -103,7 +102,8 @@ public class ClientMngSocketManager implements Runnable {
         log.info("EP>>ClientMng>> Mng socket closed");
         try {
             mngSocket.close();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         try {
             MngSocketContext.offline();
             DataSocketContext.closeAll();
