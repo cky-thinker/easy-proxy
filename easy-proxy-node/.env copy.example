@@ -1,0 +1,16 @@
+# Easy Proxy Client Configuration
+
+# The IP address of the Easy Proxy Server
+EP_SERVER_IP=127.0.0.1
+
+# The TLS management port of the server (default: 21090)
+EP_SERVER_PORT=21090
+
+# The Web API port for certificate downloading (default: 21092)
+EP_WEB_PORT=21092
+
+# Your unique client token
+EP_TOKEN=f1eb71d42e061a1e26797dbb4564d6b8
+
+# Directory to store certificates and config (default: ./config)
+EP_CONFIG_DIR=./config

@@ -9,7 +9,10 @@
   ],
   "scripts": {
     "build": "rimraf dist && tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "jest",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts"
   },
   "keywords": [
     "easy-proxy",
@@ -19,8 +22,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
+    "dotenv": "^17.3.1",
+    "jest": "^30.3.0",
     "rimraf": "^5.0.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
   }
 }
