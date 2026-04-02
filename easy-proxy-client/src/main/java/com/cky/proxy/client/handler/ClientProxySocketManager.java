@@ -38,19 +38,18 @@ public class ClientProxySocketManager {
             DataSocketContext.online(userId, dataSocket);
 
             // Send CONNECT message
-            Message.createConnectMsg(userId).writeTo(new DataOutputStream(dataSocket.getOutputStream()));
+            Message.createConnectMsg(userId).writeTo(dataSocket);
 
             // Start proxy -> data
             Thread.ofVirtual().start(() -> {
                 try {
                     InputStream in = proxySocket.getInputStream();
-                    DataOutputStream out = new DataOutputStream(dataSocket.getOutputStream());
                     byte[] buffer = new byte[8192];
                     int bytesRead;
                     while ((bytesRead = in.read(buffer)) != -1) {
                         byte[] data = new byte[bytesRead];
                         System.arraycopy(buffer, 0, data, 0, bytesRead);
-                        Message.createDataMsg(userId, data).writeTo(out);
+                        Message.createDataMsg(userId, data).writeTo(dataSocket);
                     }
                 } catch (IOException e) {
                     log.debug("EP>>ClientProxy>> Proxy -> Data error: {}", e.getMessage());
@@ -90,7 +89,7 @@ public class ClientProxySocketManager {
         Socket mngSocket = MngSocketContext.getMngSocket();
         if (mngSocket != null) {
             try {
-                Message.createDisConnectMsg(userId).writeTo(new DataOutputStream(mngSocket.getOutputStream()));
+                Message.createDisConnectMsg(userId).writeTo(mngSocket);
             } catch (IOException e) {
                 // ignore
             }

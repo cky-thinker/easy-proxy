@@ -8,7 +8,7 @@ import java.io.IOException;
 public class TokenBucket {
     public static final int CHUNK_SIZE = 8 * 1024; // 分片长度
     private final double refillRatePerSec; // 补充速度 字节/秒
-    
+
     private double storedPermits;
     private final double maxPermits;
     private long nextFreeTicketMicros;
@@ -28,7 +28,18 @@ public class TokenBucket {
         }
     }
 
-    public synchronized void acquire(int permits) {
+    public void acquire(int permits) {
+        long sleepMicros = reserveAndGetWaitLength(permits);
+        if (sleepMicros > 0) {
+            try {
+                Thread.sleep(sleepMicros / 1000, (int) ((sleepMicros % 1000) * 1000));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    private synchronized long reserveAndGetWaitLength(int permits) {
         long nowMicros = System.nanoTime() / 1000;
         resync(nowMicros);
 
@@ -40,14 +51,7 @@ public class TokenBucket {
         this.nextFreeTicketMicros += waitMicros;
         this.storedPermits -= storedPermitsToSpend;
 
-        long sleepMicros = momentAvailable - nowMicros;
-        if (sleepMicros > 0) {
-            try {
-                Thread.sleep(sleepMicros / 1000, (int) ((sleepMicros % 1000) * 1000));
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
+        return momentAvailable - nowMicros;
     }
 
     public void writeWithLimit(OutputStream out, byte[] data) throws IOException {

@@ -58,7 +58,7 @@ public class ClientMngSocketManager implements Runnable {
     }
 
     private void sendAuth() throws IOException {
-        Message.createAuthMsg(token).writeTo(new DataOutputStream(mngSocket.getOutputStream()));
+        Message.createAuthMsg(token).writeTo(mngSocket);
     }
 
     private void processConnect(Message msg) {
@@ -86,7 +86,7 @@ public class ClientMngSocketManager implements Runnable {
 
     private void sendDisconnect(String userId) {
         try {
-            Message.createDisConnectMsg(userId).writeTo(new DataOutputStream(mngSocket.getOutputStream()));
+            Message.createDisConnectMsg(userId).writeTo(mngSocket);
         } catch (IOException e) {
             // ignore
         }

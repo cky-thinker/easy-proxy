@@ -29,7 +29,7 @@ public class ClientSocketHandler implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(ClientSocketHandler.class);
     private final ProxyClientService proxyClientService = BeanContext.getProxyClientService();
     private final ProxyClientRuleService proxyRuleService = BeanContext.getProxyClientRuleService();
-    
+
     private final Socket clientSocket;
 
     public ClientSocketHandler(Socket clientSocket) {
@@ -44,20 +44,20 @@ public class ClientSocketHandler implements Runnable {
                 Message msg = Message.readMsg(in);
                 log.debug("EP>>ServerMng>> Read msg {}", msg.getType());
                 switch (msg.getType()) {
-                    case Message.AUTH:
-                        processAuth(msg, clientSocket);
-                        break;
-                    case Message.CONNECT:
-                        processConnect(msg, clientSocket);
-                        break;
-                    case Message.DATA:
-                        processData(msg, clientSocket);
-                        break;
-                    case Message.DISCONNECT:
-                        processDisconnect(msg);
-                        break;
-                    default:
-                        break;
+                case Message.AUTH:
+                    processAuth(msg, clientSocket);
+                    break;
+                case Message.CONNECT:
+                    processConnect(msg, clientSocket);
+                    break;
+                case Message.DATA:
+                    processData(msg, clientSocket);
+                    break;
+                case Message.DISCONNECT:
+                    processDisconnect(msg);
+                    break;
+                default:
+                    break;
                 }
             }
         } catch (IOException e) {
@@ -177,7 +177,7 @@ public class ClientSocketHandler implements Runnable {
             if (ruleId != null && TrafficStatisticManager.hasDownRateLimit(ruleId)) {
                 TokenBucket downBucket = TrafficStatisticManager.getDownRateLimitBucket(ruleId);
                 downBucket.writeWithLimit(userSocket.getOutputStream(), data);
-                TrafficStatisticManager.addDownload(userId, data.length); 
+                TrafficStatisticManager.addDownload(userId, data.length);
             } else {
                 TrafficStatisticManager.addDownload(userId, data.length);
                 userSocket.getOutputStream().write(data);
@@ -191,6 +191,13 @@ public class ClientSocketHandler implements Runnable {
     private void processDisconnect(Message msg) {
         log.debug("EP>>ServerMng>> Process disconnect");
         String userId = msg.getToken();
+
+        Socket dataSocket = ClientDataSocketManager.getDataSocket(userId);
+        if (dataSocket != null && !dataSocket.isClosed()) {
+            log.debug("EP>>ServerMng>> Data socket is active, deferring close to data socket EOF");
+            return;
+        }
+
         ClientDataSocketManager.closeDataSocket(userId);
         closeUserConnectionGracefully(userId);
     }

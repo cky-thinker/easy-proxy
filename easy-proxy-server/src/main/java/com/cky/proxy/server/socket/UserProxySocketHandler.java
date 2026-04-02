@@ -60,8 +60,8 @@ public class UserProxySocketHandler implements Runnable {
         log.debug("EP>>UserProxy>> User connected, Send connect msg");
         try {
             CompletableFuture<Socket> dataSocketFuture = ClientDataSocketManager.getWaitFuture(userId);
-            Message.createConnectMsg(userId, proxyRule.getClientAddress()).writeTo(new java.io.DataOutputStream(clientSocket.getOutputStream()));
-            
+            Message.createConnectMsg(userId, proxyRule.getClientAddress()).writeTo(clientSocket);
+
             // Wait for data socket connection from client (timeout e.g., 10 seconds)
             Socket dataSocket = dataSocketFuture.get(10, TimeUnit.SECONDS);
 
@@ -87,12 +87,13 @@ public class UserProxySocketHandler implements Runnable {
                         upBucket.acquire(bytesRead); // block until permits are available
                     }
                 }
-                
+
                 TrafficStatisticManager.addUpload(userId, bytesRead);
-                Message.createDataMsg(userId, data).writeTo(new java.io.DataOutputStream(dataSocket.getOutputStream()));
+                Message.createDataMsg(userId, data).writeTo(dataSocket);
             }
 
         } catch (TimeoutException e) {
+            log.error(e.getMessage(), e);
             log.error("EP>>UserProxy>> Wait for data socket timeout userId {}", userId);
         } catch (Exception e) {
             log.error("EP>>UserProxy>> User proxy socket error: {}", e.getMessage());
@@ -106,7 +107,7 @@ public class UserProxySocketHandler implements Runnable {
         Socket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
         if (clientSocket != null) {
             try {
-                Message.createDisConnectMsg(userId).writeTo(new java.io.DataOutputStream(clientSocket.getOutputStream()));
+                Message.createDisConnectMsg(userId).writeTo(clientSocket);
             } catch (IOException e) {
                 // ignore
             }

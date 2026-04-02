@@ -94,18 +94,29 @@ public class Message {
         return msg;
     }
 
-    public void writeTo(DataOutputStream out) throws IOException {
-        out.writeInt(this.check);
-        out.writeByte(this.type);
+    public byte[] encode() throws IOException {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+        dos.writeInt(this.check);
+        dos.writeByte(this.type);
         byte[] tokenBytes = this.token.getBytes(StandardCharsets.UTF_8);
-        out.writeInt(tokenBytes.length);
+        dos.writeInt(tokenBytes.length);
         if (tokenBytes.length > 0) {
-            out.write(tokenBytes);
+            dos.write(tokenBytes);
         }
-        out.writeInt(this.dataLength);
+        dos.writeInt(this.dataLength);
         if (this.dataLength > 0) {
-            out.write(this.data);
+            dos.write(this.data);
         }
-        out.flush();
+        dos.flush();
+        return baos.toByteArray();
+    }
+
+    public void writeTo(java.net.Socket socket) throws IOException {
+        byte[] data = encode();
+        synchronized (socket.getOutputStream()) {
+            socket.getOutputStream().write(data);
+            socket.getOutputStream().flush();
+        }
     }
 }
