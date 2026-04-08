@@ -1,6 +1,6 @@
 package com.cky.proxy.server.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.common.consts.OnlineStatus;
 import com.cky.proxy.server.config.ConfigProperty;
@@ -43,11 +43,11 @@ public class ProxyClientService {
      * 查询所有代理客户端
      */
     public List<ProxyClient> getProxyClients() {
-        return proxyClientMapper.selectList(new QueryWrapper<>());
+        return proxyClientMapper.selectList(new LambdaQueryWrapper<>());
     }
 
     public ProxyClient selectByToken(String token) {
-        return proxyClientMapper.selectOne(new QueryWrapper<ProxyClient>().eq("token", token));
+        return proxyClientMapper.selectOne(new LambdaQueryWrapper<ProxyClient>().eq(ProxyClient::getToken, token));
     }
 
     /**
@@ -56,15 +56,15 @@ public class ProxyClientService {
     public PageResult<ProxyClient> getProxyClientsPageable(cn.hutool.db.Page hutoolPage, String name, String status,
             Boolean enableFlag) {
 
-        QueryWrapper<ProxyClient> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<ProxyClient> wrapper = new LambdaQueryWrapper<>();
         if (name != null && !name.isEmpty()) {
-            wrapper.like("name", name);
+            wrapper.like(ProxyClient::getName, name);
         }
         if (status != null && !status.isEmpty()) {
-            wrapper.eq("status", status);
+            wrapper.eq(ProxyClient::getStatus, status);
         }
         if (enableFlag != null) {
-            wrapper.eq("enable_flag", enableFlag);
+            wrapper.eq(ProxyClient::getEnableFlag, enableFlag);
         }
 
         IPage<ProxyClient> page = PageUtil.toMybatisPage(hutoolPage);
@@ -152,7 +152,7 @@ public class ProxyClientService {
             throw new RuntimeException("客户端不存在");
         }
 
-        List<ProxyClientRule> rules = proxyClientRuleMapper.selectList(new QueryWrapper<ProxyClientRule>().eq("proxy_client_id", id));
+        List<ProxyClientRule> rules = proxyClientRuleMapper.selectList(new LambdaQueryWrapper<ProxyClientRule>().eq(ProxyClientRule::getProxyClientId, id));
         if (!rules.isEmpty()) {
             throw new RuntimeException("客户端仍有关联规则，无法删除");
         }
@@ -176,7 +176,7 @@ public class ProxyClientService {
      * 更新客户端在线状态
      */
     public ProxyClient updateClientStatus(String token, String status) {
-        ProxyClient client = proxyClientMapper.selectOne(new QueryWrapper<ProxyClient>().eq("token", token));
+        ProxyClient client = proxyClientMapper.selectOne(new LambdaQueryWrapper<ProxyClient>().eq(ProxyClient::getToken, token));
         if (client == null) {
             throw new RuntimeException("客户端不存在");
         }
@@ -331,10 +331,10 @@ public class ProxyClientService {
         if (name == null)
             return;
 
-        QueryWrapper<ProxyClient> wrapper = new QueryWrapper<>();
-        wrapper.eq("name", name);
+        LambdaQueryWrapper<ProxyClient> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ProxyClient::getName, name);
         if (excludeId != null) {
-            wrapper.ne("id", excludeId);
+            wrapper.ne(ProxyClient::getId, excludeId);
         }
         boolean exists = !proxyClientMapper.selectList(wrapper).isEmpty();
         if (exists)
@@ -352,10 +352,10 @@ public class ProxyClientService {
     private void validateTokenUnique(String token, Integer excludeId) {
         if (token == null)
             return;
-        QueryWrapper<ProxyClient> wrapper = new QueryWrapper<>();
-        wrapper.eq("token", token);
+        LambdaQueryWrapper<ProxyClient> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ProxyClient::getToken, token);
         if (excludeId != null) {
-            wrapper.ne("id", excludeId);
+            wrapper.ne(ProxyClient::getId, excludeId);
         }
         boolean exists = !proxyClientMapper.selectList(wrapper).isEmpty();
         if (exists)

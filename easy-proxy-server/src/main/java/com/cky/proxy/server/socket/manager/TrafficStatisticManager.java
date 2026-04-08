@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.cky.proxy.server.domain.entity.TsDayReport;
 import com.cky.proxy.server.domain.entity.TsHourReport;
 import com.cky.proxy.server.domain.entity.TsReport;
@@ -308,9 +308,9 @@ public class TrafficStatisticManager {
 
     private static void updateDayReport(TsDayReportMapper mapper, TrafficStats stats, long up, long down, Date today,
             Date now) throws Exception {
-        TsDayReport report = mapper.selectOne(new QueryWrapper<TsDayReport>()
-                .eq("proxy_client_rule_id", stats.ruleId)
-                .eq("date", today));
+        TsDayReport report = mapper.selectOne(new LambdaQueryWrapper<TsDayReport>()
+                .eq(TsDayReport::getProxyClientRuleId, stats.ruleId)
+                .eq(TsDayReport::getDate, today));
 
         if (report == null) {
             report = new TsDayReport();
@@ -330,8 +330,8 @@ public class TrafficStatisticManager {
 
     private static void updateTotalReport(TsReportMapper mapper, TrafficStats stats, long up, long down, Date now)
             throws Exception {
-        TsReport report = mapper.selectOne(new QueryWrapper<TsReport>()
-                .eq("proxy_client_rule_id", stats.ruleId));
+        TsReport report = mapper.selectOne(new LambdaQueryWrapper<TsReport>()
+                .eq(TsReport::getProxyClientRuleId, stats.ruleId));
 
         if (report == null) {
             report = new TsReport();

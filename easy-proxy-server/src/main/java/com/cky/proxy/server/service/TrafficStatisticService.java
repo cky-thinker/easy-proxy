@@ -3,7 +3,7 @@ package com.cky.proxy.server.service;
 import java.util.Date;
 import java.util.List;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cky.proxy.server.domain.dto.ClientTrafficDayReport;
@@ -31,15 +31,15 @@ public class TrafficStatisticService {
 
     // 客户端规则总报告分页查询
     public PageResult<TsReport> getClientRuleReportsPageable(cn.hutool.db.Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
-        QueryWrapper<TsReport> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<TsReport> wrapper = new LambdaQueryWrapper<>();
         if (proxyClientRuleId != null) {
-            wrapper.eq("proxy_client_rule_id", proxyClientRuleId);
+            wrapper.eq(TsReport::getProxyClientRuleId, proxyClientRuleId);
         }
         if (startDate != null) {
-            wrapper.ge("create_time", startDate);
+            wrapper.ge(TsReport::getCreateTime, startDate);
         }
         if (endDate != null) {
-            wrapper.le("create_time", endDate);
+            wrapper.le(TsReport::getCreateTime, endDate);
         }
         
         IPage<TsReport> mybatisPage = PageUtil.toMybatisPage(page);
@@ -49,15 +49,15 @@ public class TrafficStatisticService {
 
     // 天报告分页查询
     public PageResult<TsDayReport> getDayReportsPageable(cn.hutool.db.Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
-        QueryWrapper<TsDayReport> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<TsDayReport> wrapper = new LambdaQueryWrapper<>();
         if (proxyClientRuleId != null) {
-            wrapper.eq("proxy_client_rule_id", proxyClientRuleId);
+            wrapper.eq(TsDayReport::getProxyClientRuleId, proxyClientRuleId);
         }
         if (startDate != null) {
-            wrapper.ge("date", startDate);
+            wrapper.ge(TsDayReport::getDate, startDate);
         }
         if (endDate != null) {
-            wrapper.le("date", endDate);
+            wrapper.le(TsDayReport::getDate, endDate);
         }
         
         IPage<TsDayReport> mybatisPage = PageUtil.toMybatisPage(page);
@@ -67,15 +67,15 @@ public class TrafficStatisticService {
 
     // 小时报告分页查询
     public PageResult<TsHourReport> getHourReportsPageable(cn.hutool.db.Page page, Integer proxyClientRuleId, Date startDate, Date endDate) {
-        QueryWrapper<TsHourReport> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<TsHourReport> wrapper = new LambdaQueryWrapper<>();
         if (proxyClientRuleId != null) {
-            wrapper.eq("proxy_client_rule_id", proxyClientRuleId);
+            wrapper.eq(TsHourReport::getProxyClientRuleId, proxyClientRuleId);
         }
         if (startDate != null) {
-            wrapper.ge("date", startDate);
+            wrapper.ge(TsHourReport::getDate, startDate);
         }
         if (endDate != null) {
-            wrapper.le("date", endDate);
+            wrapper.le(TsHourReport::getDate, endDate);
         }
         
         IPage<TsHourReport> mybatisPage = PageUtil.toMybatisPage(page);
@@ -85,15 +85,15 @@ public class TrafficStatisticService {
 
     // 明细列表（不分页）示例
     public List<TsDayReport> listDayReports(Integer proxyClientRuleId, Date startDate, Date endDate) {
-        QueryWrapper<TsDayReport> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<TsDayReport> wrapper = new LambdaQueryWrapper<>();
         if (proxyClientRuleId != null) {
-            wrapper.eq("proxy_client_rule_id", proxyClientRuleId);
+            wrapper.eq(TsDayReport::getProxyClientRuleId, proxyClientRuleId);
         }
         if (startDate != null) {
-            wrapper.ge("date", startDate);
+            wrapper.ge(TsDayReport::getDate, startDate);
         }
         if (endDate != null) {
-            wrapper.le("date", endDate);
+            wrapper.le(TsDayReport::getDate, endDate);
         }
         return dayReportMapper.selectList(wrapper);
     }

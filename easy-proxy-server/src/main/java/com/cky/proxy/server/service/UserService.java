@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
@@ -44,28 +44,28 @@ public class UserService {
     // ===== 私有校验方法 =====
     private void validateUniqueUserFields(String username, String mobile, String email, Integer excludeId) {
         if (username != null) {
-            QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
-            wrapper.eq("username", username);
+            LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SysUser::getUsername, username);
             if (excludeId != null) {
-                wrapper.ne("id", excludeId);
+                wrapper.ne(SysUser::getId, excludeId);
             }
             boolean exists = !userMapper.selectList(wrapper).isEmpty();
             if (exists) throw new RuntimeException("账号已存在");
         }
         if (mobile != null && !mobile.isEmpty()) {
-            QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
-            wrapper.eq("mobile", mobile);
+            LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SysUser::getMobile, mobile);
             if (excludeId != null) {
-                wrapper.ne("id", excludeId);
+                wrapper.ne(SysUser::getId, excludeId);
             }
             boolean exists = !userMapper.selectList(wrapper).isEmpty();
             if (exists) throw new RuntimeException("手机号已存在");
         }
         if (email != null && !email.isEmpty()) {
-            QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
-            wrapper.eq("email", email);
+            LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SysUser::getEmail, email);
             if (excludeId != null) {
-                wrapper.ne("id", excludeId);
+                wrapper.ne(SysUser::getId, excludeId);
             }
             boolean exists = !userMapper.selectList(wrapper).isEmpty();
             if (exists) throw new RuntimeException("邮箱已存在");
@@ -126,7 +126,7 @@ public class UserService {
             // 验证密码
             SysUser sysUser = null;
             try {
-                sysUser = userMapper.selectOne(new QueryWrapper<SysUser>().eq("username", loginReq.getUsername()));
+                sysUser = userMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, loginReq.getUsername()));
             } catch (Exception e) {
                 throw new RuntimeException("查询用户失败: " + e.getMessage());
             }
@@ -222,13 +222,13 @@ public class UserService {
      * 分页查询账户
      */
     public PageResult<SysUser> getUsersPageable(Page page, String q, Boolean enableFlag) {
-        QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         if (q != null && !q.isEmpty()) {
             // 模糊匹配用户名或邮箱
-            wrapper.and(w -> w.like("username", q).or().like("email", q));
+            wrapper.and(w -> w.like(SysUser::getUsername, q).or().like(SysUser::getEmail, q));
         }
         if (enableFlag != null) {
-            wrapper.eq("enable_flag", enableFlag);
+            wrapper.eq(SysUser::getEnableFlag, enableFlag);
         }
         
         IPage<SysUser> mybatisPage = PageUtil.toMybatisPage(page);

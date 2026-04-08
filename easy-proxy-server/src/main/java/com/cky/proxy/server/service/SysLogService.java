@@ -2,7 +2,7 @@ package com.cky.proxy.server.service;
 
 import java.util.Date;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.entity.SysLog;
@@ -42,12 +42,12 @@ public class SysLogService {
             page.setOrder(new Order("create_time", Direction.DESC));
         }
         
-        QueryWrapper<SysLog> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<SysLog> wrapper = new LambdaQueryWrapper<>();
         if (logType != null && !logType.isEmpty()) {
-            wrapper.eq("log_type", logType);
+            wrapper.eq(SysLog::getLogType, logType);
         }
         if (keyword != null && !keyword.isEmpty()) {
-            wrapper.like("log_content", keyword);
+            wrapper.like(SysLog::getLogContent, keyword);
         }
         
         IPage<SysLog> mybatisPage = PageUtil.toMybatisPage(page);
