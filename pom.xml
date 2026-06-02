@@ -125,6 +125,7 @@
         <module>easy-proxy-server</module>
         <module>easy-proxy-client</module>
         <module>easy-proxy-common</module>
+        <module>easy-proxy-benchmark</module>
     </modules>
 
 </project>
