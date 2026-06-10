@@ -112,9 +112,10 @@ public class Message {
 
     public void writeTo(java.net.Socket socket) throws IOException {
         byte[] data = encode();
-        synchronized (socket.getOutputStream()) {
-            socket.getOutputStream().write(data);
-            socket.getOutputStream().flush();
+        java.io.OutputStream os = socket.getOutputStream();
+        synchronized (os) {
+            os.write(data);
+            os.flush();
         }
     }
 }

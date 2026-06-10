@@ -180,8 +180,9 @@ public class ClientSocketHandler implements Runnable {
                 TrafficStatisticManager.addDownload(userId, data.length);
             } else {
                 TrafficStatisticManager.addDownload(userId, data.length);
-                userSocket.getOutputStream().write(data);
-                userSocket.getOutputStream().flush();
+                java.io.OutputStream os = userSocket.getOutputStream();
+                os.write(data);
+                os.flush();
             }
         } else {
             log.debug("EP>>ServerMng>> Process data fail");

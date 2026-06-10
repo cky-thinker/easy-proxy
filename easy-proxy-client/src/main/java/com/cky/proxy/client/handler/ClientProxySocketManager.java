@@ -64,8 +64,9 @@ public class ClientProxySocketManager {
                     while (true) {
                         Message msg = Message.readMsg(in);
                         if (msg.getType() == Message.DATA) {
-                            proxySocket.getOutputStream().write(msg.getData());
-                            proxySocket.getOutputStream().flush();
+                            java.io.OutputStream os = proxySocket.getOutputStream();
+                            os.write(msg.getData());
+                            os.flush();
                         }
                     }
                 } catch (IOException e) {
