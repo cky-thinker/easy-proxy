@@ -128,11 +128,9 @@ public class TrafficStatisticManager {
         if (stats != null) {
             // 设置令牌桶
             if (stats.upBucket != null) {
-                stats.upBucket.flush();
                 stats.upBucket = null;
             }
             if (stats.downBucket != null) {
-                stats.downBucket.flush();
                 stats.downBucket = null;
             }
         }

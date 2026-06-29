@@ -67,8 +67,4 @@ public class TokenBucket {
         }
         out.flush();
     }
-
-    public void flush() {
-        // 无需实现，仅为了兼容老代码接口
-    }
 }
