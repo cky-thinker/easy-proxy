@@ -34,10 +34,12 @@ public class ClientProxySocketManager {
         log.debug("EP>>ClientProxy>> Create data socket");
         try {
             Socket dataSocket = SslUtil.getSslSocketFactory().createSocket(server.getIp(), server.getPort());
-            DataSocketContext.online(userId, dataSocket);
 
             // Send CONNECT message
             Message.createConnectMsg(userId).writeTo(dataSocket);
+
+            // online
+            DataSocketContext.online(userId, dataSocket);
 
             // Start proxy -> data
             Thread.ofVirtual().start(() -> {
@@ -92,6 +94,7 @@ public class ClientProxySocketManager {
                 Message.createDisConnectMsg(userId).writeTo(mngSocket);
             } catch (IOException e) {
                 // ignore
+                log.error("EP>>ClientProxy>> DisConnect msg write to mng socket error: {}", e.getMessage());
             }
         }
     }

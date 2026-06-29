@@ -37,7 +37,8 @@ public class UserProxySocketHandler implements Runnable {
     public void run() {
         Socket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
         if (clientSocket == null) {
-            log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(), proxyRule.getName());
+            log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(),
+                    proxyRule.getName());
             closeUserConnection();
             return;
         }
@@ -54,10 +55,6 @@ public class UserProxySocketHandler implements Runnable {
         }
 
         String userId = String.valueOf(IdUtil.getSnowflakeNextId());
-        RuleListenSocketManager.userConnectionOnline(proxyRule.getId(), userId, userConnection);
-        TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
-
-        log.debug("EP>>UserProxy>> User connected, Send connect msg");
         try {
             CompletableFuture<Socket> dataSocketFuture = ClientDataSocketManager.getWaitFuture(userId);
             Message.createConnectMsg(userId, proxyRule.getClientAddress()).writeTo(clientSocket);
@@ -70,6 +67,10 @@ public class UserProxySocketHandler implements Runnable {
                 closeUserConnectionGracefully(userId);
                 return;
             }
+
+            log.debug("EP>>UserProxy>> User connected, Send connect msg");
+            RuleListenSocketManager.userConnectionOnline(proxyRule.getId(), userId, userConnection);
+            TrafficStatisticManager.addConnection(userId, proxyClientConfig.getId(), proxyRule.getId());
 
             // Start reading from user socket and writing to data socket
             byte[] buffer = new byte[8192];
