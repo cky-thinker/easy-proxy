@@ -50,10 +50,13 @@ import { ref } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
 import { initUser } from '../api/auth';
 import PageIllustration from '../components/PageIllustration.vue';
+import { encryptPassword } from '../util/passwordCrypto';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const formRef = ref<FormInstance>();
 const isLoading = ref(false);
 
@@ -96,9 +99,16 @@ const handleSubmit = async () => {
     if (valid) {
       isLoading.value = true;
       try {
+        if (!authStore.serverConfig) {
+          await authStore.fetchLoginConfig();
+        }
+        const encryptedPassword = await encryptPassword(
+          form.value.password,
+          authStore.serverConfig?.passwordPublicKey || ''
+        );
         await initUser({
             username: form.value.username,
-            password: form.value.password,
+            encryptedPassword,
             mobile: form.value.mobile,
             email: form.value.email
         });

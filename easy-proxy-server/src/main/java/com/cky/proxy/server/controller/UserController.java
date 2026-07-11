@@ -1,14 +1,19 @@
 package com.cky.proxy.server.controller;
 
-import java.util.HashMap;
-
 import com.cky.proxy.server.config.ConfigProperty;
 import com.cky.proxy.server.domain.dto.CaptchaImage;
+import com.cky.proxy.server.domain.dto.CreateUserReq;
+import com.cky.proxy.server.domain.dto.InitUserReq;
+import com.cky.proxy.server.domain.dto.LoginConfigResp;
 import com.cky.proxy.server.domain.dto.LoginReq;
 import com.cky.proxy.server.domain.dto.PageResult;
 import com.cky.proxy.server.domain.dto.Result;
+import com.cky.proxy.server.domain.dto.ResetPasswordReq;
 import com.cky.proxy.server.domain.dto.UserInfo;
+import com.cky.proxy.server.domain.dto.UserView;
 import com.cky.proxy.server.domain.entity.SysUser;
+import com.cky.proxy.server.http.HttpContext;
+import com.cky.proxy.server.http.HttpRouter;
 import com.cky.proxy.server.service.UserService;
 import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.JsonUtil;
@@ -20,8 +25,6 @@ import lombok.SneakyThrows;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
-import com.cky.proxy.server.http.HttpContext;
-import com.cky.proxy.server.http.HttpRouter;
 
 public class UserController {
     private final HttpRouter router;
@@ -34,17 +37,12 @@ public class UserController {
     }
 
     private void initRoutes() {
-        // 生成验证码图片
         router.get("/api/open/captchaImage", this::captchaImage);
-        // 系统初始化检查
         router.get("/api/open/checkInit", this::checkInit);
-        // 系统初始化
         router.post("/api/open/initUser", this::initUser);
-        // 用户登录
         router.post("/api/open/loginUser", this::loginUser);
         router.get("/api/open/loginConfig", this::getConfig);
 
-        // 用户管理路由
         router.get("/api/users", this::getUsersPageable);
         router.get("/api/users/detail", this::getUserDetail);
         router.post("/api/users", this::addUser);
@@ -57,23 +55,20 @@ public class UserController {
 
     @SneakyThrows
     private void loginUser(HttpContext ctx) {
-        // 从请求体获取JSON数据
         String body = ctx.getBodyAsString();
         if (StrUtil.isEmpty(body)) {
             ResponseUtil.response(ctx, Result.error("请求体不能为空"));
             return;
         }
-        // 获取用户名、密码和验证码信息
-        LoginReq loginReq = JsonUtil.parseJson(body, LoginReq.class);
 
-        UserInfo userInfo = authService.login(loginReq);
+        LoginReq loginReq = JsonUtil.parseJson(body, LoginReq.class);
+        UserInfo userInfo = authService.login(loginReq, ctx.getClientIp());
         ResponseUtil.response(ctx, Result.success(userInfo, "登录成功"));
     }
 
     @SneakyThrows
     private void captchaImage(HttpContext ctx) {
         CaptchaImage captchaImage = authService.captchaImage();
-        // 返回验证码信息
         ResponseUtil.response(ctx, Result.success(captchaImage, "获取验证码成功"));
     }
 
@@ -85,31 +80,29 @@ public class UserController {
 
     @SneakyThrows
     private void initUser(HttpContext ctx) {
-        SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+        InitUserReq user = RequestUtil.getBodyObj(ctx, InitUserReq.class);
         if (user == null) {
             ResponseUtil.error(ctx, 400, "请求体不能为空");
             return;
         }
-        SysUser created = authService.initAdmin(user);
+        UserView created = authService.initAdmin(user);
         ResponseUtil.response(ctx, Result.success(created, "初始化系统管理员成功"));
     }
 
     @SneakyThrows
-    private void getConfig(HttpContext routingcontext1) {
-        ConfigProperty configProperty = ConfigProperty.getInstance();
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("captchaImageEnable", configProperty.getServer().getCaptchaImageEnable());
-        ResponseUtil.response(routingcontext1, Result.success(map, "获取配置成功"));
+    private void getConfig(HttpContext ctx) {
+        LoginConfigResp resp = new LoginConfigResp();
+        resp.setCaptchaImageEnable(ConfigProperty.getInstance().getServer().getCaptchaImageEnable());
+        resp.setPasswordEncryptEnable(Boolean.TRUE);
+        resp.setPasswordPublicKey(authService.getPasswordPublicKey());
+        ResponseUtil.response(ctx, Result.success(resp, "获取配置成功"));
     }
-
-    // ===== 账户管理 =====
 
     @SneakyThrows
     private void getUsersPageable(HttpContext ctx) {
         Boolean enableFlag = RequestUtil.getParamBool(ctx, "enableFlag");
-        PageResult<SysUser> pageResult = authService.getUsersPageable(RequestUtil.getPage(ctx),
-                ctx.getParam("q"), enableFlag);
-
+        PageResult<UserView> pageResult = authService.getUsersPageable(RequestUtil.getPage(ctx), ctx.getParam("q"),
+                enableFlag);
         ResponseUtil.success(ctx, pageResult);
     }
 
@@ -120,7 +113,7 @@ public class UserController {
             ResponseUtil.error(ctx, 400, "缺少参数: id");
             return;
         }
-        SysUser user = authService.getUserById(id);
+        UserView user = authService.getUserById(id);
         if (user == null) {
             ResponseUtil.error(ctx, 404, "账号不存在");
             return;
@@ -130,12 +123,12 @@ public class UserController {
 
     @SneakyThrows
     private void addUser(HttpContext ctx) {
-        SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
+        CreateUserReq user = RequestUtil.getBodyObj(ctx, CreateUserReq.class);
         if (user == null) {
             ResponseUtil.error(ctx, 400, "请求体不能为空");
             return;
         }
-        SysUser created = authService.createUser(user);
+        UserView created = authService.createUser(user);
         ResponseUtil.success(ctx, created);
     }
 
@@ -150,22 +143,22 @@ public class UserController {
             ResponseUtil.error(ctx, 400, "请求体缺少 id");
             return;
         }
-        SysUser updated = authService.updateUser(user);
+        UserView updated = authService.updateUser(user);
         ResponseUtil.success(ctx, updated);
     }
 
     @SneakyThrows
     private void resetPassword(HttpContext ctx) {
-        SysUser user = RequestUtil.getBodyObj(ctx, SysUser.class);
-        if (user == null) {
+        ResetPasswordReq req = RequestUtil.getBodyObj(ctx, ResetPasswordReq.class);
+        if (req == null) {
             ResponseUtil.error(ctx, 400, "请求体不能为空");
             return;
         }
-        if (user.getId() == null || user.getPassword() == null) {
-            ResponseUtil.error(ctx, 400, "请求体缺少 id 或 password");
+        if (req.getId() == null || req.getEncryptedPassword() == null) {
+            ResponseUtil.error(ctx, 400, "请求体缺少 id 或 encryptedPassword");
             return;
         }
-        SysUser updated = authService.resetPassword(user.getId(), user.getPassword());
+        UserView updated = authService.resetPassword(req.getId(), req.getEncryptedPassword());
         ResponseUtil.success(ctx, updated);
     }
 
@@ -201,23 +194,22 @@ public class UserController {
             ResponseUtil.error(ctx, 400, "请求体缺少 enableFlag");
             return;
         }
-        SysUser user = authService.updateEnableFlag(id, enableFlag);
+        UserView user = authService.updateEnableFlag(id, enableFlag);
         ResponseUtil.success(ctx, user);
     }
 
     private void getPermissions(HttpContext ctx) {
-        // 返回静态权限列表，确保前端展示
         JSONArray list = new JSONArray();
         list.add(new JSONObject().set("name", "总览管理").set("description", "查看系统总览和统计信息")
                 .set("actions", new JSONArray().set("查看").set("导出")));
-        list.add(new JSONObject().set("name", "客户端管理").set("description", "管理代理客户端和配置").set(
-                "actions", new JSONArray().set("查看").set("新增").set("编辑").set("删除").set("启用/禁用")));
-        list.add(new JSONObject().set("name", "账号管理").set("description", "管理系统用户账号").set("actions",
-                new JSONArray().set("查看").set("新增").set("编辑").set("删除").set("权限管理")));
+        list.add(new JSONObject().set("name", "客户端管理").set("description", "管理代理客户端和配置")
+                .set("actions", new JSONArray().set("查看").set("新增").set("编辑").set("删除").set("启用/禁用")));
+        list.add(new JSONObject().set("name", "账号管理").set("description", "管理系统用户账号")
+                .set("actions", new JSONArray().set("查看").set("新增").set("编辑").set("删除").set("权限管理")));
         list.add(new JSONObject().set("name", "日志管理").set("description", "查看系统日志和审计记录")
                 .set("actions", new JSONArray().set("查看").set("导出").set("清理")));
-        list.add(new JSONObject().set("name", "系统设置").set("description", "管理系统配置和参数").set("actions",
-                new JSONArray().set("查看").set("修改")));
+        list.add(new JSONObject().set("name", "系统设置").set("description", "管理系统配置和参数")
+                .set("actions", new JSONArray().set("查看").set("修改")));
         ResponseUtil.success(ctx, list);
     }
 }

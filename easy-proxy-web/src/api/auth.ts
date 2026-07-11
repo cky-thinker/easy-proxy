@@ -1,5 +1,5 @@
 import apiClient from '../util/client';
-import type { LoginRequest, CaptchaImage, UserInfo, ApiResponse } from './types';
+import type { LoginRequest, CaptchaImage, UserInfo, ApiResponse, InitUserRequest } from './types';
 
 /**
  * 获取验证码图片
@@ -28,8 +28,8 @@ export const checkInit = async (): Promise<boolean> => {
 /**
  * 初始化系统管理员
  */
-export const initUser = async (user: any): Promise<UserInfo> => {
-  const response = await apiClient.post<ApiResponse<UserInfo>>('/api/open/initUser', user);
+export const initUser = async (user: InitUserRequest): Promise<unknown> => {
+  const response = await apiClient.post<ApiResponse<unknown>>('/api/open/initUser', user);
   return response.data.data;
 };
 

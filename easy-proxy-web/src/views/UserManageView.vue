@@ -189,11 +189,14 @@ import {
 } from '../api/user'
 
 import { formatDateTime } from '../util/dateUtil'
+import { encryptPassword } from '../util/passwordCrypto'
 import TagEnableFlag from '../components/TagEnableFlag.vue'
 import PageIllustration from '@/components/PageIllustration.vue'
+import { useAuthStore } from '../stores/auth'
 
 
 // 响应式数据
+const authStore = useAuthStore()
 const users = ref<User[]>([])
 // 分页与加载状态
 const currentPage = ref(1)
@@ -360,10 +363,17 @@ const saveUser = async () => {
     const valid = await userFormRef.value?.validate?.()
     if (valid !== true) return
     if (showAddModal.value) {
+      if (!authStore.serverConfig) {
+        await authStore.fetchLoginConfig()
+      }
+      const encryptedPassword = await encryptPassword(
+        currentUser.value.password || '',
+        authStore.serverConfig?.passwordPublicKey || ''
+      )
       await createUserApi({
         username: currentUser.value.username,
         email: currentUser.value.email,
-        password: currentUser.value.password,
+        encryptedPassword,
         role: currentUser.value.role,
         enableFlag: currentUser.value.enableFlag,
       })

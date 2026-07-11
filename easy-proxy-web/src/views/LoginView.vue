@@ -95,13 +95,21 @@ import type { FormInstance, FormRules } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import { User, Lock, Key, Warning } from '@element-plus/icons-vue';
 import { useAuthStore } from '../stores/auth';
-import type { LoginRequest, CaptchaImage } from '../api/types';
+import type { CaptchaImage } from '../api/types';
 import LoginArchitecture from '../components/LoginArchitecture.vue';
+import { encryptPassword } from '../util/passwordCrypto';
 
 const authStore = useAuthStore();
 
+interface LoginFormModel {
+  username: string;
+  password: string;
+  captchaId: string;
+  captchaCode: string;
+}
+
 // 响应式数据
-const loginForm = ref<LoginRequest>({
+const loginForm = ref<LoginFormModel>({
   username: '',
   password: '',
   captchaId: '',
@@ -115,7 +123,7 @@ const captchaEnabled = computed(() => authStore.serverConfig?.captchaImageEnable
 
 // Element Plus 表单引用与校验规则
 const loginFormRef = ref<FormInstance>()
-const rules: FormRules<LoginRequest> = {
+const rules: FormRules<LoginFormModel> = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   captchaCode: [{
@@ -155,7 +163,16 @@ const handleLogin = async () => {
 
   try {
     await loginFormRef.value?.validate?.()
-    await authStore.login(loginForm.value)
+    const encryptedPassword = await encryptPassword(
+      loginForm.value.password,
+      authStore.serverConfig?.passwordPublicKey || ''
+    )
+    await authStore.login({
+      username: loginForm.value.username,
+      encryptedPassword,
+      captchaId: loginForm.value.captchaId,
+      captchaCode: loginForm.value.captchaCode
+    })
     ElMessage.success('登录成功')
     // 登录成功，跳转到首页
     window.location.href = '/'

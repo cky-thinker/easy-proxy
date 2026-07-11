@@ -48,9 +48,16 @@ export interface HealthResponse {
 // 登录请求接口
 export interface LoginRequest {
   username: string;
-  password: string;
+  encryptedPassword: string;
   captchaId: string;
   captchaCode: string;
+}
+
+export interface InitUserRequest {
+  username: string;
+  mobile?: string;
+  email?: string;
+  encryptedPassword: string;
 }
 
 // 验证码图片接口
@@ -127,9 +134,16 @@ export interface Permission {
 export interface CreateUserRequest {
   username: string;
   email: string;
-  password?: string;
+  mobile?: string;
+  avatar?: string;
+  encryptedPassword: string;
   role: 'admin' | 'user' | 'viewer';
   enableFlag?: boolean;
+}
+
+export interface ResetPasswordRequest {
+  id: number;
+  encryptedPassword: string;
 }
 
 // 更新账号请求接口
@@ -152,6 +166,8 @@ export interface ApiResponse<T = any> {
 // 服务端配置接口
 export interface ServerConfig {
   captchaImageEnable: boolean;
+  passwordEncryptEnable: boolean;
+  passwordPublicKey: string;
 }
 
 // 分页响应结构（与服务端 PageResult 对齐）

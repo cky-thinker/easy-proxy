@@ -3,6 +3,7 @@ package com.cky.proxy.server.http;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +45,28 @@ public class HttpContext {
 
     public String getParam(String name, String defaultValue) {
         return queryParams.getOrDefault(name, defaultValue);
+    }
+
+    public String getHeader(String name) {
+        return exchange.getRequestHeaders().getFirst(name);
+    }
+
+    public String getClientIp() {
+        String forwardedFor = getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+
+        String realIp = getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return realIp.trim();
+        }
+
+        InetSocketAddress remoteAddress = exchange.getRemoteAddress();
+        if (remoteAddress == null || remoteAddress.getAddress() == null) {
+            return "unknown";
+        }
+        return remoteAddress.getAddress().getHostAddress();
     }
 
     public String getBodyAsString() {

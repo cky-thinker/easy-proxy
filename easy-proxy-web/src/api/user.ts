@@ -3,6 +3,7 @@ import type {
   User, 
   CreateUserRequest, 
   UpdateUserRequest,
+  ResetPasswordRequest,
   Permission,
   ApiResponse,
   PageResult 
@@ -47,8 +48,8 @@ export const deleteUser = async (id: number): Promise<void> => {
 // 批量删除账号（后端暂未提供，按需新增）
 
 // 重置账号密码
-export const resetUserPassword = async (id: number, newPassword: string): Promise<void> => {
-  await apiClient.post(`/api/users/reset-password`, { id, password: newPassword })
+export const resetUserPassword = async (payload: ResetPasswordRequest): Promise<void> => {
+  await apiClient.post(`/api/users/reset-password`, payload)
 }
 
 // 切换账号状态

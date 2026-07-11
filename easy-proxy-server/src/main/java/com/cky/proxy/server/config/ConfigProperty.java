@@ -81,5 +81,35 @@ public class ConfigProperty {
         if (StrUtil.isNotBlank(webhook)) {
             this.server.setWebhook(webhook);
         }
+
+        String loginFailureThreshold = System.getenv("SERVER_LOGIN_FAILURE_THRESHOLD");
+        if (StrUtil.isNotBlank(loginFailureThreshold)) {
+            this.server.setLoginFailureThreshold(Integer.parseInt(loginFailureThreshold));
+        }
+
+        String loginFailureWindowMinutes = System.getenv("SERVER_LOGIN_FAILURE_WINDOW_MINUTES");
+        if (StrUtil.isNotBlank(loginFailureWindowMinutes)) {
+            this.server.setLoginFailureWindowMinutes(Integer.parseInt(loginFailureWindowMinutes));
+        }
+
+        String loginLockMinutes = System.getenv("SERVER_LOGIN_LOCK_MINUTES");
+        if (StrUtil.isNotBlank(loginLockMinutes)) {
+            this.server.setLoginLockMinutes(Integer.parseInt(loginLockMinutes));
+        }
+
+        String loginIpFailureThreshold = System.getenv("SERVER_LOGIN_IP_FAILURE_THRESHOLD");
+        if (StrUtil.isNotBlank(loginIpFailureThreshold)) {
+            this.server.setLoginIpFailureThreshold(Integer.parseInt(loginIpFailureThreshold));
+        }
+
+        String loginIpWindowMinutes = System.getenv("SERVER_LOGIN_IP_WINDOW_MINUTES");
+        if (StrUtil.isNotBlank(loginIpWindowMinutes)) {
+            this.server.setLoginIpWindowMinutes(Integer.parseInt(loginIpWindowMinutes));
+        }
+
+        String loginIpBlockMinutes = System.getenv("SERVER_LOGIN_IP_BLOCK_MINUTES");
+        if (StrUtil.isNotBlank(loginIpBlockMinutes)) {
+            this.server.setLoginIpBlockMinutes(Integer.parseInt(loginIpBlockMinutes));
+        }
     }
 }
