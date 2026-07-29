@@ -18,15 +18,15 @@ public class H2ConsoleBootstrap {
             try {
                 // 1. 启动H2 TCP服务器（可选，支持远程连接，推荐开启）
                 tcpServer = Server.createTcpServer(
-                    "-tcp",          // 启用TCP服务
-                    "-tcpPort", "9092",  // 指定TCP端口（默认9092，可自定义）
-                    "-tcpAllowOthers"    // 允许其他机器连接（仅测试用，生产禁用）
+                        "-tcp", // 启用TCP服务
+                        "-tcpPort", "9092", // 指定TCP端口（默认9092，可自定义）
+                        "-tcpAllowOthers" // 允许其他机器连接（仅测试用，生产禁用）
                 ).start();
                 System.out.println("✅ H2 TCP服务器启动成功，端口：" + tcpServer.getPort());
                 // 启动H2 Web Console（核心，浏览器访问）
                 webServer = Server.createWebServer(
                         "-web", // 启用Web控制台
-                        "-webPort", "21093", // 指定Web端口（默认8082，可自定义）
+                        "-webPort", "21093", // 指定Web端口
                         "-webAllowOthers" // 允许其他机器访问（仅测试用）
                 ).start();
                 log.info("✅ H2 Web Console启动成功，访问地址：http://localhost:21093");
@@ -59,6 +59,6 @@ public class H2ConsoleBootstrap {
             h2ConsoleThread.interrupt();
             log.info("✅ H2 Console线程已中断");
         }
-        
+
     }
 }

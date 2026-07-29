@@ -1,48 +1,51 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-    <!-- 动态插画 -->
-    <PageIllustration type="init" class="absolute right-0 md:right-auto md:left-32 top-1/2 -translate-y-1/2 w-64 h-64 md:w-96 md:h-96 opacity-30 pointer-events-none" />
-    
-    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100 z-10 relative">
-      <div>
-        <div class="flex justify-center items-center">
-          <img src="/favicon.ico" alt="logo" class="w-10 h-10 mr-3" />
-          <h2 class="text-center text-3xl font-extrabold text-gray-900">
-            系统初始化
-          </h2>
-        </div>
-        <p class="mt-2 text-center text-sm text-gray-600">
-          请设置系统管理员账号
-        </p>
+<div
+  class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+  <!-- 动态插画 -->
+  <PageIllustration type="init"
+    class="absolute right-0 md:right-auto md:left-32 top-1/2 -translate-y-1/2 w-64 h-64 md:w-96 md:h-96 opacity-30 pointer-events-none" />
+
+  <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100 z-10 relative">
+    <div>
+      <div class="flex justify-center items-center">
+        <img src="/favicon.ico" alt="logo" class="w-10 h-10 mr-3" />
+        <h2 class="text-center text-3xl font-extrabold text-gray-900">
+          系统初始化
+        </h2>
       </div>
-
-      <el-form class="mt-8 space-y-6" :model="form" :rules="rules" ref="formRef" @submit.prevent="handleSubmit" label-position="top">
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" placeholder="请输入管理员用户名" />
-        </el-form-item>
-
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password />
-        </el-form-item>
-
-        <el-form-item label="确认密码" prop="confirmPassword">
-            <el-input v-model="form.confirmPassword" type="password" placeholder="请再次输入密码" show-password />
-        </el-form-item>
-
-        <el-form-item label="手机号" prop="mobile">
-          <el-input v-model="form.mobile" placeholder="请输入手机号" />
-        </el-form-item>
-
-        <el-form-item label="邮箱" prop="email">
-            <el-input v-model="form.email" placeholder="请输入邮箱" />
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" :loading="isLoading" native-type="submit" class="w-full">初始化系统</el-button>
-        </el-form-item>
-      </el-form>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        请设置系统管理员账号
+      </p>
     </div>
+
+    <el-form class="mt-8 space-y-6" :model="form" :rules="rules" ref="formRef" @submit.prevent="handleSubmit"
+      label-position="top">
+      <el-form-item label="用户名" prop="username">
+        <el-input v-model="form.username" placeholder="请输入管理员用户名" />
+      </el-form-item>
+
+      <el-form-item label="密码" prop="password">
+        <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password />
+      </el-form-item>
+
+      <el-form-item label="确认密码" prop="confirmPassword">
+        <el-input v-model="form.confirmPassword" type="password" placeholder="请再次输入密码" show-password />
+      </el-form-item>
+
+      <el-form-item label="手机号" prop="mobile">
+        <el-input v-model="form.mobile" placeholder="请输入手机号" />
+      </el-form-item>
+
+      <el-form-item label="邮箱" prop="email">
+        <el-input v-model="form.email" placeholder="请输入邮箱" />
+      </el-form-item>
+
+      <el-form-item>
+        <el-button type="primary" :loading="isLoading" native-type="submit" class="w-full">初始化系统</el-button>
+      </el-form-item>
+    </el-form>
   </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -94,7 +97,7 @@ const rules: FormRules = {
 
 const handleSubmit = async () => {
   if (!formRef.value) return;
-  
+
   await formRef.value.validate(async (valid) => {
     if (valid) {
       isLoading.value = true;
@@ -107,14 +110,15 @@ const handleSubmit = async () => {
           authStore.serverConfig?.passwordPublicKey || ''
         );
         await initUser({
-            username: form.value.username,
-            encryptedPassword,
-            mobile: form.value.mobile,
-            email: form.value.email
+          username: form.value.username,
+          encryptedPassword,
+          mobile: form.value.mobile,
+          email: form.value.email
         });
         ElMessage.success('系统初始化成功，请登录');
         router.push('/login');
       } catch (error: any) {
+        console.error('初始化失败:', error);
         ElMessage.error(error.response?.data?.msg || '初始化失败');
       } finally {
         isLoading.value = false;
