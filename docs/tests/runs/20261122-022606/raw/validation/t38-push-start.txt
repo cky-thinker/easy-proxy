@@ -1,0 +1,10 @@
+T-38 RUN START
+run_id=20261122-022606
+tag=test-20261122-022005-689e009
+operation=push-existing-images-no-rebuild
+result=FAILED_BEFORE_CREDENTIAL_PROMPT
+exception=运行目录不存在：F:\workspace\my\easy-proxy\docs\tests\runs\20261122-022606
+script=docs/tests/scripts/build/push-existing-images.ps1
+line=151
+registry_mutation=no
+credential_prompt_reached=no

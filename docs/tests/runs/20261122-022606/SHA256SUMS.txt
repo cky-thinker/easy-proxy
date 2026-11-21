@@ -1,0 +1,4 @@
+1c2409ab0312d4c32855f43b64fdf85ef0eb6255e22506401f48d1c9c4dca6b0  defects/DEF-T38-RUNINIT-001.md
+b33973f249e19a92a18915a1c73f6d487ddf46def8776c7832505d15b2e4518e  manifest.md
+92c8d492b2d6b0919a1ccc7ab275aa6292dda1d139949790d6eebbe75f97bb6a  raw/validation/t38-evidence-archive-note.txt
+28c70bf668b53cfcd7fe6b81b2a2b417451a4a73a7e71b65189a0d14b807c908  raw/validation/t38-push-start.txt

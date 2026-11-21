@@ -1,0 +1,4 @@
+T-38 EVIDENCE ARCHIVING NOTE
+result=PARTIAL_ARCHIVE_RETRY_SUCCEEDED
+detail=首次归档时 defects 目录尚未创建，缺陷文件写入失败；原始 T-38 失败记录未修改。
+action=仅补充创建 defects 目录并继续归档，未重试或覆盖原始失败证据。
