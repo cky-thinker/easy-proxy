@@ -1,0 +1,2 @@
+easy-proxy-server\target\easy-proxy-server-0.0.1-SNAPSHOT.jar|180732|8edbb0a1a1a1f12787e73914fb262411b0e736c47ed207f4a18ca49fc2ea0579
+easy-proxy-client\target\easy-proxy-client-0.0.1-SNAPSHOT.jar|22977|e7c2e75f7f3a70e7dfc9f689dfcfdb25b7a4d1591fe3e62d2a24661b0bf32b36

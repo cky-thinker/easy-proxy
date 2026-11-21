@@ -1,0 +1,27 @@
+# 测试资产静态校验
+
+运行编号：`20261122-005952`
+校验时间：`2026-11-22 01:10:07 +08:00`
+
+| 检查项 | 结果 |
+| --- | --- |
+| [PASS] 文本资产可读取 | 共 38 个文件 |
+| [PASS] UTF-8 编码与 BOM | Markdown/配置/Shell 为 UTF-8 无 BOM；PowerShell 脚本带 BOM 以兼容 Windows PowerShell 5.1 |
+| [PASS] 统一 LF 换行 | 全部通过 |
+| [PASS] UTF-8 可解码 | 全部通过 |
+| [PASS] Markdown 代码围栏配对 | 检查 20 个 Markdown 文件 |
+| [FAIL] 必备文档存在 | docs\tests\runs\20261122-005952\manifest.md, docs\tests\reports\20261122-005952-acr-build-validation.md |
+| [PASS] 方案标题编号 | H2/H3/H4 编号连续且归属正确 |
+| [PASS] 测试用例编号 | T-01 至 T-39 连续且唯一 |
+| [PASS] 固定镜像引用 | 旧仓库引用=0，latest 环境变量=0，latest 镜像=0 |
+| [PASS] 敏感信息静态扫描 | 未发现私钥、仓库凭据或嵌入式 URL 密码 |
+| [PASS] Markdown 相对链接 | 检查 27 个本地链接，全部存在 |
+| [PASS] Web 端口与配置一致性 | Dockerfile、Nginx 与根 Compose 均为 21092，且挂载文件存在 |
+| [PASS] PowerShell 语法 | 检查 4 个脚本 |
+| [FAIL] ACR 凭据清理 | 未找到有效注销证据 |
+
+判定：失败。共 2 项未通过：
+- 必备文档存在 :: docs\tests\runs\20261122-005952\manifest.md, docs\tests\reports\20261122-005952-acr-build-validation.md
+- ACR 凭据清理 :: 未找到有效注销证据
+
+脚本：`docs/tests/scripts/validation/validate-test-assets.ps1`

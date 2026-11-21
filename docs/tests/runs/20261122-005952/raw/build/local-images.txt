@@ -1,0 +1,7 @@
+# Local image verification
+
+tag=test-20261122-005952-2fe7860
+service|reference|image_id|os|architecture|size_bytes
+server|registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-005952-2fe7860|sha256:302182f2348ef237777f5b043f681022b29f0b05abea6bc78fd2bab3e5e2df11|linux|amd64|653116926
+client|registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-005952-2fe7860|sha256:dad8e0fb2613a9dc806d8adb886886f0fbba1eb901e65c3266083a7993acffc9|linux|amd64|621197562
+web|registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-005952-2fe7860|sha256:471123ace2c06375f83122a9cea7df29ba2222baa956a10a91ed4b579d5eb1ae|linux|amd64|96707336

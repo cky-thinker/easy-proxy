@@ -1,0 +1,6 @@
+b95251ba97c8207f937a4c8b558073c7bb942a1fa8e53890029c660184c68193  manifest.md
+cf486f22d501f28aa5a73294356fd77347c5de3a125e91fc7d67fc11911bfe0e  raw/build/automation-error.txt
+a0cd5f0965d6519c24e78a5bc16c73d74f229e4b5ca69d2ce9b4029698196ee8  raw/build/git-context.txt
+b27350fb77448ff6c5b0ddfa3fb3627f685b27d9cc8908da9e4672156f20f6fe  raw/build/maven-clean-test.exit.txt
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b  raw/build/maven-clean-test.log
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b  raw/build/mvn-version.log

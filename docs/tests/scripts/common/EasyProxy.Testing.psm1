@@ -79,8 +79,17 @@ function Invoke-EasyProxyProcess {
         [int]$TimeoutSeconds = 120
     )
 
+    $resolvedFilePath = $FilePath
+    if (-not [IO.Path]::IsPathRooted($FilePath) -and $FilePath -notmatch '[\\/]') {
+        $command = Get-Command -Name $FilePath -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($null -eq $command) {
+            throw "未找到可执行文件：$FilePath"
+        }
+        $resolvedFilePath = $command.Source
+    }
+
     $startInfo = [Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = $FilePath
+    $startInfo.FileName = $resolvedFilePath
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
@@ -107,13 +116,13 @@ function Invoke-EasyProxyProcess {
         }
         if (-not $process.WaitForExit([Math]::Max(1, $TimeoutSeconds) * 1000)) {
             try { $process.Kill($true) } catch { }
-            throw "进程超时（${TimeoutSeconds}s）：$FilePath"
+            throw "进程超时（${TimeoutSeconds}s）：$resolvedFilePath"
         }
         $process.WaitForExit()
         $stdout = $stdoutTask.GetAwaiter().GetResult()
         $stderr = $stderrTask.GetAwaiter().GetResult()
         return [pscustomobject]@{
-            FilePath      = $FilePath
+            FilePath      = $resolvedFilePath
             Arguments     = @($ArgumentList)
             ExitCode      = $process.ExitCode
             StdOut        = $stdout
@@ -413,12 +422,51 @@ function New-EasyProxyRun {
 function Write-EasyProxyRunManifest {
     param(
         [Parameter(Mandatory)][object]$Run,
+        [string]$EndedAt = '',
+        [string]$Environment = '',
         [string]$TestParameters = '',
         [string]$Results = '',
         [string]$Conclusion = '',
         [string]$MirrorRefs = '',
-        [string]$Limitations = ''
+        [string]$EvidenceIndex = '',
+        [string]$Limitations = '',
+        [string]$Cleanup = ''
     )
+
+    if ([string]::IsNullOrWhiteSpace($Environment)) {
+        $Environment = @(
+            '| 主机 | 角色 | 规格 | 系统/运行时 | 公网出口或地址 |',
+            '| --- | --- | --- | --- | --- |',
+            '| 当前管理机 | 压测源与 SSH 客户端 | 待采集 | Windows / PowerShell | 待采集 |',
+            '| WSL Ubuntu-22.04 | 镜像构建 | 待采集 | Docker/Buildx/Compose | 本地 |',
+            '| 云服务器 | proxy-server | 待采集 | Linux / Docker | `68.64.181.242` |',
+            '| 群晖 NAS | proxy-client | 待采集 | DSM / Docker | `192.168.1.9` |'
+        ) -join "`n"
+    }
+    if ([string]::IsNullOrWhiteSpace($MirrorRefs)) {
+        $MirrorRefs = @(
+            '| 服务 | 完整镜像引用 | RepoDigest | 平台 | 验证状态 |',
+            '| --- | --- | --- | --- | --- |',
+            '| server | 未涉及 | - | `linux/amd64` | 未验证 |',
+            '| client | 未涉及 | - | `linux/amd64` | 未验证 |',
+            '| web | 未涉及 | - | `linux/amd64` | 未验证 |'
+        ) -join "`n"
+    }
+    if ([string]::IsNullOrWhiteSpace($EvidenceIndex)) {
+        $EvidenceIndex = @(
+            '| 测试编号 | 证据 | 相对路径 | 完整性 |',
+            '| --- | --- | --- | --- |',
+            '| 待补充 | 待补充 | 待补充 | 待补充 |'
+        ) -join "`n"
+    }
+    if ([string]::IsNullOrWhiteSpace($Cleanup)) {
+        $Cleanup = @(
+            '- [ ] 临时容器与防火墙规则已清理',
+            '- [ ] 敏感字段已脱敏',
+            '- [ ] `SHA256SUMS.txt` 已生成并复核',
+            '- [ ] 报告已登记到 `reports/index.md`'
+        ) -join "`n"
+    }
 
     $manifest = @(
         '# 测试运行清单',
@@ -431,27 +479,18 @@ function Write-EasyProxyRunManifest {
         "| 测试范围 | $($Run.TestScope) |",
         '| 执行人 | Codex 自动化执行 |',
         "| 开始时间 | $($Run.StartedAt) |",
-        "| 结束时间 |  |",
+        "| 结束时间 | $EndedAt |",
         "| Git 分支/提交 | ``$($Run.Branch)`` / ``$($Run.Commit)`` |",
         "| 运行状态 | $($Run.Status) |",
         "| 结论 | $Conclusion |",
         '',
         '## 环境',
         '',
-        '| 主机 | 角色 | 规格 | 系统/运行时 | 公网出口或地址 |',
-        '| --- | --- | --- | --- | --- |',
-        '| 当前管理机 | 压测源与 SSH 客户端 | 待采集 | Windows / PowerShell | 待采集 |',
-        '| WSL Ubuntu-22.04 | 镜像构建 | 待采集 | Docker/Buildx/Compose | 本地 |',
-        '| 云服务器 | proxy-server | 待采集 | Linux / Docker | `68.64.181.242` |',
-        '| 群晖 NAS | proxy-client | 待采集 | DSM / Docker | `192.168.1.9` |',
+        $Environment,
         '',
         '## 镜像',
         '',
-        '| 服务 | 完整镜像引用 | RepoDigest | 平台 | 验证状态 |',
-        '| --- | --- | --- | --- | --- |',
-        "| server | $MirrorRefs | 待补齐 | ``linux/amd64`` | 待验证 |",
-        '| client | 同上 | 待补齐 | `linux/amd64` | 待验证 |',
-        '| web | 同上 | 待补齐 | `linux/amd64` | 待验证 |',
+        $MirrorRefs,
         '',
         '## 测试参数',
         '',
@@ -463,9 +502,7 @@ function Write-EasyProxyRunManifest {
         '',
         '## 证据索引',
         '',
-        '| 测试编号 | 证据 | 相对路径 | 完整性 |',
-        '| --- | --- | --- | --- |',
-        '|  |  |  |  |',
+        $EvidenceIndex,
         '',
         '## 偏差与限制',
         '',
@@ -473,10 +510,7 @@ function Write-EasyProxyRunManifest {
         '',
         '## 清理与脱敏',
         '',
-        '- [ ] 临时容器与防火墙规则已清理',
-        '- [ ] 敏感字段已脱敏',
-        '- [ ] `SHA256SUMS.txt` 已生成并复核',
-        '- [ ] 报告已登记到 `reports/index.md`'
+        $Cleanup
     ) -join "`n"
     Write-LfText -Path (Join-Path $Run.RunRoot 'manifest.md') -Text ($manifest + "`n")
 }
