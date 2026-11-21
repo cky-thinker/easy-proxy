@@ -35,8 +35,24 @@ function Invoke-LoggedNative {
     )
 
     New-Item -ItemType Directory -Path (Split-Path $LogPath -Parent) -Force | Out-Null
-    & $FilePath @Arguments 2>&1 | Tee-Object -FilePath $LogPath | Out-Host
-    $script:LastNativeExitCode = $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    $nativePreferenceVariable = Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue
+    $previousNativePreference = $null
+    try {
+        $ErrorActionPreference = 'Continue'
+        if ($null -ne $nativePreferenceVariable) {
+            $previousNativePreference = $PSNativeCommandUseErrorActionPreference
+            $PSNativeCommandUseErrorActionPreference = $false
+        }
+        & $FilePath @Arguments 2>&1 | Tee-Object -FilePath $LogPath | Out-Host
+        $script:LastNativeExitCode = $LASTEXITCODE
+    }
+    finally {
+        if ($null -ne $nativePreferenceVariable) {
+            $PSNativeCommandUseErrorActionPreference = $previousNativePreference
+        }
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     if (-not $AllowFailure -and $script:LastNativeExitCode -ne 0) {
         throw "命令失败，退出码 $script:LastNativeExitCode，日志：$LogPath"
     }
