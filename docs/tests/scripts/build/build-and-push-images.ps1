@@ -115,6 +115,110 @@ function Invoke-WslDockerLogin {
     }
 }
 
+function Invoke-WslCapture {
+    param(
+        [string[]]$Arguments,
+        [string]$StdoutPath,
+        [string]$StderrPath
+    )
+
+    New-Item -ItemType Directory -Path (Split-Path $StdoutPath -Parent) -Force | Out-Null
+    New-Item -ItemType Directory -Path (Split-Path $StderrPath -Parent) -Force | Out-Null
+
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = 'wsl.exe'
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $startInfo.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+    $startInfo.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+    foreach ($argument in $Arguments) {
+        [void]$startInfo.ArgumentList.Add($argument)
+    }
+
+    $process = [Diagnostics.Process]::new()
+    try {
+        $process.StartInfo = $startInfo
+        if (-not $process.Start()) {
+            throw '无法启动 wsl.exe。'
+        }
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+
+        Write-LfText -Path $StdoutPath -Text $stdout
+        Write-LfText -Path $StderrPath -Text $stderr
+
+        if ($process.ExitCode -ne 0) {
+            throw "WSL 命令失败，退出码 $($process.ExitCode)。标准错误：$StderrPath"
+        }
+        return $stdout
+    }
+    finally {
+        $process.Dispose()
+    }
+}
+
+function Invoke-CaptureLocalImageFacts {
+    param([string[]]$Services)
+
+    $entries = New-Object System.Collections.Generic.List[string]
+    $entries.Add('capture_source=docker_image_inspect')
+    $entries.Add('platform=linux/amd64')
+    $entries.Add("tag=$Tag")
+
+    foreach ($service in $Services) {
+        $imageReference = "$Registry/$Namespace/easy-proxy-$service`:$Tag"
+        $jsonPath = Join-Path $buildLogRoot "local-image-$service.json"
+        $stderrPath = Join-Path $buildLogRoot "local-image-$service.stderr.txt"
+        $jsonText = Invoke-WslCapture -Arguments @(
+            '-d', $WslDistro, '--exec', 'docker', 'image', 'inspect', $imageReference
+        ) -StdoutPath $jsonPath -StderrPath $stderrPath
+
+        try {
+            $parsed = ConvertFrom-Json -InputObject $jsonText -ErrorAction Stop
+        }
+        catch {
+            throw "无法解析 $service 镜像 inspect JSON：$jsonPath"
+        }
+        $images = @($parsed)
+        if ($images.Count -ne 1) {
+            throw "$service 镜像 inspect 应返回 1 项，实际为 $($images.Count) 项：$jsonPath"
+        }
+
+        $image = $images[0]
+        $imageId = [string]$image.Id
+        $os = [string]$image.Os
+        $architecture = [string]$image.Architecture
+        $created = [string]$image.Created
+        $repoTags = @($image.RepoTags | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | ForEach-Object { [string]$_ })
+
+        if ($imageId -notmatch '^sha256:[0-9a-f]{64}$') {
+            throw "$service 镜像 ID 格式不合法：$imageId"
+        }
+        if ($os -ne 'linux' -or $architecture -ne 'amd64') {
+            throw "$service 镜像平台不是 linux/amd64：os=$os architecture=$architecture"
+        }
+        if ($repoTags -notcontains $imageReference) {
+            throw "$service 镜像缺少预期固定标签：$imageReference"
+        }
+        if ([string]::IsNullOrWhiteSpace($created)) {
+            throw "$service 镜像缺少创建时间：$jsonPath"
+        }
+
+        $entries.Add("service=$service")
+        $entries.Add("reference=$imageReference")
+        $entries.Add("id=$imageId")
+        $entries.Add("os=$os")
+        $entries.Add("architecture=$architecture")
+        $entries.Add("created=$created")
+    }
+
+    Write-LfText -Path (Join-Path $buildLogRoot 'local-images.txt') -Text (($entries -join "`n") + "`n")
+}
 New-Item -ItemType Directory -Path $buildLogRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $registryLogRoot -Force | Out-Null
 
@@ -208,6 +312,7 @@ try {
                 $Registry, $Namespace, $Tag, $service, 'load'
             ) -LogPath $logPath
         }
+        Invoke-CaptureLocalImageFacts -Services $services
     }
     else {
         $userName = Read-Host '请输入 ACR 用户名'
