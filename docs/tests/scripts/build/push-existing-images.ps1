@@ -148,7 +148,16 @@ function Invoke-WslDockerLogin {
 }
 
 if (-not (Test-Path -LiteralPath $runRoot -PathType Container)) {
-    throw "运行目录不存在：$runRoot"
+    $runDirectories = @(
+        $runRoot
+        $registryLogRoot
+        $validationLogRoot
+        (Join-Path $runRoot 'processed\validation')
+        (Join-Path $runRoot 'tmp')
+    )
+    foreach ($directory in $runDirectories) {
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    }
 }
 if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
     throw '未找到 wsl.exe。'
