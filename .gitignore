@@ -195,3 +195,12 @@ data/
 # 测试目标服务的 Nginx 配置目录（不是 Maven 构建输出）
 !docs/tests/configs/docker/target/
 !docs/tests/configs/docker/target/**
+
+# 测试固定数据与清单必须入库；业务运行数据仍由上面的 data/ 规则忽略。
+!docs/tests/data/
+!docs/tests/data/fixtures/
+!docs/tests/data/fixtures/**
+!docs/tests/data/generated/
+!docs/tests/data/generated/**
+!docs/tests/data/manifests/
+!docs/tests/data/manifests/**
