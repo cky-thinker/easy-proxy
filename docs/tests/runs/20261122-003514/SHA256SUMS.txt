@@ -1,0 +1,5 @@
+43abec78b71c095e325b86c4b67ab1d101c03e524a9a67ec7d8f639b04c2d0b3  defects/DEF-001.md
+9e6f0e0531ac94723ac6fa8db6b9da82b6c51320fe392efcae2746ae0b488507  manifest.md
+ae4a34e1c8192dab287358f583a5118a02569cdf6a0a394a474b68f20beb52db  raw/build/build-metadata.txt
+97ffad695faaa4d6f0005cfa668916820d54967544d0945c520f354a7a5c30fd  raw/validation/acr-logout.txt
+40c5bdffb2a61d84b0f531459da8e89f891f28fefbdf776ba2186a8c592babc3  raw/validation/test-assets-validation.txt

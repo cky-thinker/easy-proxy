@@ -1,0 +1,16 @@
+Maven 单元测试汇总（运行 20261122-003612）
+Git 提交：ec2342d14a4ad71407013e4c913118f420b9223f
+命令：mvn -B -ntp clean test
+
+server:
+- com.cky.proxy.server.DbInitTest：1 个测试，0 失败，0 错误，0 跳过
+- com.cky.proxy.server.service.UserServiceSecurityTest：3 个测试，0 失败，0 错误，0 跳过
+- 小计：4 个测试，0 失败，0 错误
+
+client:
+- com.cky.proxy.client.domain.AddressTest：1 个测试，0 失败，0 错误，0 跳过
+- 小计：1 个测试，0 失败，0 错误
+
+合计：5 个测试，0 失败，0 错误，0 跳过
+Reactor：BUILD SUCCESS
+源证据：raw/build/maven-clean-test.log

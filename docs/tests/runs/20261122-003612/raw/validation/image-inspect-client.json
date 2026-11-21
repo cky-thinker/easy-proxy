@@ -1,0 +1,74 @@
+[
+    {
+        "Id": "sha256:04afaabd71a1c7e3dd9eb8b38b07c20197d0d1fcfe8ae22b0dfb94ce569c4c43",
+        "RepoTags": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-003613-ec2342d"
+        ],
+        "RepoDigests": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client@sha256:04afaabd71a1c7e3dd9eb8b38b07c20197d0d1fcfe8ae22b0dfb94ce569c4c43"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-11-22T00:37:19.124288898+08:00",
+        "Config": {
+            "Env": [
+                "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "JAVA_HOME=/opt/java/openjdk",
+                "LANG=en_US.UTF-8",
+                "LANGUAGE=en_US:en",
+                "LC_ALL=en_US.UTF-8",
+                "JAVA_VERSION=jdk-25.0.5.1+2",
+                "TZ=Asia/Shanghai"
+            ],
+            "Entrypoint": [
+                "/app/start.sh",
+                "run"
+            ],
+            "WorkingDir": "/app",
+            "Labels": {
+                "org.opencontainers.image.created": "2026-11-06T10:28:50.132595+00:00",
+                "org.opencontainers.image.description": "The Ubuntu container image maintained by Canonical\n\nUbuntu is a Debian-based Linux operating system that runs from the desktop to the cloud, to all your internet connected things.\nIt is the world's most popular operating system across public clouds and OpenStack clouds.\nIt is the number one platform for containers; from Docker to Kubernetes to LXD, Ubuntu can run your containers at scale.\nFast, secure and simple, Ubuntu powers millions of PCs worldwide.\n",
+                "org.opencontainers.image.title": "ubuntu",
+                "org.opencontainers.image.version": "26.04"
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 621197563,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:2a89eb4dbc78f8fe790775a4e807e1355ba2f6b145c8dd7a267a782df1605124",
+                "sha256:758b22fe15be2c330dcead0c1b50476c074e113ec507627c6430337ffc9daa5e",
+                "sha256:179ddf851a1801d1aca350f671844552efb0454a34e25fc96da80314e93727af",
+                "sha256:76c28429da1d04831572409a540f84fe03eaa0aa9b761aaf82a87d1e73be819c",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "sha256:03428c5abda160e0ef3cece1251764825c8502830a21d042fd9e14732585407d",
+                "sha256:2225007140195c74790015ed4237b0b8dc5fdeab515f195cc44134234fdddba1",
+                "sha256:150a0b1d407461ff6ae738091a07b11b1cb243ca5151fee26b6138ee8f62f13d",
+                "sha256:82129d37e2c39a3ed5f9d30d080506ac95cb3eff0a263078b11631daa4e24451",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "sha256:8e120216b23aa00dc417990a39d47fbd5de45e370e3838b2f45f33172d94e997",
+                "sha256:0bc6c7aa4ca8bb0a0e32e6bbcc564b1a2b1b199c77ea70581225f0557fad6938"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-11-21T16:37:19.43395387Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "digest": "sha256:04afaabd71a1c7e3dd9eb8b38b07c20197d0d1fcfe8ae22b0dfb94ce569c4c43",
+            "size": 2563,
+            "annotations": {
+                "config.digest": "sha256:ce96b1986f074fe3556b2039ace9e8525bfa07a19049a29d79e4109bf81fb699"
+            }
+        },
+        "Identity": {
+            "Build": [
+                {
+                    "Ref": "tbg0gume9zweftswlrw5i5v7p",
+                    "CreatedAt": "2026-11-22T00:37:19.568611784+08:00"
+                }
+            ]
+        }
+    }
+]

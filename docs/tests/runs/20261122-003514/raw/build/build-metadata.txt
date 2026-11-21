@@ -1,0 +1,9 @@
+run_id=20261122-003514
+branch=develop
+commit=ed30a35ac7492c17a28e395a5f415e26a70318bf
+registry=registry.cn-hangzhou.aliyuncs.com
+namespace=ckyspace
+tag=test-20261122-003515-ed30a35
+platform=linux/amd64
+allow_failed_tests=false
+skip_push=true
