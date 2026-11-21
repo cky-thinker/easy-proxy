@@ -26,7 +26,7 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: mvn clean package -DskipTests
+        run: mvn clean package
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

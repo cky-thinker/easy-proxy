@@ -28,85 +28,92 @@ Easy Proxy 是一个基于 Java 25 原生 NIO 和 HttpServer 开发的高性能�
 
 ## Docker快速部署
 
+镜像必须使用固定测试标签。下例中的 `EASY_PROXY_VERSION` 需要替换为实际构建标签，不得使用浮动标签。
+
 ### 服务端部署
 
 ```bash
-# api服务
+export EASY_PROXY_VERSION=test-20261122-000000-abcdef0
+export EASY_PROXY_REGISTRY=registry.cn-hangzhou.aliyuncs.com/ckyspace
 
-docker pull yudejijie/easy-proxy-server:latest
+docker pull ${EASY_PROXY_REGISTRY}/easy-proxy-server:${EASY_PROXY_VERSION}
 docker rm -f easy-proxy-server
 docker run -d \
   --name easy-proxy-server \
   --network host \
   --restart always \
-  -v $(pwd)/easy-proxy-server/config:/app/config \
-  -v $(pwd)/easy-proxy-server/data:/app/data \
-  -v $(pwd)/easy-proxy-server/logs:/app/logs \
-  yudejijie/easy-proxy-server:latest
+  -v $(pwd)/server/server.yaml:/app/server.yaml:ro \
+  -v $(pwd)/server/config:/app/config \
+  -v $(pwd)/server/data:/app/data \
+  -v $(pwd)/server/logs:/app/logs \
+  ${EASY_PROXY_REGISTRY}/easy-proxy-server:${EASY_PROXY_VERSION}
 
-# web管理界面
-
-docker pull yudejijie/easy-proxy-web:latest
+# Web 管理界面
+docker pull ${EASY_PROXY_REGISTRY}/easy-proxy-web:${EASY_PROXY_VERSION}
 docker rm -f easy-proxy-web
 docker run -d \
   --name easy-proxy-web \
   --network host \
   --restart always \
-  yudejijie/easy-proxy-web:latest
+  ${EASY_PROXY_REGISTRY}/easy-proxy-web:${EASY_PROXY_VERSION}
 ```
 
 #### 配置流程
 
-1. 访问 `http://server-ip:21093` 即可打开 Web 管理界面。(**server-ip为服务端ip**)
+1. 访问 `http://server-ip:21092` 打开 Web 管理界面。
 2. 初始化管理员账号。
-3. 新建客户端，生成token。(**客户端需要使用该token与服务端建立连接**)
+3. 新建客户端，生成 Token；客户端需要使用该 Token 与服务端建立连接。
 4. 新建转发规则，指定公网端口和客户端转发地址。
 
 ### 客户端部署
 
 ```bash
-# 客户端服务
-docker pull yudejijie/easy-proxy-client:latest
+export EASY_PROXY_VERSION=test-20261122-000000-abcdef0
+export EASY_PROXY_REGISTRY=registry.cn-hangzhou.aliyuncs.com/ckyspace
+
+docker pull ${EASY_PROXY_REGISTRY}/easy-proxy-client:${EASY_PROXY_VERSION}
 docker rm -f easy-proxy-client
 docker run -d \
   --name easy-proxy-client \
   --network host \
   --restart always \
-  -v $(pwd)/easy-proxy-client/config:/app/config \
-  -v $(pwd)/easy-proxy-client/logs:/app/logs \
-  yudejijie/easy-proxy-client:latest
+  -v $(pwd)/client/config:/app/config \
+  -v $(pwd)/client/logs:/app/logs \
+  ${EASY_PROXY_REGISTRY}/easy-proxy-client:${EASY_PROXY_VERSION}
 ```
 
 #### 配置流程
 
-1. 服务启动成功，会在 `config` 目录下生成 `config.yaml` 文件。
-2. 修改 `config.yaml` 文件，配置服务端地址和token。
+1. 服务启动后在 `config` 目录生成 `config.yaml`。
+2. 修改配置中的服务端地址、控制端口和 Web 端口，并填入 Web 管理界面生成的客户端 Token。
 
 ```yaml
 server:
-  address: "server-ip" # 服务端ip
-  port: 21092
-  token: "client-token" # 客户端token
+  ip: "server-ip"
+  port: 21090
+  webPort: 21092
+  token: "<WEB_UI_GENERATED_CLIENT_TOKEN>"
 ```
 
-1. 重启客户端服务，使配置生效。
+3. 重启客户端使配置生效。
+
 ```bash
 docker restart easy-proxy-client
 ```
-2. 查看管理配置页面，客户端应该已在线。(如果未在线，查看常见问题排查)
 
 ## 常见问题排查
 
 ### 服务端无法访问、代理服务无法访问
 
-1. 确保防火墙或安全策略开放对应的端口。
-- 端口21090: 流量转发端口
-- 端口21092: web管理页面端口
-- 代理端口：根据配置的转发规则，开放对应公网端口。
+1. 确保防火墙或安全策略开放对应端口。
+- 端口 `21090`：客户端与服务端 TLS 控制通道。
+- 端口 `21091`：仅云服务器本机访问的服务端 API。
+- 端口 `21092`：Web 管理页面和证书公开下载入口。
+- 代理端口：根据转发规则开放对应公网端口。
 
 ### 客户端无法连接服务端
 
-1. 确保客户端已配置正确的服务端地址和token。
+1. 确保客户端配置了正确的服务端地址、端口和 Token。
 
 ## 技术栈
 

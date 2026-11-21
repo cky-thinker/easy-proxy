@@ -4,7 +4,7 @@ services:
     build:
       context: ./easy-proxy-server
       dockerfile: Dockerfile
-    image: easy-proxy-server:latest
+    image: "easy-proxy-server:${EASY_PROXY_VERSION:?EASY_PROXY_VERSION must be set}"
     container_name: easy-proxy-server
     ports:
       - "21090:21090" # Proxy Port
@@ -17,7 +17,7 @@ services:
     build:
       context: ./easy-proxy-web
       dockerfile: Dockerfile
-    image: easy-proxy-web:latest
+    image: "easy-proxy-web:${EASY_PROXY_VERSION:?EASY_PROXY_VERSION must be set}"
     container_name: easy-proxy-web
     ports:
       - "21092:21092" # Web Interface Port
