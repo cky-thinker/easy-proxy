@@ -1,4 +1,4 @@
-# deploy.ps1
+﻿# deploy.ps1
 
 # Ensure we are in the project root (assuming script is in /deploy)
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
