@@ -1,0 +1,23 @@
+server:
+  proxyPort: 21090
+  webPort: 21091
+  # 自动化登录通过 RSA 加密密码完成，不依赖图片验证码。
+  captchaImageEnable: false
+  publicHost: "68.64.181.242"
+  certValidityDays: 3650
+  certPassword: "<CHANGE_ME_STRONG_RANDOM_CERT_PASSWORD>"
+  webhook:
+  jwtSecret: "<CHANGE_ME_STRONG_RANDOM_JWT_SECRET>"
+  jwtExpireMinutes: 60
+  loginFailureThreshold: 5
+  loginFailureWindowMinutes: 15
+  loginLockMinutes: 15
+  loginIpFailureThreshold: 20
+  loginIpWindowMinutes: 10
+  loginIpBlockMinutes: 10
+
+db:
+  url: jdbc:h2:./data/database
+  username: "<CHANGE_ME_DB_USER>"
+  password: "<CHANGE_ME_STRONG_RANDOM_DB_PASSWORD>"
+  h2ConsoleEnable: false

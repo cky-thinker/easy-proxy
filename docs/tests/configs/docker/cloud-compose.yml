@@ -9,8 +9,10 @@ services:
       SERVER_PUBLIC_HOST: "68.64.181.242"
       SERVER_PROXY_PORT: "21090"
       SERVER_WEB_PORT: "21091"
-      SERVER_CAPTCHA_IMAGE_ENABLE: "true"
+      # 自动化验收通过 API 初始化/登录，不依赖图片验证码。
+      SERVER_CAPTCHA_IMAGE_ENABLE: "false"
       SERVER_JWT_SECRET: "${SERVER_JWT_SECRET:?SERVER_JWT_SECRET must be set}"
+      SERVER_CERT_PASSWORD: "${SERVER_CERT_PASSWORD:?SERVER_CERT_PASSWORD must be set}"
       SERVER_JWT_EXPIRE_MINUTES: "${SERVER_JWT_EXPIRE_MINUTES:-60}"
     volumes:
       - ./server/server.yaml:/app/server.yaml:ro

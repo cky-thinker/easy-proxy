@@ -10,8 +10,11 @@ services:
       - ./logs:/app/logs
 
   target:
-    image: nginx:stable-alpine
+    image: "${TARGET_IMAGE:?TARGET_IMAGE must be set}"
     container_name: easy-proxy-target
     restart: unless-stopped
     ports:
       - "18080:80"
+    volumes:
+      - ./fixtures:/usr/share/nginx/html/fixtures:ro
+      - ./target/nginx.conf:/etc/nginx/conf.d/default.conf:ro
