@@ -9,8 +9,8 @@
 | 首次发现运行 | `20261122-021321` |
 | 触发用例 | T-37、测试资产静态校验 |
 | 修复提交 | `a53804f0e4047c1ac7b045544626bd395cda7df1` |
-| 验证运行 | 待新 T-37 运行验证 |
-| 状态 | 已修复，待回归验证 |
+| 验证运行 | `20261122-022144` |
+| 状态 | 已关闭（回归通过） |
 
 ## 现象
 
@@ -49,11 +49,14 @@
 
 ## 验证证据
 
-- 首次失败：`docs/tests/runs/20261122-021321/raw/validation/test-assets-validation.txt`
-- 原始字节：`docs/tests/runs/20261122-021050/raw/build/local-image-*.json.original-crlf.bin`
-- 修复脚本：`docs/tests/scripts/build/build-and-push-images.ps1`
-- 验证方式：使用全新 RunId 重新执行 T-37，再使用另一个全新 RunId 执行静态校验。
-
+- 验证 T-37：`docs/tests/runs/20261122-022004/`，13 个单元测试全部通过，三套镜像构建成功，3 个镜像 JSON 均由脚本自动生成为 UTF-8 无 BOM、LF。
+- 静态回归：`docs/tests/runs/20261122-022144/raw/validation/test-assets-validation.txt`，16 项检查全部通过。
+- 关闭时间：`2026-11-22 02:21:49 +08:00`。
+- 首次失败：`docs/tests/runs/20261122-021321/raw/validation/test-assets-validation.txt`。
+- 原始字节：`docs/tests/runs/20261122-021050/raw/build/local-image-*.json.original-crlf.bin`。
+- 修复脚本：`docs/tests/scripts/build/build-and-push-images.ps1`。
+- 验证方式：使用全新 RunId `20261122-022004` 重新执行 T-37，再使用全新 RunId `20261122-022144` 执行静态校验。
+- 关闭结论：新轮次证据格式符合要求，静态校验全部通过，缺陷关闭；T-38/T-39 继续使用同一构建基线。
 ## 回归范围
 
 - T-37 本地镜像构建与事实采集。
