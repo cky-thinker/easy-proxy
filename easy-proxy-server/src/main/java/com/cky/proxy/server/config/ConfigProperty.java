@@ -82,6 +82,16 @@ public class ConfigProperty {
             this.server.setWebhook(webhook);
         }
 
+        String jwtSecret = System.getenv("SERVER_JWT_SECRET");
+        if (StrUtil.isNotBlank(jwtSecret)) {
+            this.server.setJwtSecret(jwtSecret);
+        }
+
+        String jwtExpireMinutes = System.getenv("SERVER_JWT_EXPIRE_MINUTES");
+        if (StrUtil.isNotBlank(jwtExpireMinutes)) {
+            this.server.setJwtExpireMinutes(Integer.parseInt(jwtExpireMinutes));
+        }
+
         String loginFailureThreshold = System.getenv("SERVER_LOGIN_FAILURE_THRESHOLD");
         if (StrUtil.isNotBlank(loginFailureThreshold)) {
             this.server.setLoginFailureThreshold(Integer.parseInt(loginFailureThreshold));

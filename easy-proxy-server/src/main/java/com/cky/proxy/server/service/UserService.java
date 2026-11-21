@@ -23,6 +23,7 @@ import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.PageUtil;
 import com.cky.proxy.server.util.PasswordSecurityUtil;
 import com.cky.proxy.server.util.PasswordTransportCryptoUtil;
+import com.cky.proxy.server.util.JwtTokenUtil;
 
 import cn.hutool.cache.CacheUtil;
 import cn.hutool.cache.impl.TimedCache;
@@ -32,7 +33,6 @@ import cn.hutool.captcha.generator.RandomGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.db.Page;
-import cn.hutool.jwt.JWT;
 
 public class UserService {
     private static final long CAPTCHA_EXPIRE_TIME = 5 * 60 * 1000L;
@@ -147,13 +147,8 @@ public class UserService {
 
             clearFailures(username, ip);
 
-            String token = JWT.create()
-                    .setIssuer("easy-proxy")
-                    .setExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
-                    .setPayload("userId", sysUser.getId())
-                    .setPayload("username", sysUser.getUsername())
-                    .setKey("easy-proxy-secret-key-for-jwt-authentication".getBytes())
-                    .sign();
+            String token = JwtTokenUtil.createToken(sysUser);
+
 
             sysUser.setLoginTime(new Date());
             sysUser.setUpdateTime(new Date());
@@ -170,6 +165,26 @@ public class UserService {
         }
     }
 
+    public Integer authenticateToken(String token) {
+        if (StrUtil.isBlank(token)) {
+            return null;
+        }
+
+        try {
+            Integer userId = JwtTokenUtil.verifyAndGetUserId(token);
+            if (userId == null) {
+                return null;
+            }
+
+            SysUser user = userMapper.selectById(userId);
+            if (user == null || !Boolean.TRUE.equals(user.getEnableFlag())) {
+                return null;
+            }
+            return userId;
+        } catch (Exception e) {
+            return null;
+        }
+    }
     public CaptchaImage captchaImage() {
         String captchaId = IdUtil.simpleUUID();
 

@@ -1,9 +1,9 @@
 package com.cky.proxy.server.http;
 
+import com.cky.proxy.server.util.BeanContext;
 import com.cky.proxy.server.util.JsonUtil;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import cn.hutool.jwt.JWTUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,7 +18,6 @@ public class HttpRouter implements HttpHandler {
     private static final Logger log = LoggerFactory.getLogger(HttpRouter.class);
     
     private final List<Route> routes = new ArrayList<>();
-    private final byte[] jwtSecret = "easy-proxy-secret-key-for-jwt-authentication".getBytes();
 
     private static class Route {
         String method;
@@ -73,8 +72,9 @@ public class HttpRouter implements HttpHandler {
                     return;
                 }
                 String token = authHeader.substring(7);
-                if (!JWTUtil.verify(token, jwtSecret)) {
-                    sendError(exchange, 401, "Invalid token");
+                if (BeanContext.getUserService() == null
+                        || BeanContext.getUserService().authenticateToken(token) == null) {
+                    sendError(exchange, 401, "Unauthorized");
                     return;
                 }
             }

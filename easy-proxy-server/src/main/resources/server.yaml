@@ -6,6 +6,8 @@ server:
     certValidityDays: 3650
     certPassword: easyproxy@2008
     webhook: 
+    jwtSecret: ""
+    jwtExpireMinutes: 60
     loginFailureThreshold: 5
     loginFailureWindowMinutes: 15
     loginLockMinutes: 15

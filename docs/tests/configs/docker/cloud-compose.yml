@@ -10,6 +10,8 @@ services:
       SERVER_PROXY_PORT: "21090"
       SERVER_WEB_PORT: "21091"
       SERVER_CAPTCHA_IMAGE_ENABLE: "true"
+      SERVER_JWT_SECRET: "${SERVER_JWT_SECRET:?SERVER_JWT_SECRET must be set}"
+      SERVER_JWT_EXPIRE_MINUTES: "${SERVER_JWT_EXPIRE_MINUTES:-60}"
     volumes:
       - ./server/server.yaml:/app/server.yaml:ro
       - ./server/config:/app/config

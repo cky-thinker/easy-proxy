@@ -11,6 +11,8 @@ public class ServerProperty {
     private int certValidityDays;
     private String certPassword;
     private String webhook;
+    private String jwtSecret;
+    private Integer jwtExpireMinutes = 60;
     private Integer loginFailureThreshold = 5;
     private Integer loginFailureWindowMinutes = 15;
     private Integer loginLockMinutes = 15;
