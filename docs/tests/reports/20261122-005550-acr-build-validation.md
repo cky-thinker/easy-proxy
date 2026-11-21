@@ -2,9 +2,9 @@
 
 ## 结论
 
-- 总体判定：进行中
-- 可发布范围：待定
-- 主要阻断项：待 T-37/T-38/T-39 完成后更新
+- 总体判定：`SUPERSEDED`
+- 可发布范围：不可发布
+- 主要阻断项：web 构建上下文过大导致取消；由 `DEF-003` 修复后的 `20261122-005952` 取代
 
 ## 测试范围
 
@@ -22,10 +22,10 @@
 
 | 维度 | 结果 | 证据 |
 | --- | --- | --- |
-| 单元测试 | 待执行 | `raw/build/maven-clean-test.log` |
-| 镜像产物 | 待生成 | `raw/build/` |
-| ACR 发布 | 待执行 | `raw/registry/` |
-| 产物一致性 | 待验证 | `raw/validation/` |
+| 单元测试 | 通过：`BUILD SUCCESS` | [测试日志](../runs/20261122-005550/raw/build/maven-clean-test.log) |
+| 镜像产物 | server/client 成功；web 取消 | [web 构建日志](../runs/20261122-005550/raw/build/build-load-web.log) |
+| ACR 发布 | 未执行 | 无 |
+| 产物一致性 | 未执行 | 无 |
 | 安全与脱敏 | 预检通过 | `raw/validation/test-assets-validation.txt` |
 
 ## 缺陷
@@ -43,4 +43,4 @@
 - 运行清单：[manifest.md](../runs/20261122-005550/manifest.md)
 - 原始证据：`docs/tests/runs/20261122-005550/raw/`
 - 派生结果：`docs/tests/runs/20261122-005550/processed/`
-- 哈希清单：`docs/tests/runs/20261122-005550/SHA256SUMS.txt`（待生成）
+- 哈希清单：`docs/tests/runs/20261122-005550/SHA256SUMS.txt`

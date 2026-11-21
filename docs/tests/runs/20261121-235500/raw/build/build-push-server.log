@@ -1,0 +1,56 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 755B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:25-jdk
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B 0.0s done
+#3 DONE 0.0s
+
+#4 [1/7] FROM docker.io/library/eclipse-temurin:25-jdk@sha256:ce2ef9d2d67a68de5e196d4de9d743327c44a10b57fe02ec39f572c652cacfd3
+#4 resolve docker.io/library/eclipse-temurin:25-jdk@sha256:ce2ef9d2d67a68de5e196d4de9d743327c44a10b57fe02ec39f572c652cacfd3 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 22.61MB 2.0s done
+#5 DONE 2.0s
+
+#6 [2/7] WORKDIR /app
+#6 CACHED
+
+#7 [3/7] COPY target/*-fat.jar app.jar
+#7 DONE 0.1s
+
+#8 [4/7] COPY deploy/start.sh /app/start.sh
+#8 DONE 0.0s
+
+#9 [5/7] RUN chmod +x /app/start.sh
+#9 DONE 0.2s
+
+#10 [6/7] RUN mkdir -p /app/logs
+#10 DONE 0.4s
+
+#11 [7/7] RUN mkdir -p /app/config
+#11 DONE 0.3s
+
+#12 exporting to image
+#12 exporting layers
+#12 exporting layers 1.0s done
+#12 exporting manifest sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302 0.0s done
+#12 exporting config sha256:0862a75e41b2424928264de790d389f7d0a5bf5bdd71483253074d4ebc1555b5 0.0s done
+#12 naming to registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:exploratory-20261121-233608-4e68667-clean done
+#12 pushing layers
+#12 ...
+
+#13 [auth] ckyspace/easy-proxy-server:pull,push token for registry.cn-hangzhou.aliyuncs.com
+#13 DONE 0.0s
+
+#12 exporting to image
+#12 pushing layers 3.5s done
+#12 pushing manifest for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:exploratory-20261121-233608-4e68667-clean@sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302
+#12 pushing manifest for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:exploratory-20261121-233608-4e68667-clean@sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302 0.2s done
+#12 DONE 4.8s

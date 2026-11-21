@@ -1,0 +1,11 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.hawtjni.runtime.Library in an unnamed module (file:/D:/software/maven/apache-maven-3.6.3/bin/../lib/jansi-1.17.1.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)
+Maven home: D:\software\maven\apache-maven-3.6.3\bin\..
+Java version: 25.0.3, vendor: Azul Systems, Inc., runtime: C:\Program Files\Zulu\zulu-25
+Default locale: zh_CN, platform encoding: UTF-8
+OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
+

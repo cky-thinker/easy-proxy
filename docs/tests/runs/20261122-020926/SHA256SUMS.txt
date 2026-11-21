@@ -1,0 +1,2 @@
+4dc296a28efa1bdddfce79d031fe570af47df41343174e9d02b41c2247789704  manifest.md
+d2da11bfc529dd3d5bd5258f00ebc93f93e0f1dfac4db4ca1e0e1ce0a5c1a6ec  raw/validation/test-assets-validation.txt

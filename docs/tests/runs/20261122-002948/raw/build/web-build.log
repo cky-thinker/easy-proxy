@@ -1,0 +1,39 @@
+
+> easy-proxy@0.0.0 build
+> run-p type-check "build-only {@}" --
+
+
+> easy-proxy@0.0.0 type-check
+> vue-tsc --build
+
+
+> easy-proxy@0.0.0 build-only
+> vite build
+
+vite v7.3.0 building client environment for production...
+transforming...
+✓ 2153 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                0.51 kB │ gzip:   0.34 kB
+dist/assets/logo-toDfXuZN.png                 39.52 kB
+dist/assets/LoginView-DM2MQhz9.css             0.28 kB │ gzip:   0.15 kB
+dist/assets/ClientRulesView-CfJInPH0.css       0.34 kB │ gzip:   0.22 kB
+dist/assets/PageIllustration-B3XbEgHI.css      2.59 kB │ gzip:   0.54 kB
+dist/assets/index-CH6Sgk9m.css               376.40 kB │ gzip:  52.55 kB
+dist/assets/proxyClient-Cu4miVYf.js            0.69 kB │ gzip:   0.36 kB
+dist/assets/InitView-C-HcxEyB.js               3.64 kB │ gzip:   1.66 kB
+dist/assets/DashboardView-Dt3gSSKK.js          7.51 kB │ gzip:   2.84 kB
+dist/assets/PageIllustration-CpCDG5EC.js       9.32 kB │ gzip:   2.28 kB
+dist/assets/LoginView-CeBbGnyh.js              9.45 kB │ gzip:   3.64 kB
+dist/assets/UserManageView-B0o4CnDC.js        11.64 kB │ gzip:   4.37 kB
+dist/assets/ClientManageView-B2g3yx6x.js      12.09 kB │ gzip:   4.76 kB
+dist/assets/passwordCrypto-Ct8CHlqn.js       287.41 kB │ gzip:  77.96 kB
+dist/assets/ClientRulesView-CEOI7zcP.js    1,054.05 kB │ gzip: 348.52 kB
+dist/assets/index-AQb14FFe.js              1,211.58 kB │ gzip: 390.29 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 13.15s

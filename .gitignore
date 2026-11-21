@@ -191,6 +191,7 @@ data/
 .trae/
 .vscode/
 *.log
+!docs/tests/runs/**/raw/**/*.log
 *.jfr
 # 测试目标服务的 Nginx 配置目录（不是 Maven 构建输出）
 !docs/tests/configs/docker/target/

@@ -1,0 +1,52 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 286B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/eclipse-temurin:25-jdk
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/7] FROM docker.io/library/eclipse-temurin:25-jdk@sha256:ce2ef9d2d67a68de5e196d4de9d743327c44a10b57fe02ec39f572c652cacfd3
+#4 resolve docker.io/library/eclipse-temurin:25-jdk@sha256:ce2ef9d2d67a68de5e196d4de9d743327c44a10b57fe02ec39f572c652cacfd3 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 158B 0.6s done
+#5 DONE 0.6s
+
+#6 [4/7] COPY deploy/start.sh /app/start.sh
+#6 CACHED
+
+#7 [6/7] RUN mkdir -p /app/logs
+#7 CACHED
+
+#8 [2/7] WORKDIR /app
+#8 CACHED
+
+#9 [3/7] COPY target/*-fat.jar app.jar
+#9 CACHED
+
+#10 [5/7] RUN chmod +x /app/start.sh
+#10 CACHED
+
+#11 [7/7] RUN mkdir -p /app/config
+#11 CACHED
+
+#12 [auth] ckyspace/easy-proxy-client:pull,push token for registry.cn-hangzhou.aliyuncs.com
+#12 DONE 0.0s
+
+#13 exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3 done
+#13 exporting config sha256:cc9b04b6cc2189f4a8fba495670835ab0bb9e9890d28f5ca370ede922994988d done
+#13 naming to registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:exploratory-20261121-233608-4e68667-clean done
+#13 pushing layers
+#13 pushing layers 0.3s done
+#13 pushing manifest for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:exploratory-20261121-233608-4e68667-clean@sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3
+#13 pushing manifest for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:exploratory-20261121-233608-4e68667-clean@sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3 0.1s done
+#13 DONE 0.4s
