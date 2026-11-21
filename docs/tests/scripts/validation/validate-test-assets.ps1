@@ -267,6 +267,18 @@ foreach ($file in $psFiles) {
         $psFailures.Add($file.FullName.Substring($repoRoot.Length + 1))
     }
 }
+$webDockerfilePath = Join-Path $repoRoot 'easy-proxy-web\Dockerfile'
+$webNginxPath = Join-Path $repoRoot 'easy-proxy-web\nginx.conf'
+$rootComposePath = Join-Path $repoRoot 'docker-compose.yml'
+$webDockerfileText = [IO.File]::ReadAllText($webDockerfilePath)
+$webNginxText = [IO.File]::ReadAllText($webNginxPath)
+$rootComposeText = [IO.File]::ReadAllText($rootComposePath)
+$webPortOk = $webDockerfileText -match '(?m)^EXPOSE 21092\s*$' -and
+    $webNginxText -match '(?m)^\s*listen 21092;\s*$' -and
+    $rootComposeText -match '(?m)^\s*-\s*"21092:21092"' -and
+    $rootComposeText -match 'easy-proxy-web/nginx\.conf' -and
+    $rootComposeText -notmatch '21093|nginx-docker\.conf'
+Add-Check -Name 'Web 端口与配置一致性' -Passed $webPortOk -Detail $(if ($webPortOk) { 'Dockerfile、Nginx 与根 Compose 均为 21092，且挂载文件存在' } else { 'Dockerfile、Nginx、Compose 端口或挂载路径不一致' })
 Add-Check -Name 'PowerShell 语法' -Passed ($psFailures.Count -eq 0) -Detail $(if ($psFailures.Count -eq 0) { "检查 $($psFiles.Count) 个脚本" } else { $psFailures -join ', ' })
 
 $authEntry = Get-Content -LiteralPath (Join-Path $runRoot 'raw\validation\acr-logout.txt') -Raw -ErrorAction SilentlyContinue
