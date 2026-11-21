@@ -35,9 +35,23 @@ public class ProxyClientService {
     private final ProxyClientRuleMapper proxyClientRuleMapper = BeanContext.getProxyClientRuleMapper();
     private final SysLogMapper sysLogMapper = BeanContext.getSysLogMapper();
 
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
-            .build();
+    private static volatile HttpClient httpClient;
+
+    private static HttpClient getHttpClient() {
+        HttpClient client = httpClient;
+        if (client == null) {
+            synchronized (ProxyClientService.class) {
+                client = httpClient;
+                if (client == null) {
+                    client = HttpClient.newBuilder()
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build();
+                    httpClient = client;
+                }
+            }
+        }
+        return client;
+    }
 
     /**
      * 查询所有代理客户端
@@ -206,7 +220,7 @@ public class ProxyClientService {
                         .POST(HttpRequest.BodyPublishers.ofString(clientStatus.toJson()))
                         .build();
                         
-                HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                getHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
                         .whenComplete((response, throwable) -> {
                             if (throwable != null) {
                                 log.error("Webhook推送失败, token: {}, error: {}", client.getToken(), throwable.getMessage());
