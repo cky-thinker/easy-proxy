@@ -1,0 +1,13 @@
+checked_at=2026-11-22T00:03:56+08:00
+hostname=DiskStation
+ssh_user=chenkeyudev
+identity=uid=1029(chenkeyudev) gid=100(users) groups=100(users),101(administrators),1023(http),65536(docker)
+docker_socket=root:docker 660 /var/run/docker.sock
+docker_config=root:root 600 /var/packages/ContainerManager/etc/dockerd.json
+docker_daemon_active=active
+synogroup_get=no
+synogroup_error=bash: line 9: /usr/syno/sbin/synogroup: Permission denied 
+DOCKER_ACCESS=yes
+docker_server=24.0.2
+docker_client=24.0.2
+exit_code=0

@@ -1,0 +1,86 @@
+[
+    {
+        "Id": "sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81",
+        "RepoTags": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:exploratory-20261121-233608-4e68667-clean",
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:exploratory-20261121-235500-4e68667-clean"
+        ],
+        "RepoDigests": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web@sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-11-21T23:32:50.592839741+08:00",
+        "Config": {
+            "ExposedPorts": {
+                "21093/tcp": {},
+                "80/tcp": {}
+            },
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "NGINX_VERSION=1.30.7",
+                "PKG_RELEASE=1",
+                "DYNPKG_RELEASE=1",
+                "NJS_VERSION=1.0.2",
+                "NJS_RELEASE=1",
+                "ACME_VERSION=0.4.2"
+            ],
+            "Entrypoint": [
+                "/docker-entrypoint.sh"
+            ],
+            "Cmd": [
+                "nginx",
+                "-g",
+                "daemon off;"
+            ],
+            "WorkingDir": "/",
+            "Labels": {
+                "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+            },
+            "StopSignal": "SIGQUIT",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 96707336,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:75f1d9657d880da5f75298e8f40e9928bb6e260c50d26f97af196845307e3064",
+                "sha256:8e99d0d5ac98b6f187d4829b75455eda450be324244b4af39239bc54ced984b7",
+                "sha256:33ea3d8ba714b8d2685df2ff1b17d16502dca547570f089fe7bd57cce68052b7",
+                "sha256:79143eefbb3dec28f146ecd11c7bfcb845447194a62c2da11238f94895c75144",
+                "sha256:4faadc94c8436387e259f78acb74db251c37893b22ba347d2f6bc922cfc6871d",
+                "sha256:9c6d62ce1209b02439c7856711cb512515b066847f30a4fa72bffa2d31d9e19e",
+                "sha256:e5ac1fcefe9b9af6b1004a10de28c38993a18308726a8234218c8b685c6628f1",
+                "sha256:b6ceaecf6b44db4086a8bed457f76f4a65ad36246c01a4854633d849c7b58009",
+                "sha256:66fe6380e36cd5e445f0f12ab17744404fdb08c1c55aae3105f157b7c62e1dec",
+                "sha256:4d9f0923c38f80fc8fc41b7b6f0889272bde128f459667834f89cf84e31b19c3"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-11-21T15:37:35.343177965Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "digest": "sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81",
+            "size": 2188
+        },
+        "Identity": {
+            "Pull": [
+                {
+                    "Repository": "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web"
+                }
+            ],
+            "Build": [
+                {
+                    "Ref": "fhqbuh9t07r8nkitafzznnips",
+                    "CreatedAt": "2026-11-21T23:37:19.273000396+08:00"
+                },
+                {
+                    "Ref": "ve2jqdtwnoii3dsniplqefzck",
+                    "CreatedAt": "2026-11-21T23:33:43.739254013+08:00"
+                }
+            ]
+        }
+    }
+]

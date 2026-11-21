@@ -1,0 +1,81 @@
+[
+    {
+        "Id": "sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302",
+        "RepoTags": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:exploratory-20261121-233608-4e68667-clean"
+        ],
+        "RepoDigests": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server@sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-11-21T23:36:20.69391002+08:00",
+        "Config": {
+            "ExposedPorts": {
+                "21090/tcp": {},
+                "21091/tcp": {}
+            },
+            "Env": [
+                "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "JAVA_HOME=/opt/java/openjdk",
+                "LANG=en_US.UTF-8",
+                "LANGUAGE=en_US:en",
+                "LC_ALL=en_US.UTF-8",
+                "JAVA_VERSION=jdk-25.0.5.1+2",
+                "TZ=Asia/Shanghai",
+                "JAVA_OPTS=-Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai -Xlog:gc*:file=/app/logs/gc.log:time,tid,tags:filecount=2,filesize=10m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/"
+            ],
+            "Entrypoint": [
+                "/app/start.sh",
+                "run"
+            ],
+            "WorkingDir": "/app",
+            "Labels": {
+                "org.opencontainers.image.created": "2026-11-06T10:28:50.132595+00:00",
+                "org.opencontainers.image.description": "The Ubuntu container image maintained by Canonical\n\nUbuntu is a Debian-based Linux operating system that runs from the desktop to the cloud, to all your internet connected things.\nIt is the world's most popular operating system across public clouds and OpenStack clouds.\nIt is the number one platform for containers; from Docker to Kubernetes to LXD, Ubuntu can run your containers at scale.\nFast, secure and simple, Ubuntu powers millions of PCs worldwide.\n",
+                "org.opencontainers.image.title": "ubuntu",
+                "org.opencontainers.image.version": "26.04"
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 653109409,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:2a89eb4dbc78f8fe790775a4e807e1355ba2f6b145c8dd7a267a782df1605124",
+                "sha256:758b22fe15be2c330dcead0c1b50476c074e113ec507627c6430337ffc9daa5e",
+                "sha256:179ddf851a1801d1aca350f671844552efb0454a34e25fc96da80314e93727af",
+                "sha256:76c28429da1d04831572409a540f84fe03eaa0aa9b761aaf82a87d1e73be819c",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "sha256:03428c5abda160e0ef3cece1251764825c8502830a21d042fd9e14732585407d",
+                "sha256:2225007140195c74790015ed4237b0b8dc5fdeab515f195cc44134234fdddba1",
+                "sha256:85857177f338c7de7efd9dfcc596bcedc2211732b538b0b1c3878852c8b7463a",
+                "sha256:1d49e717eb3c42da25c2a3c6ec85f9c2963ec65f3c57b9beede9ce41ce157e8a",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "sha256:1739b591a1f55d258c813e5e26b614d399b9da1e14e143c15ab9c63db212b650",
+                "sha256:2dbbce47f54cc56579980679b5dcd048569c8102c8c6430195383b570bd6133f"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-11-21T15:37:35.574386094Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "digest": "sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302",
+            "size": 2564
+        },
+        "Identity": {
+            "Pull": [
+                {
+                    "Repository": "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server"
+                }
+            ],
+            "Build": [
+                {
+                    "Ref": "km11lcdf7c1dh1m3p34p63lti",
+                    "CreatedAt": "2026-11-21T23:36:21.72774711+08:00"
+                }
+            ]
+        }
+    }
+]

@@ -1,0 +1,9 @@
+checked_at=2026-11-22T00:00:22.7054647+08:00
+host=192.168.1.9:10080
+user=chenkeyudev
+socket=root:root 660 /var/run/docker.sock
+user=uid=1029(chenkeyudev) gid=100(users) groups=100(users),101(administrators),1023(http)
+DOCKER_ACCESS=no
+docker_info_exit_code=1
+SUDO_NONINTERACTIVE=no
+ssh_exit_code=0

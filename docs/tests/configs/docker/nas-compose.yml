@@ -1,0 +1,17 @@
+services:
+  client:
+    image: "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:${EASY_PROXY_VERSION:?EASY_PROXY_VERSION must be set}"
+    container_name: easy-proxy-client
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+
+  target:
+    image: nginx:stable-alpine
+    container_name: easy-proxy-target
+    restart: unless-stopped
+    ports:
+      - "18080:80"

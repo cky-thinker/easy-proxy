@@ -1,0 +1,25 @@
+services:
+  server:
+    image: "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:${EASY_PROXY_VERSION:?EASY_PROXY_VERSION must be set}"
+    container_name: easy-proxy-server
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      SERVER_PUBLIC_HOST: "68.64.181.242"
+      SERVER_PROXY_PORT: "21090"
+      SERVER_WEB_PORT: "21091"
+      SERVER_CAPTCHA_IMAGE_ENABLE: "true"
+    volumes:
+      - ./server/server.yaml:/app/server.yaml:ro
+      - ./server/config:/app/config
+      - ./server/data:/app/data
+      - ./server/logs:/app/logs
+
+  web:
+    image: "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:${EASY_PROXY_VERSION:?EASY_PROXY_VERSION must be set}"
+    container_name: easy-proxy-web
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      - server

@@ -1,0 +1,12 @@
+checked_at=2026-11-22T00:07:28+0800
+ssh_user=chenkeyudev
+identity=uid=1029(chenkeyudev)
+identity=gid=100(users)
+identity=groups=100(users),101(administrators),1023(http),65536(docker)
+path=/usr/bin:/bin:/usr/sbin:/sbin
+srw-rw---- 1 0 65536 0 Nov 22 00:03 /var/run/docker.sock
+docker_binary=/usr/local/bin/docker
+DOCKER_ACCESS=yes
+docker_server=24.0.2 docker_client=24.0.2
+PATH_DOCKER_LOOKUP=
+exit_code=0

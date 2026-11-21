@@ -1,0 +1,63 @@
+=== server ===
+exploratory-20261121-233608-4e68667-clean: Pulling from ckyspace/easy-proxy-server
+Digest: sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302
+Status: Image is up to date for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:exploratory-20261121-233608-4e68667-clean
+registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:exploratory-20261121-233608-4e68667-clean
+ID=sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302 PLATFORM=linux/amd64 REPODIGEST=["registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server@sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302"] SIZE=177363105
+=== client ===
+exploratory-20261121-233608-4e68667-clean: Pulling from ckyspace/easy-proxy-client
+5759d9d17566: Pulling fs layer
+9ea3dcc66aee: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+09251de188d9: Pulling fs layer
+b39cd09056ed: Pulling fs layer
+4f4fb700ef54: Already exists
+5759d9d17566: Download complete
+9ea3dcc66aee: Download complete
+09251de188d9: Download complete
+b39cd09056ed: Download complete
+5759d9d17566: Pull complete
+b39cd09056ed: Pull complete
+4f4fb700ef54: Pull complete
+9ea3dcc66aee: Pull complete
+09251de188d9: Pull complete
+Digest: sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3
+Status: Downloaded newer image for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:exploratory-20261121-233608-4e68667-clean
+registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:exploratory-20261121-233608-4e68667-clean
+ID=sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3 PLATFORM=linux/amd64 REPODIGEST=["registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client@sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3"] SIZE=162388011
+=== web ===
+exploratory-20261121-233608-4e68667-clean: Pulling from ckyspace/easy-proxy-web
+4f56c5508527: Pulling fs layer
+f7afff06c429: Pulling fs layer
+cc0947b1a774: Pulling fs layer
+61e5576dbd35: Pulling fs layer
+893b1907c4dc: Pulling fs layer
+77cf1062fcd6: Pulling fs layer
+1197128e240d: Pulling fs layer
+881fc932939e: Pulling fs layer
+2631dab31190: Pulling fs layer
+c188e096e949: Pulling fs layer
+c188e096e949: Download complete
+61e5576dbd35: Download complete
+f7afff06c429: Download complete
+4f56c5508527: Download complete
+cc0947b1a774: Download complete
+2631dab31190: Download complete
+77cf1062fcd6: Download complete
+1197128e240d: Download complete
+881fc932939e: Download complete
+881fc932939e: Pull complete
+1197128e240d: Pull complete
+c188e096e949: Pull complete
+61e5576dbd35: Pull complete
+4f56c5508527: Pull complete
+cc0947b1a774: Pull complete
+2631dab31190: Pull complete
+893b1907c4dc: Download complete
+f7afff06c429: Pull complete
+77cf1062fcd6: Pull complete
+893b1907c4dc: Pull complete
+Digest: sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81
+Status: Downloaded newer image for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:exploratory-20261121-233608-4e68667-clean
+registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:exploratory-20261121-233608-4e68667-clean
+ID=sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81 PLATFORM=linux/amd64 REPODIGEST=["registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web@sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81"] SIZE=27009800

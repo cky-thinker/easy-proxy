@@ -1,0 +1,7 @@
+checked_at=2026-11-21T23:59:43.3598739+08:00
+path=F:/workspace/my/easy-proxy/easy-proxy-server/target/easy-proxy-server-0.0.1-SNAPSHOT-fat.jar
+bytes=22609269
+sha256=81e96ca3fad3178c321b265a1c7d7111fa19fb27856e0e970a1d14ad6c0f0abc
+path=F:/workspace/my/easy-proxy/easy-proxy-client/target/easy-proxy-client-0.0.1-SNAPSHOT-fat.jar
+bytes=5668826
+sha256=702b6fd00ee5f1187127ca88dac7a21363b5fbb68ac62d64897e7d1e6d203768

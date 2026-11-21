@@ -1,0 +1,13 @@
+=== registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:exploratory-20261121-233608-4e68667-clean ===
+ID=sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302 ARCH=amd64 OS=linux SIZE=653109409 CREATED=2026-11-21T23:36:20.69391002+08:00 REPODIGEST=registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server@sha256:9c18e11d395f3c757e1622320515f3105bf206777612d3946b73410adc492302
+=== registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:exploratory-20261121-233608-4e68667-clean ===
+ID=sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3 ARCH=amd64 OS=linux SIZE=621193259 CREATED=2026-11-21T23:36:28.052038217+08:00 REPODIGEST=registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client@sha256:d36112d730c53d708a61d83c9a3b3dd4af16eb7d81193177468c631335bc8cd3
+=== registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:exploratory-20261121-233608-4e68667-clean ===
+ID=sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81 ARCH=amd64 OS=linux SIZE=96707336 CREATED=2026-11-21T23:32:50.592839741+08:00 REPODIGEST=registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web@sha256:16e7b4502d69f4d38f731ca8f698720370b3c97744aa99b0b2ca5bca83bf7c81
+=== base images ===
+--- eclipse-temurin:25-jdk ---
+ID=sha256:ce2ef9d2d67a68de5e196d4de9d743327c44a10b57fe02ec39f572c652cacfd3 ARCH=amd64 OS=linux REPODIGEST=eclipse-temurin@sha256:ce2ef9d2d67a68de5e196d4de9d743327c44a10b57fe02ec39f572c652cacfd3,docker.m.daocloud.io/library/eclipse-temurin@sha256:ce2ef9d2d67a68de5e196d4de9d743327c44a10b57fe02ec39f572c652cacfd3
+--- node:22-alpine ---
+ID=sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a ARCH=amd64 OS=linux REPODIGEST=node@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a,docker.m.daocloud.io/library/node@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
+--- nginx:stable-alpine ---
+ID=sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3 ARCH=amd64 OS=linux REPODIGEST=nginx@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3,docker.m.daocloud.io/library/nginx@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3

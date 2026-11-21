@@ -1,0 +1,5 @@
+captured_at=2026-11-21T23:44:03+08:00
+public_key_file=C:\Users\Administrator\.ssh\id_ed25519.pub
+256 SHA256:hCWhLpypa0kDM+Ia7djNOGQ6GFIbIOjVfjesvXUynpg chenkeyu (ED25519)
+windows_hostname=PC-20240605UNII
+powershell_version=7.6.9

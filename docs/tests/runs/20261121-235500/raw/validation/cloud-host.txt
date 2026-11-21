@@ -1,0 +1,14 @@
+hostname=C20260316178252
+user=yudejijie
+id=uid=1000(yudejijie) gid=1000(yudejijie) groups=1000(yudejijie),999(docker)
+kernel=Linux 5.15.0-198-generic x86_64
+os_release=Ubuntu 22.04.5 LTS
+cpu_arch=x86_64
+cpu_count=2
+mem_mib=1964
+docker_client=Docker version 29.3.0, build 5927d80
+compose_version=Docker Compose version v5.1.0
+docker_socket=srw-rw---- 1 root docker 0 Oct 17 18:44 /var/run/docker.sock
+docker_info_status=29.3.0
+sshd_publickey=PubkeyAuthentication yes
+sshd_passwordauth=PasswordAuthentication yes

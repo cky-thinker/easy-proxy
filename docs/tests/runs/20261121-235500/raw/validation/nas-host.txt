@@ -1,0 +1,16 @@
+hostname=DiskStation
+user=chenkeyudev
+id=uid=1029(chenkeyudev) gid=100(users) groups=100(users),101(administrators),1023(http)
+kernel=Linux 4.4.302+ x86_64
+os_release=
+cpu_arch=x86_64
+cpu_count=6
+mem_mib=15972
+docker_path=not-in-path
+docker_client=Docker version 24.0.2, build 610b8d0
+compose_version=Docker Compose version v2.20.1-6047-g6817716
+docker_socket=srw-rw---- 1 root root 0 Nov 21 19:31 /var/run/docker.sock
+docker_info_status=permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/info": dial unix /var/run/docker.sock: connect: permission denied
+
+sudo_noninteractive=sudo: a password is required
+unavailable

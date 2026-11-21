@@ -1,0 +1,14 @@
+captured_at=2026-11-21T23:47:45+08:00
+wsl_distro=Ubuntu-22.04
+kernel=Linux 6.18.33.2-microsoft-standard-WSL2 x86_64 GNU/Linux
+os_release=Ubuntu 22.04.5 LTS
+project_path=/mnt/f/workspace/my/easy-proxy
+daemon_arch=x86_64
+docker_client=29.10.0
+docker_server=29.10.0
+buildx=github.com/docker/buildx v0.39.1 334b63fe2bb0f0e89a8fd067704a0d113f57ec25
+compose=Docker Compose version v5.8.0
+java=unavailable
+maven=unavailable_in_wsl
+windows_maven_used_for_build=yes
+source_traceability=windows-git
