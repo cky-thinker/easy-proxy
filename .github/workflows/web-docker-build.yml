@@ -36,6 +36,5 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/easy-proxy-web:${{ github.ref_name }}
-            ${{ secrets.DOCKER_USERNAME }}/easy-proxy-web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
