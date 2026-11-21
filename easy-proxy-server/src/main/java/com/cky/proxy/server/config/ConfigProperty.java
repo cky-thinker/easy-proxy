@@ -121,5 +121,29 @@ public class ConfigProperty {
         if (StrUtil.isNotBlank(loginIpBlockMinutes)) {
             this.server.setLoginIpBlockMinutes(Integer.parseInt(loginIpBlockMinutes));
         }
+
+        if (this.db == null) {
+            this.db = new DatabaseProperty();
+        }
+
+        String dbUrl = System.getenv("SERVER_DB_URL");
+        if (StrUtil.isNotBlank(dbUrl)) {
+            this.db.setUrl(dbUrl);
+        }
+
+        String dbUsername = System.getenv("SERVER_DB_USERNAME");
+        if (StrUtil.isNotBlank(dbUsername)) {
+            this.db.setUsername(dbUsername);
+        }
+
+        String dbPassword = System.getenv("SERVER_DB_PASSWORD");
+        if (StrUtil.isNotBlank(dbPassword)) {
+            this.db.setPassword(dbPassword);
+        }
+
+        String h2ConsoleEnable = System.getenv("SERVER_DB_H2_CONSOLE_ENABLE");
+        if (StrUtil.isNotBlank(h2ConsoleEnable)) {
+            this.db.setH2ConsoleEnable(Boolean.parseBoolean(h2ConsoleEnable));
+        }
     }
 }

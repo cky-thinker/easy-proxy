@@ -188,6 +188,10 @@ public class CertGenerator {
      * 获取证书密码（供服务端配置SSL使用）
      */
     public static String getCertPassword() {
-        return ConfigProperty.getInstance().getServer().getCertPassword();
+        String password = ConfigProperty.getInstance().getServer().getCertPassword();
+        if (password == null || password.isBlank()) {
+            throw new IllegalStateException("server.certPassword must be configured with a strong secret");
+        }
+        return password;
     }
 }

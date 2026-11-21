@@ -1,10 +1,10 @@
 server:
     proxyPort: 21090
     webPort: 21091
-    captchaImageEnable: true
+    captchaImageEnable: false
     publicHost: localhost
     certValidityDays: 3650
-    certPassword: easyproxy@2008
+    certPassword: ""
     webhook: 
     jwtSecret: ""
     jwtExpireMinutes: 60
@@ -16,6 +16,6 @@ server:
     loginIpBlockMinutes: 10
 db:
     url: jdbc:h2:./data/database
-    username: test
-    password: test
-    h2ConsoleEnable: true
+    username: ""
+    password: ""
+    h2ConsoleEnable: false
