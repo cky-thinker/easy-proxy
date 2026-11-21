@@ -7,10 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
+import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.OAEPParameterSpec;
+import javax.crypto.spec.PSource;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -150,8 +153,13 @@ class UserServiceSecurityTest {
 
     private static String encryptPassword(String password) throws Exception {
         PublicKey publicKey = parsePublicKey(PasswordTransportCryptoUtil.getPublicKeyPem());
+        OAEPParameterSpec oaepParams = new OAEPParameterSpec(
+                "SHA-256",
+                "MGF1",
+                new MGF1ParameterSpec("SHA-256"),
+                PSource.PSpecified.DEFAULT);
         Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams);
         byte[] encrypted = cipher.doFinal(password.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(encrypted);
     }
