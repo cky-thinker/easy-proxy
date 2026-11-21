@@ -179,6 +179,25 @@ try {
 
     Invoke-LoggedNative -FilePath 'mvn' -Arguments @('-B', '-ntp', 'package', '-DskipTests') -LogPath (Join-Path $buildLogRoot 'maven-package-skip-tests.log')
 
+    $expectedFatJars = @(
+        (Join-Path $repoRoot 'easy-proxy-server\target\easy-proxy-server-0.0.1-SNAPSHOT-fat.jar')
+        (Join-Path $repoRoot 'easy-proxy-client\target\easy-proxy-client-0.0.1-SNAPSHOT-fat.jar')
+    )
+    $fatJarEntries = New-Object System.Collections.Generic.List[string]
+    $fatJarEntries.Add('fat_jar_count=2')
+    foreach ($fatJarPath in $expectedFatJars) {
+        if (-not (Test-Path -LiteralPath $fatJarPath -PathType Leaf)) {
+            throw "未找到预期 fat JAR：$fatJarPath"
+        }
+        $item = Get-Item -LiteralPath $fatJarPath
+        $relativePath = $item.FullName.Substring($repoRoot.Length + 1)
+        $hash = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        $fatJarEntries.Add("path=$relativePath")
+        $fatJarEntries.Add("size_bytes=$($item.Length)")
+        $fatJarEntries.Add("sha256=$hash")
+    }
+    Write-LfText -Path (Join-Path $buildLogRoot 'fat-jars.txt') -Text (($fatJarEntries -join "`n") + "`n")
+
     $buildHelper = '/mnt/f/workspace/my/easy-proxy/docs/tests/scripts/build/build-push-image.sh'
     $services = @('server', 'client', 'web')
     if ($SkipPush) {
