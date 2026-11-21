@@ -1,0 +1,84 @@
+[
+    {
+        "Id": "sha256:471123ace2c06375f83122a9cea7df29ba2222baa956a10a91ed4b579d5eb1ae",
+        "RepoTags": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-005952-2fe7860",
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-021051-7c4f79a"
+        ],
+        "RepoDigests": [
+            "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web@sha256:471123ace2c06375f83122a9cea7df29ba2222baa956a10a91ed4b579d5eb1ae"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-11-21T23:32:50.592839741+08:00",
+        "Config": {
+            "ExposedPorts": {
+                "21092/tcp": {},
+                "80/tcp": {}
+            },
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "NGINX_VERSION=1.30.7",
+                "PKG_RELEASE=1",
+                "DYNPKG_RELEASE=1",
+                "NJS_VERSION=1.0.2",
+                "NJS_RELEASE=1",
+                "ACME_VERSION=0.4.2"
+            ],
+            "Entrypoint": [
+                "/docker-entrypoint.sh"
+            ],
+            "Cmd": [
+                "nginx",
+                "-g",
+                "daemon off;"
+            ],
+            "WorkingDir": "/",
+            "Labels": {
+                "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+            },
+            "StopSignal": "SIGQUIT",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 96707336,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:75f1d9657d880da5f75298e8f40e9928bb6e260c50d26f97af196845307e3064",
+                "sha256:8e99d0d5ac98b6f187d4829b75455eda450be324244b4af39239bc54ced984b7",
+                "sha256:33ea3d8ba714b8d2685df2ff1b17d16502dca547570f089fe7bd57cce68052b7",
+                "sha256:79143eefbb3dec28f146ecd11c7bfcb845447194a62c2da11238f94895c75144",
+                "sha256:4faadc94c8436387e259f78acb74db251c37893b22ba347d2f6bc922cfc6871d",
+                "sha256:9c6d62ce1209b02439c7856711cb512515b066847f30a4fa72bffa2d31d9e19e",
+                "sha256:e5ac1fcefe9b9af6b1004a10de28c38993a18308726a8234218c8b685c6628f1",
+                "sha256:b6ceaecf6b44db4086a8bed457f76f4a65ad36246c01a4854633d849c7b58009",
+                "sha256:66fe6380e36cd5e445f0f12ab17744404fdb08c1c55aae3105f157b7c62e1dec",
+                "sha256:4d9f0923c38f80fc8fc41b7b6f0889272bde128f459667834f89cf84e31b19c3"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-11-21T18:11:51.500911642Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "digest": "sha256:471123ace2c06375f83122a9cea7df29ba2222baa956a10a91ed4b579d5eb1ae",
+            "size": 2188,
+            "annotations": {
+                "config.digest": "sha256:2c7b4f9ec2e93e174497efb2e87c671e69439754a8b6e136036a00682e31c2a4"
+            }
+        },
+        "Identity": {
+            "Build": [
+                {
+                    "Ref": "joz4us1shnli6yhlrqvfih1gn",
+                    "CreatedAt": "2026-11-22T01:01:10.721462806+08:00"
+                },
+                {
+                    "Ref": "vkq32xkmue2fkntluogvrgn37",
+                    "CreatedAt": "2026-11-22T02:11:51.513067513+08:00"
+                }
+            ]
+        }
+    }
+]

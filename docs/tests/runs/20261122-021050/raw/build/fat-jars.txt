@@ -1,0 +1,7 @@
+fat_jar_count=2
+path=easy-proxy-server\target\easy-proxy-server-0.0.1-SNAPSHOT-fat.jar
+size_bytes=22612992
+sha256=303fba0acdde723ad1ed2256b06905bb892863b73be67211473e64adede57b1e
+path=easy-proxy-client\target\easy-proxy-client-0.0.1-SNAPSHOT-fat.jar
+size_bytes=5668934
+sha256=37630f1dfc6af5b745e726b0836ecd7c7a86e8c443837b9e7d70ab0bc88cd4af

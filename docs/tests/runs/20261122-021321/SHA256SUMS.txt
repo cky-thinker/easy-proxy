@@ -1,0 +1,3 @@
+cb2b6f8cafd7bfbd46225b54870e474f28a724450150ef46fbfe3503b531250e  defects/DEF-T37-EVID-001.md
+51895fff8e082c79d12c614069440dad95be9988c0ebe1d1ac1cbf0b6d108b8a  manifest.md
+d30051dc8e1e8e62feff30650d0e4cccf326f5613c9b0a7cbd3414ea282218dd  raw/validation/test-assets-validation.txt
