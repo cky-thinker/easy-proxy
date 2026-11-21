@@ -11,3 +11,5 @@
 *.xml text eol=lf
 *.bin binary
 docs/tests/data/fixtures/** binary
+*.env.example text eol=lf
+.gitattributes text eol=lf
