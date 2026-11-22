@@ -141,6 +141,30 @@ function Wait-ClientOnline {
     }
 }
 
+function Restore-CloudRollback {
+    param(
+        [Parameter(Mandatory)][string]$ComposeProject,
+        [Parameter(Mandatory)][string]$RollbackSuffix
+    )
+    $script = @(
+        'set +e'
+        'cd /opt/easy-proxy'
+        "/usr/bin/docker compose -p '$ComposeProject' down --remove-orphans"
+        'for name in easy-proxy-server easy-proxy-web; do'
+        "  rollback=`"`$name$RollbackSuffix`""
+        '  if /usr/bin/docker inspect "$rollback" >/dev/null 2>&1; then'
+        '    /usr/bin/docker start "$rollback"'
+        '    printf "RESTORED_CONTAINER=%s\n" "$rollback"'
+        '  else'
+        '    printf "MISSING_ROLLBACK_CONTAINER=%s\n" "$rollback"'
+        '  fi'
+        'done'
+        'sleep 3'
+        '/usr/bin/docker ps -a --format "{{.Names}}\t{{.Status}}\t{{.Image}}" | grep -E "^easy-proxy-(server|web)" || true'
+    ) -join "`n"
+    return Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-rollback.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script $script -TimeoutSeconds 120
+}
+
 try {
     $preflight = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-preflight.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script (@(
         'set -eu'
@@ -152,6 +176,15 @@ try {
         '/usr/bin/ss -lnt | grep -E '':(21090|21091|21092|28080)\b'' || true'
     ) -join "`n")
     Add-DeployCheck -Name '云服务器 SSH 与预检' -Passed ($preflight.ExitCode -eq 0) -Detail "exit=$($preflight.ExitCode)"
+
+    $cloudPull = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-pull.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script (@(
+        'set -eu'
+        "/usr/bin/docker pull '$serverImage'"
+        "/usr/bin/docker pull '$webImage'"
+        "/usr/bin/docker image inspect '$serverImage' '$webImage' --format '{{.RepoTags}} {{.Id}} {{.Os}}/{{.Architecture}}'"
+    ) -join "`n") -TimeoutSeconds 300
+    Add-DeployCheck -Name '云服务器固定镜像可用' -Passed ($cloudPull.ExitCode -eq 0) -Detail "exit=$($cloudPull.ExitCode)"
+    if ($cloudPull.ExitCode -ne 0) { throw '云服务器固定镜像拉取失败，未停止现有容器' }
 
     $prepareCloud = @(
         'set -eu'
@@ -168,6 +201,7 @@ try {
     ) -join "`n"
     $prepared = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-directories.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script $prepareCloud
     Add-DeployCheck -Name '云服务器部署目录' -Passed ($prepared.ExitCode -eq 0) -Detail "exit=$($prepared.ExitCode)"
+    if ($prepared.ExitCode -ne 0) { throw '云服务器部署目录准备失败，未停止现有容器' }
 
     $serverTemplate = [IO.File]::ReadAllText((Join-Path $testsRoot 'configs\docker\server\server.yaml'))
     $serverYaml = $serverTemplate.Replace('<CHANGE_ME_STRONG_RANDOM_CERT_PASSWORD>', [string]$secret.CertPassword).
@@ -231,6 +265,8 @@ try {
             'test -n "$server_id" && /usr/bin/docker logs --tail=300 "$server_id" 2>&1 || true'
             'test -n "$web_id" && /usr/bin/docker logs --tail=200 "$web_id" 2>&1 || true'
         ) -join "`n") | Out-Null
+        $rollbackResult = Restore-CloudRollback -ComposeProject $cloudComposeProject -RollbackSuffix $cloudRollbackSuffix
+        Add-DeployCheck -Name '云服务器失败自动回滚' -Passed ($rollbackResult.ExitCode -eq 0) -Detail "exit=$($rollbackResult.ExitCode)，详见 deploy-cloud-rollback.txt"
         throw '云服务器健康检查未通过'
     }
 
@@ -281,7 +317,7 @@ try {
     $nasPull = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-pull.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'DOCKER=/usr/local/bin/docker'
-        "if ! `$DOCKER image inspect registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag >/dev/null 2>&1; then `$DOCKER pull registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag; fi"
+        "`$DOCKER pull registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag"
         '$DOCKER pull nginx:1.27.4-alpine'
         "`$DOCKER image inspect registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag nginx:1.27.4-alpine --format '{{.RepoTags}} {{.Id}} {{.Os}}/{{.Architecture}}'"
     ) -join "`n") -TimeoutSeconds 300
