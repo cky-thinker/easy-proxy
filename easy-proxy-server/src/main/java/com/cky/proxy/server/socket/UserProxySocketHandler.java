@@ -125,6 +125,7 @@ public class UserProxySocketHandler implements Runnable {
         } else {
             log.debug("EP>>UserProxy>> Mng proxy is null");
         }
+        ClientDataSocketManager.cancelWaiter(userId);
         RuleListenSocketManager.userConnectionOffline(userId);
         TrafficStatisticManager.removeConnection(userId);
         closeUserConnection();

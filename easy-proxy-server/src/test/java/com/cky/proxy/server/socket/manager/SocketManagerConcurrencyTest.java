@@ -77,6 +77,16 @@ class SocketManagerConcurrencyTest {
     }
 
     @Test
+    void cancellingPendingDataSocketWaiterRemovesIt() {
+        CompletableFuture<Socket> waiter = ClientDataSocketManager.getWaitFuture("pending-user");
+
+        ClientDataSocketManager.cancelWaiter("pending-user");
+
+        assertTrue(waiter.isCancelled());
+        assertTrue(ClientDataSocketManager.getWaitFuture("pending-user") != waiter);
+    }
+
+    @Test
     void clientDataSocketsCompleteWaitersAndRemainConsistent() throws Exception {
         List<String> userIds = new ArrayList<>();
         List<Socket> sockets = new ArrayList<>();

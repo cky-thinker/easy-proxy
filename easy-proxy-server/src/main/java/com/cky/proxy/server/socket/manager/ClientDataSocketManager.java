@@ -95,7 +95,8 @@ public final class ClientDataSocketManager {
         offline(userId);
     }
 
-    private static void cancelWaiter(String userId) {
+    /** Cancels and removes a pending data-socket waiter. */
+    public static void cancelWaiter(String userId) {
         CompletableFuture<Socket> future = waitMap.remove(userId);
         if (future != null) {
             future.cancel(true);
