@@ -56,8 +56,11 @@ public class DashboardController {
             Map<String, Object> data = new HashMap<>();
             data.put("onlineClients", online);
             data.put("offlineClients", offline);
+            data.put("activeConnections", TrafficStatisticManager.getTotalActiveConnections());
             data.put("uploadSpeed", TrafficStatisticManager.getTotalUploadSpeed());
             data.put("downloadSpeed", TrafficStatisticManager.getTotalDownloadSpeed());
+            data.put("uploadBytes", TrafficStatisticManager.getTotalUploadBytes());
+            data.put("downloadBytes", TrafficStatisticManager.getTotalDownloadBytes());
 
             ResponseUtil.success(ctx, data);
     }
@@ -105,6 +108,7 @@ public class DashboardController {
             java.util.Map<String, Object> item = new java.util.HashMap<>();
             item.put("name", name);
             item.put("traffic", total);
+            item.put("connections", TrafficStatisticManager.getActiveConnections(ruleId));
             list.add(item);
         }
         ResponseUtil.success(ctx, list);

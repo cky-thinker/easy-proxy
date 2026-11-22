@@ -49,6 +49,9 @@ public class TrafficStatisticManager {
         final Integer ruleId;
         final AtomicLong upload = new AtomicLong(0);
         final AtomicLong download = new AtomicLong(0);
+        // Lifetime counters are never reset by the hourly persistence flush.
+        final AtomicLong lifetimeUpload = new AtomicLong(0);
+        final AtomicLong lifetimeDownload = new AtomicLong(0);
 
         // Real-time speed (Passive)
         // 记录上一秒完成时的速度
@@ -78,8 +81,13 @@ public class TrafficStatisticManager {
      * 注册新的连接上下文
      */
     public static void addConnection(String userId, Integer clientId, Integer ruleId) {
-        connectionMap.put(userId, new TrafficContext(clientId, ruleId));
-        getStats(ruleId, clientId).activeConnections.incrementAndGet();
+        TrafficContext previous = connectionMap.put(userId, new TrafficContext(clientId, ruleId));
+        if (previous != null && !previous.ruleId.equals(ruleId)) {
+            getStats(previous.clientId, previous.ruleId).activeConnections.updateAndGet(value -> Math.max(0, value - 1));
+        }
+        if (previous == null || !previous.ruleId.equals(ruleId)) {
+            getStats(clientId, ruleId).activeConnections.incrementAndGet();
+        }
     }
 
     /**
@@ -88,7 +96,7 @@ public class TrafficStatisticManager {
     public static void removeConnection(String userId) {
         TrafficContext ctx = connectionMap.remove(userId);
         if (ctx != null) {
-            getStats(ctx).activeConnections.decrementAndGet();
+            getStats(ctx).activeConnections.updateAndGet(value -> Math.max(0, value - 1));
         }
     }
 
@@ -106,6 +114,14 @@ public class TrafficStatisticManager {
     public static long getActiveConnections(Integer ruleId) {
         TrafficStats stats = statsMap.get(ruleId);
         return stats == null ? 0 : stats.activeConnections.get();
+    }
+
+    public static long getTotalActiveConnections() {
+        long total = 0;
+        for (TrafficStats stats : statsMap.values()) {
+            total += Math.max(0, stats.activeConnections.get());
+        }
+        return total;
     }
 
     /**
@@ -164,6 +180,7 @@ public class TrafficStatisticManager {
         if (ctx != null) {
             TrafficStats stats = getStats(ctx);
             stats.upload.addAndGet(bytes);
+            stats.lifetimeUpload.addAndGet(bytes);
 
             // 惰性更新速度计算
             long now = System.currentTimeMillis();
@@ -186,6 +203,7 @@ public class TrafficStatisticManager {
         if (ctx != null) {
             TrafficStats stats = getStats(ctx);
             stats.download.addAndGet(bytes);
+            stats.lifetimeDownload.addAndGet(bytes);
 
             // 惰性更新速度计算
             long now = System.currentTimeMillis();
@@ -229,6 +247,22 @@ public class TrafficStatisticManager {
             return 0;
         }
         return stats.lastDownloadSpeed;
+    }
+
+    public static long getTotalUploadBytes() {
+        long total = 0;
+        for (TrafficStats stats : statsMap.values()) {
+            total += stats.lifetimeUpload.get();
+        }
+        return total;
+    }
+
+    public static long getTotalDownloadBytes() {
+        long total = 0;
+        for (TrafficStats stats : statsMap.values()) {
+            total += stats.lifetimeDownload.get();
+        }
+        return total;
     }
 
     /**

@@ -78,8 +78,11 @@ export interface UserInfo {
 export interface DashboardStats {
   onlineClients: number;
   offlineClients: number;
+  activeConnections: number;
   uploadSpeed: number;
   downloadSpeed: number;
+  uploadBytes: number;
+  downloadBytes: number;
 }
 
 // 规则实时流量接口

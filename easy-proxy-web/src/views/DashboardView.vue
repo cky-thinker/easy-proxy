@@ -10,7 +10,7 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
       <!-- 在线客户端 -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
@@ -43,6 +43,22 @@
         </div>
       </div>
 
+      <!-- 活动连接 -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+          <div class="p-2 bg-amber-100 rounded-lg">
+            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8M8 12h8M8 17h8"/>
+              <rect x="3" y="3" width="18" height="18" rx="3" stroke-width="2"></rect>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600">活动连接</p>
+            <p class="text-2xl font-semibold text-gray-900">{{ stats.activeConnections }}</p>
+          </div>
+        </div>
+      </div>
+
       <!-- 总上行流量 -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
@@ -55,6 +71,7 @@
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-600">总上行速度</p>
             <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.uploadSpeed) }}/s</p>
+            <p class="text-xs text-gray-500 mt-1">累计 {{ formatBytes(stats.uploadBytes) }}</p>
           </div>
         </div>
       </div>
@@ -71,6 +88,7 @@
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-600">总下行速度</p>
             <p class="text-2xl font-semibold text-gray-900">{{ formatBytes(stats.downloadSpeed) }}/s</p>
+            <p class="text-xs text-gray-500 mt-1">累计 {{ formatBytes(stats.downloadBytes) }}</p>
           </div>
         </div>
       </div>
@@ -152,8 +170,11 @@ import PageIllustration from '@/components/PageIllustration.vue'
 const stats = ref<DashboardStats>({
   onlineClients: 0,
   offlineClients: 0,
+  activeConnections: 0,
   uploadSpeed: 0,
-  downloadSpeed: 0
+  downloadSpeed: 0,
+  uploadBytes: 0,
+  downloadBytes: 0
 })
 
 const statsTimer = ref<number | null>(null)
