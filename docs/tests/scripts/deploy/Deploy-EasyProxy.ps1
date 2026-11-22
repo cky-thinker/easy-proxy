@@ -281,7 +281,7 @@ try {
     $nasPull = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-pull.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'DOCKER=/usr/local/bin/docker'
-        "`$DOCKER image inspect registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag >/dev/null"
+        "if ! `$DOCKER image inspect registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag >/dev/null 2>&1; then `$DOCKER pull registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag; fi"
         '$DOCKER pull nginx:1.27.4-alpine'
         "`$DOCKER image inspect registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag nginx:1.27.4-alpine --format '{{.RepoTags}} {{.Id}} {{.Os}}/{{.Architecture}}'"
     ) -join "`n") -TimeoutSeconds 300
