@@ -226,7 +226,7 @@ $entryPoints = [ordered]@{
     }
     'fault-injection' = @{
         Path = Join-Path $testsRoot 'scripts\fault-injection\Invoke-FaultInjectionTests.ps1'
-        Required = @('T-31', 'T-36', 'iptables', 'trap cleanup', 'OOMKilled', 'RestartCount', 'finally')
+        Required = @('T-31', 'T-36', 'iptables', 'trap cleanup', '--privileged', 'chroot /host', '--comment', 'NETWORK_RULE_PRESENT=0', 'OOMKilled', 'RestartCount', 'finally')
     }
     'monitoring' = @{
         Path = Join-Path $testsRoot 'scripts\monitoring\Start-EasyProxyMonitor.ps1'

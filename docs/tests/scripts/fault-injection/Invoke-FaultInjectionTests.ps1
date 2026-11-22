@@ -134,6 +134,9 @@ $inspectBeforePath = New-EasyProxyEvidencePath -RunRoot $run.RunRoot -RelativePa
 Write-EasyProxyEvidence -Path $inspectBeforePath -Text (($beforeInspect.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "`n") -Append
 
 $stopFile = Join-Path $run.RunRoot "tmp\fault-monitor-stop-$stamp"
+$activeLoad = $null
+$networkContainerName = "easy-proxy-t35-$stamp-$([guid]::NewGuid().ToString('N').Substring(0, 8))"
+$networkComment = "easy-proxy-t35-$RunId-$stamp"
 $monitorStdout = New-EasyProxyEvidencePath -RunRoot $run.RunRoot -RelativePath "raw/logs/fault-monitor-stdout-$stamp.log"
 $monitorStderr = New-EasyProxyEvidencePath -RunRoot $run.RunRoot -RelativePath "raw/logs/fault-monitor-stderr-$stamp.log"
 $monitorScript = Join-Path $testsRoot 'scripts\monitoring\Start-EasyProxyMonitor.ps1'
@@ -143,42 +146,50 @@ Start-Sleep -Seconds 3
 try {
     $caseStart = [DateTimeOffset]::UtcNow
     $load = Start-LoadProcess -CaseId 'T-31' -Label 'restart-client'
+    $activeLoad = $load
     Start-Sleep -Seconds $InjectAtSeconds
     $restart = Restart-Container -Target Nas -Container 'easy-proxy-client'
     $clientOnline = Wait-ClientOnline -TimeoutSeconds 30
     $forwarding = Wait-RuleForwarding -TimeoutSeconds 60
     $completed = Complete-LoadProcess -Load $load -StartedAt $caseStart
+    $activeLoad = $null
     $passed = $restart.ExitCode -eq 0 -and $clientOnline.Satisfied -and $forwarding.Satisfied -and $completed.MeasuredFailures -gt 0 -and $null -ne $completed.Summary -and [int]$completed.Summary.measured.hashMismatches -eq 0
     Add-FaultResult -CaseId 'T-31' -Name '压测中重启客户端' -StartedAt $caseStart -EndedAt $completed.EndedAt -Passed $passed -Detail "failures=$($completed.MeasuredFailures) 5xx=$($completed.Server5xx) online=$($clientOnline.Satisfied) onlineWait=$([math]::Round($clientOnline.ElapsedMs/1000,1))s forwarding=$($forwarding.Satisfied) hashMismatch=$($completed.Summary.measured.hashMismatches)" -Evidence $completed.Evidence | Out-Null
 
     $caseStart = [DateTimeOffset]::UtcNow
     $load = Start-LoadProcess -CaseId 'T-32' -Label 'restart-server'
+    $activeLoad = $load
     Start-Sleep -Seconds $InjectAtSeconds
     $restart = Restart-Container -Target Cloud -Container 'easy-proxy-server'
     $clientOnline = Wait-ClientOnline -TimeoutSeconds 60
     $forwarding = Wait-RuleForwarding -TimeoutSeconds 60
     $completed = Complete-LoadProcess -Load $load -StartedAt $caseStart
+    $activeLoad = $null
     $passed = $restart.ExitCode -eq 0 -and $clientOnline.Satisfied -and $forwarding.Satisfied -and $completed.MeasuredFailures -gt 0 -and $null -ne $completed.Summary -and [int]$completed.Summary.measured.hashMismatches -eq 0
     Add-FaultResult -CaseId 'T-32' -Name '压测中重启服务端' -StartedAt $caseStart -EndedAt $completed.EndedAt -Passed $passed -Detail "failures=$($completed.MeasuredFailures) 5xx=$($completed.Server5xx) online=$($clientOnline.Satisfied) forwarding=$($forwarding.Satisfied) hashMismatch=$($completed.Summary.measured.hashMismatches)" -Evidence $completed.Evidence | Out-Null
 
     $caseStart = [DateTimeOffset]::UtcNow
     $load = Start-LoadProcess -CaseId 'T-33' -Label 'restart-web' -MinSuccessRate 0.995
+    $activeLoad = $load
     Start-Sleep -Seconds $InjectAtSeconds
     $restart = Restart-Container -Target Cloud -Container 'easy-proxy-web'
     $webHealth = Wait-WebHealth -TimeoutSeconds 30
     $completed = Complete-LoadProcess -Load $load -StartedAt $caseStart
+    $activeLoad = $null
     $successRate = if ($null -ne $completed.Summary) { [double]$completed.Summary.measured.successRate } else { 0 }
     $passed = $restart.ExitCode -eq 0 -and $webHealth.Satisfied -and $successRate -ge 0.995 -and $null -ne $completed.Summary -and [int]$completed.Summary.measured.hashMismatches -eq 0
     Add-FaultResult -CaseId 'T-33' -Name '压测中重启 Web' -StartedAt $caseStart -EndedAt $completed.EndedAt -Passed $passed -Detail "success=$([math]::Round($successRate*100,3))% webHealth=$($webHealth.Satisfied) webWait=$([math]::Round($webHealth.ElapsedMs/1000,1))s hashMismatch=$($completed.Summary.measured.hashMismatches)" -Evidence $completed.Evidence | Out-Null
 
     $caseStart = [DateTimeOffset]::UtcNow
     $load = Start-LoadProcess -CaseId 'T-34' -Label 'restart-target'
+    $activeLoad = $load
     $clientBefore = Get-ContainerInspect -Target Nas -Container 'easy-proxy-client'
     $serverBefore = Get-ContainerInspect -Target Cloud -Container 'easy-proxy-server'
     Start-Sleep -Seconds $InjectAtSeconds
     $restart = Restart-Container -Target Nas -Container 'easy-proxy-target'
     $forwarding = Wait-RuleForwarding -TimeoutSeconds 30
     $completed = Complete-LoadProcess -Load $load -StartedAt $caseStart
+    $activeLoad = $null
     $clientAfter = Get-ContainerInspect -Target Nas -Container 'easy-proxy-client'
     $serverAfter = Get-ContainerInspect -Target Cloud -Container 'easy-proxy-server'
     $passed = $restart.ExitCode -eq 0 -and $forwarding.Satisfied -and $clientBefore -eq $clientAfter -and $serverBefore -eq $serverAfter -and $completed.MeasuredFailures -gt 0 -and $null -ne $completed.Summary -and [int]$completed.Summary.measured.hashMismatches -eq 0
@@ -186,26 +197,68 @@ try {
 
     $caseStart = [DateTimeOffset]::UtcNow
     $load = Start-LoadProcess -CaseId 'T-35' -Label 'network-block'
+    $activeLoad = $load
     Start-Sleep -Seconds $InjectAtSeconds
-    $network = Invoke-Cloud -Script @"
+    $networkScript = @'
 set -eu
-cleanup() { sudo -n iptables -D INPUT -p tcp --dport 21090 -j DROP >/dev/null 2>&1 || true; }
+DOCKER=/usr/bin/docker
+CONTAINER=__CONTAINER__
+COMMENT=__COMMENT__
+IMAGE=$($DOCKER inspect --format '{{.Config.Image}}' easy-proxy-server)
+$DOCKER rm -f "$CONTAINER" >/dev/null 2>&1 || true
+$DOCKER run --rm --name "$CONTAINER" --privileged --network host -v /:/host \
+  -e PROBE_COMMENT="$COMMENT" -e BLOCK_SECONDS=__BLOCK_SECONDS__ \
+  --entrypoint /bin/sh "$IMAGE" -c '
+set -eu
+cleanup() {
+  while chroot /host /usr/sbin/iptables -w 5 -C INPUT -p tcp --dport 21090 -m comment --comment "$PROBE_COMMENT" -j DROP >/dev/null 2>&1; do
+    chroot /host /usr/sbin/iptables -w 5 -D INPUT -p tcp --dport 21090 -m comment --comment "$PROBE_COMMENT" -j DROP >/dev/null 2>&1 || break
+  done
+}
 trap cleanup EXIT INT TERM
-sudo -n iptables -I INPUT 1 -p tcp --dport 21090 -j DROP
+chroot /host /usr/sbin/iptables -w 5 -I INPUT 1 -p tcp --dport 21090 -m comment --comment "$PROBE_COMMENT" -j DROP
 echo NETWORK_BLOCKED=21090
-sleep $NetworkBlockSeconds
+echo NETWORK_COMMENT=$PROBE_COMMENT
+sleep "$BLOCK_SECONDS"
 cleanup
 trap - EXIT INT TERM
+if chroot /host /usr/sbin/iptables -w 5 -C INPUT -p tcp --dport 21090 -m comment --comment "$PROBE_COMMENT" -j DROP >/dev/null 2>&1; then
+  echo NETWORK_RULE_PRESENT=1
+  exit 1
+fi
+echo NETWORK_RULE_PRESENT=0
 echo NETWORK_RESTORED=21090
-"@ -TimeoutSeconds ($NetworkBlockSeconds + 60)
+'
+'@
+    $networkScript = $networkScript.Replace('__CONTAINER__', $networkContainerName).Replace('__COMMENT__', $networkComment).Replace('__BLOCK_SECONDS__', [string]$NetworkBlockSeconds)
+    $network = Invoke-Cloud -Script $networkScript -TimeoutSeconds ($NetworkBlockSeconds + 60)
     $clientOnline = Wait-ClientOnline -TimeoutSeconds 60
     $forwarding = Wait-RuleForwarding -TimeoutSeconds 60
     $completed = Complete-LoadProcess -Load $load -StartedAt $caseStart
-    $passed = $network.ExitCode -eq 0 -and $network.Combined -match 'NETWORK_RESTORED=21090' -and $clientOnline.Satisfied -and $forwarding.Satisfied -and $completed.MeasuredFailures -gt 0 -and $null -ne $completed.Summary -and [int]$completed.Summary.measured.hashMismatches -eq 0
-    Add-FaultResult -CaseId 'T-35' -Name '网络中断与自动重连' -StartedAt $caseStart -EndedAt $completed.EndedAt -Passed $passed -Detail "networkRestore=$($network.Combined -match 'NETWORK_RESTORED=21090') failures=$($completed.MeasuredFailures) online=$($clientOnline.Satisfied) forwarding=$($forwarding.Satisfied) hashMismatch=$($completed.Summary.measured.hashMismatches)" -Evidence $completed.Evidence | Out-Null
+    $activeLoad = $null
+    $restored = ($network.Combined -match 'NETWORK_RESTORED=21090') -and ($network.Combined -match 'NETWORK_RULE_PRESENT=0')
+    $passed = $network.ExitCode -eq 0 -and $restored -and $clientOnline.Satisfied -and $forwarding.Satisfied -and $completed.MeasuredFailures -gt 0 -and $null -ne $completed.Summary -and [int]$completed.Summary.measured.hashMismatches -eq 0
+    Add-FaultResult -CaseId 'T-35' -Name '网络中断与自动重连' -StartedAt $caseStart -EndedAt $completed.EndedAt -Passed $passed -Detail "networkRestore=$restored failures=$($completed.MeasuredFailures) online=$($clientOnline.Satisfied) forwarding=$($forwarding.Satisfied) hashMismatch=$($completed.Summary.measured.hashMismatches)" -Evidence $completed.Evidence | Out-Null
 }
 finally {
-    try { Invoke-Cloud -Script 'sudo -n iptables -D INPUT -p tcp --dport 21090 -j DROP >/dev/null 2>&1 || true' -TimeoutSeconds 30 | Out-Null } catch { }
+    if ($null -ne $activeLoad) { try { $activeLoad.Process.Kill($true) } catch { } }
+    $cleanupScript = @'
+set -eu
+DOCKER=/usr/bin/docker
+CONTAINER=__CONTAINER__
+COMMENT=__COMMENT__
+$DOCKER rm -f "$CONTAINER" >/dev/null 2>&1 || true
+IMAGE=$($DOCKER inspect --format '{{.Config.Image}}' easy-proxy-server)
+$DOCKER run --rm --name "${CONTAINER}-cleanup" --privileged --network host -v /:/host \
+  -e PROBE_COMMENT="$COMMENT" --entrypoint /bin/sh "$IMAGE" -c '
+set -eu
+while chroot /host /usr/sbin/iptables -w 5 -C INPUT -p tcp --dport 21090 -m comment --comment "$PROBE_COMMENT" -j DROP >/dev/null 2>&1; do
+  chroot /host /usr/sbin/iptables -w 5 -D INPUT -p tcp --dport 21090 -m comment --comment "$PROBE_COMMENT" -j DROP >/dev/null 2>&1 || break
+done
+'
+'@
+    $cleanupScript = $cleanupScript.Replace('__CONTAINER__', $networkContainerName).Replace('__COMMENT__', $networkComment)
+    try { Invoke-Cloud -Script $cleanupScript -TimeoutSeconds 60 | Out-Null } catch { }
     Write-LfText -Path $stopFile -Text "stop`n"
     if (-not $monitorProcess.WaitForExit(60000)) { try { $monitorProcess.Kill($true) } catch { } }
 }
