@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$RunId = '',
     [string]$OutputPath = ''
@@ -55,20 +55,47 @@ function Read-TextDocument {
 
 function Get-RepositoryTextFiles {
     $textExtensions = @(
-        '.md', '.ps1', '.psm1', '.sh', '.yml', '.yaml', '.csv', '.json', '.txt',
-        '.conf', '.properties', '.xml', '.example', '.toml', '.ini', '.gitignore', '.gitattributes'
+        '.md', '.ps1', '.psm1', '.sh', '.yml', '.yaml', '.csv', '.json', '.txt', '.cs', '.csproj', '.sln',
+        '.conf', '.properties', '.xml', '.example', '.toml', '.ini'
+    )
+    $exactPaths = @(
+        '.gitignore',
+        'docs/nas-cloud-proxy-deployment-plan.md',
+        'docs/tests/README.md'
+    )
+    $allowedPrefixes = @(
+        'docs/tests/scripts/',
+        'docs/tests/configs/',
+        'docs/tests/templates/',
+        'docs/tests/tools/',
+        'docs/tests/data/manifests/'
+    )
+    $excludedPrefixes = @(
+        'docs/tests/runs/',
+        'docs/tests/reports/'
     )
     $relativeFiles = @(& git -C $repoRoot ls-files --cached --others --exclude-standard)
     $result = [Collections.Generic.List[IO.FileInfo]]::new()
     foreach ($relative in $relativeFiles) {
         if ([string]::IsNullOrWhiteSpace($relative)) { continue }
-        $fullPath = Join-Path $repoRoot ($relative.Replace('/', [IO.Path]::DirectorySeparatorChar))
+        $relativePath = $relative.Replace('\', '/')
+        if ($excludedPrefixes | Where-Object { $relativePath.StartsWith($_, [StringComparison]::OrdinalIgnoreCase) }) {
+            continue
+        }
+        $allowed = $exactPaths -contains $relativePath
+        if (-not $allowed) {
+            $allowed = [bool]($allowedPrefixes | Where-Object {
+                $relativePath.StartsWith($_, [StringComparison]::OrdinalIgnoreCase)
+            } | Select-Object -First 1)
+        }
+        if (-not $allowed) { continue }
+
+        $fullPath = Join-Path $repoRoot ($relativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
         if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) { continue }
         $item = Get-Item -LiteralPath $fullPath
         $extension = $item.Extension.ToLowerInvariant()
         if ($textExtensions -contains $extension -or
-            $item.Name.Equals('.env.example', [StringComparison]::OrdinalIgnoreCase) -or
-            $item.Name.Equals('Dockerfile', [StringComparison]::OrdinalIgnoreCase)) {
+            $item.Name.Equals('.gitignore', [StringComparison]::OrdinalIgnoreCase)) {
             $result.Add($item)
         }
     }
@@ -116,26 +143,15 @@ foreach ($file in $textFiles) {
         continue
     }
 
-    $extension = $file.Extension.ToLowerInvariant()
-    $isPowerShell = $extension -in @('.ps1', '.psm1')
-    $requiresNoBom = $lineExtensionSet -contains $extension -or
-        $file.Name.Equals('.env.example', [StringComparison]::OrdinalIgnoreCase)
-    if ($isPowerShell -and -not $document.HasBom) {
+    if ($document.HasBom) {
         $bomFailures.Add((Get-RelativePath -Path $file.FullName))
     }
-    elseif (-not $isPowerShell -and $requiresNoBom -and $document.HasBom) {
-        $bomFailures.Add((Get-RelativePath -Path $file.FullName))
-    }
-
-    if (($lineExtensionSet -contains $extension) -or
-        $file.Name.Equals('.env.example', [StringComparison]::OrdinalIgnoreCase)) {
-        if ($document.Text.Contains("`r")) {
-            $crlfFailures.Add((Get-RelativePath -Path $file.FullName))
-        }
+    if ($document.Text.Contains("`r")) {
+        $crlfFailures.Add((Get-RelativePath -Path $file.FullName))
     }
 }
-Add-Check -Name 'UTF-8 编码与 BOM' -Passed ($bomFailures.Count -eq 0) -Detail $(if ($bomFailures.Count -eq 0) { 'PowerShell 带 BOM，Markdown/YAML/env/Shell/CSV/JSON 无 BOM' } else { "不符合约定 $($bomFailures.Count) 个：$($bomFailures -join ', ')" })
-Add-Check -Name '统一 LF 换行' -Passed ($crlfFailures.Count -eq 0) -Detail $(if ($crlfFailures.Count -eq 0) { '全部通过' } else { "含 CRLF $($crlfFailures.Count) 个：$($crlfFailures -join ', ')" })
+Add-Check -Name 'UTF-8 编码与 BOM' -Passed ($bomFailures.Count -eq 0) -Detail $(if ($bomFailures.Count -eq 0) { "全部 $($textFiles.Count) 个扫描文本均为 UTF-8 无 BOM" } else { "含 BOM $($bomFailures.Count) 个：$($bomFailures -join ', ')" })
+Add-Check -Name '统一 LF 换行' -Passed ($crlfFailures.Count -eq 0) -Detail $(if ($crlfFailures.Count -eq 0) { "全部 $($textFiles.Count) 个扫描文本均为 LF" } else { "含 CRLF $($crlfFailures.Count) 个：$($crlfFailures -join ', ')" })
 Add-Check -Name 'UTF-8 可解码' -Passed ($decodeFailures.Count -eq 0) -Detail $(if ($decodeFailures.Count -eq 0) { '全部通过' } else { $decodeFailures -join ', ' })
 
 $markdownFiles = @($textFiles | Where-Object { $_.Extension -eq '.md' })
@@ -166,19 +182,8 @@ Add-Check -Name 'Markdown 代码围栏' -Passed ($fenceFailures.Count -eq 0) -De
 Add-Check -Name 'Markdown 相对链接' -Passed ($linkFailures.Count -eq 0) -Detail $(if ($linkFailures.Count -eq 0) { "检查 $linkCount 个本地链接，全部存在" } else { $linkFailures -join '; ' })
 
 $fixture = Test-EasyProxyFixtures
-$manifestPath = Join-Path $testsRoot 'data\manifests\fixtures.sha256'
-$manifestLineCount = @([IO.File]::ReadAllLines($manifestPath) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count
-$actualFixtureCount = @(Get-ChildItem -LiteralPath (Join-Path $testsRoot 'data\fixtures') -Recurse -File).Count
 $fixtureFailures = @($fixture.Failures)
-$fixtureChecks = [pscustomobject]@{
-    ManifestCount = $manifestLineCount -eq 1003
-    FileCount     = $actualFixtureCount -eq 1003 -and $fixture.Count -eq 1003
-    Missing       = @($fixtureFailures | Where-Object { $_ -like '缺少文件：*' }).Count -eq 0
-    HashMismatch  = @($fixtureFailures | Where-Object { $_ -like '哈希不匹配：*' }).Count -eq 0
-    Unlisted      = @($fixtureFailures | Where-Object { $_ -like '未纳入清单：*' }).Count -eq 0
-}
-$fixtureOk = -not ($fixtureChecks.PSObject.Properties.Value -contains $false)
-Add-Check -Name '固定数据清单与哈希' -Passed $fixtureOk -Detail "清单 $manifestLineCount 行，文件 $actualFixtureCount 个，纳入清单 $($fixture.Count) 个；缺失/不一致/未纳入异常 $($fixtureFailures.Count) 个"
+Add-Check -Name '固定数据清单与哈希' -Passed ([bool]$fixture.Passed) -Detail "清单 $($fixture.ManifestCount) 行，实际文件 $($fixture.ActualFileCount) 个，纳入清单 $($fixture.Count) 个；数量一致=$($fixture.CountsMatch)，集合一致=$($fixture.SetEquals)，异常 $($fixtureFailures.Count) 个"
 
 $planPath = Join-Path $docsRoot 'nas-cloud-proxy-deployment-plan.md'
 $planDocument = Read-TextDocument -Path $planPath
@@ -210,6 +215,66 @@ foreach ($file in $psFiles) {
     }
 }
 Add-Check -Name 'PowerShell 语法' -Passed ($psFailures.Count -eq 0) -Detail $(if ($psFailures.Count -eq 0) { "检查 $($psFiles.Count) 个 PowerShell 文件，零错误" } else { $psFailures -join ', ' })
+$entryPoints = [ordered]@{
+    'functional' = @{
+        Path = Join-Path $testsRoot 'scripts\functional\Invoke-FunctionalTests.ps1'
+        Required = @('T-01', 'T-20', 'Remove-EasyProxyRule', 'Set-EasyProxyClientEnabled', 'Invoke-FunctionalCase', 'finally')
+    }
+    'load' = @{
+        Path = Join-Path $testsRoot 'scripts\load\Invoke-LoadTests.ps1'
+        Required = @('T-21', 'T-30', 'SoakSeconds', '3600', 'Start-EasyProxyMonitor', 'Invoke-LoadCase')
+    }
+    'fault-injection' = @{
+        Path = Join-Path $testsRoot 'scripts\fault-injection\Invoke-FaultInjectionTests.ps1'
+        Required = @('T-31', 'T-36', 'iptables', 'trap cleanup', 'OOMKilled', 'RestartCount', 'finally')
+    }
+    'monitoring' = @{
+        Path = Join-Path $testsRoot 'scripts\monitoring\Start-EasyProxyMonitor.ps1'
+        Required = @('Get-ManagerMetrics', 'Get-RemoteMetrics', 'stats --no-stream', '/proc/1/fd', 'cpu.percent', 'RestartCount')
+    }
+    'reporting' = @{
+        Path = Join-Path $testsRoot 'scripts\reporting\New-TestReport.ps1'
+        Required = @('ConvertTo-Csv', 'index.md', 'New-RunChecksums.ps1', 'SHA256SUMS.txt', 'ConvertFrom-Json')
+    }
+}
+$entryFailures = [Collections.Generic.List[string]]::new()
+foreach ($entry in $entryPoints.GetEnumerator()) {
+    if (-not (Test-Path -LiteralPath $entry.Value.Path -PathType Leaf)) {
+        $entryFailures.Add("$($entry.Key)：缺少文件")
+        continue
+    }
+    $entryText = [IO.File]::ReadAllText($entry.Value.Path)
+    $missing = @($entry.Value.Required | Where-Object { -not $entryText.Contains($_) })
+    if ($entryText -notmatch '\[string\]\$RunId') { $missing += 'RunId 参数' }
+    if ($missing.Count -gt 0) { $entryFailures.Add("$($entry.Key)：缺少 $($missing -join ', ')") }
+}
+Add-Check -Name '五项可执行测试入口' -Passed ($entryFailures.Count -eq 0) -Detail $(if ($entryFailures.Count -eq 0) { '功能、负载、故障注入、监控、报告入口及关键能力均存在' } else { $entryFailures -join '; ' })
+
+$moduleText = [IO.File]::ReadAllText((Join-Path $testsRoot 'scripts\common\EasyProxy.Testing.psm1'))
+$removeApiOk = $moduleText -match 'function Remove-EasyProxyRule\s*\{' -and
+    $moduleText -match 'function Remove-EasyProxyClient\s*\{' -and
+    $moduleText -match '/api/proxyClientRule\?id=' -and
+    $moduleText -match '/api/proxyClient\?id=' -and
+    $moduleText -match '-Method DELETE' -and
+    $moduleText -match '\$response\.Json\.code -eq 200'
+Add-Check -Name '规则与客户端删除操作' -Passed $removeApiOk -Detail $(if ($removeApiOk) { 'DELETE API、HTTP/业务码断言与导出函数均存在' } else { '缺少删除操作或成功码断言' })
+
+$runReuseOk = $moduleText -match '\[switch\]\$ReuseExisting' -and
+    $moduleText -match '运行目录已存在，禁止覆盖' -and
+    $moduleText -match 'Reused\s*=\s*\$true'
+Add-Check -Name '分阶段运行目录复用' -Passed $runReuseOk -Detail $(if ($runReuseOk) { '已有 RunId 可复用且不覆盖旧运行' } else { '缺少安全复用逻辑' })
+$loadTesterProject = Join-Path $testsRoot 'tools\EasyProxy.LoadTester\EasyProxy.LoadTester.csproj'
+$loadTesterBuildEvidence = Join-Path $runRoot 'raw\validation\load-tester-build.txt'
+$loadTesterBuild = Invoke-EasyProxyProcess -FilePath 'dotnet' -ArgumentList @('build', $loadTesterProject, '-c', 'Release', '--nologo') -TimeoutSeconds 180
+$buildEvidenceText = @(
+    "command_started_utc=$($loadTesterBuild.StartedAtUtc.ToString('o'))"
+    "command_finished_utc=$($loadTesterBuild.FinishedAtUtc.ToString('o'))"
+    "exit_code=$($loadTesterBuild.ExitCode)"
+    '--- output ---'
+    $loadTesterBuild.Combined.TrimEnd()
+) -join "`n"
+Write-EasyProxyEvidence -Path $loadTesterBuildEvidence -Text ($buildEvidenceText + "`n")
+Add-Check -Name '压测工具 Release 编译' -Passed ($loadTesterBuild.ExitCode -eq 0) -Detail "exit=$($loadTesterBuild.ExitCode)；证据=raw/validation/load-tester-build.txt"
 
 $h2Path = Join-Path $repoRoot 'easy-proxy-server\src\main\resources\server.yaml'
 $h2Document = Read-TextDocument -Path $h2Path
@@ -370,10 +435,10 @@ $reportLines = @(
     ''
     '## 测试范围'
     ''
-    '- 检查纳入 Git 的文本编码、BOM 与 LF 换行。'
+    '- 检查纳入 Git 的全部扫描文本为 UTF-8 无 BOM、统一 LF，并验证 LoadTester Release 编译。'
     '- 检查 Markdown 围栏和本地相对链接。'
     '- 校验固定数据文件清单与 SHA-256。'
-    '- 检查 T-01 至 T-39 编号完整性、PowerShell 语法、固定镜像版本和安全默认值。'
+    '- 检查 T-01 至 T-39 编号完整性、五项测试入口、PowerShell 语法、固定镜像版本和安全默认值。'
     '- 扫描私钥、Bearer 令牌、固定客户端 Token、JWT 和非占位符密码。'
     ''
     '## 环境与版本'

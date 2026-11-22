@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$RunId = '20261122-121200',
     [string]$Tag = 'test-20261122-022005-689e009',

@@ -1,0 +1,35 @@
+# 测试资产静态校验
+
+运行编号：`20261122-144251`
+Git 提交：`995c1f42c52b587361787b43d0e1dab3f6698599`
+校验时间：`2026-11-22 14:42:56 +08:00`
+
+| 检查项 | 结果 |
+| --- | --- |
+| [PASS] 运行目录初始化 | 运行编号=20261122-144251；已创建 raw、processed、screenshots、tmp |
+| [PASS] 文本资产可读取 | 共 38 个纳入扫描的文件 |
+| [PASS] UTF-8 编码与 BOM | 全部 38 个扫描文本均为 UTF-8 无 BOM |
+| [PASS] 统一 LF 换行 | 全部 38 个扫描文本均为 LF |
+| [PASS] UTF-8 可解码 | 全部通过 |
+| [PASS] Markdown 代码围栏 | 检查 7 个 Markdown 文件 |
+| [PASS] Markdown 相对链接 | 检查 2 个本地链接，全部存在 |
+| [PASS] 固定数据清单与哈希 | 清单 1003 行，实际文件 1003 个，纳入清单 1003 个；数量一致=True，集合一致=True，异常 0 个 |
+| [PASS] 测试用例编号 | T-01 至 T-39 连续且唯一 |
+| [PASS] PowerShell 语法 | 检查 17 个 PowerShell 文件，零错误 |
+| [PASS] 五项可执行测试入口 | 功能、负载、故障注入、监控、报告入口及关键能力均存在 |
+| [PASS] 规则与客户端删除操作 | DELETE API、HTTP/业务码断言与导出函数均存在 |
+| [PASS] 分阶段运行目录复用 | 已有 RunId 可复用且不覆盖旧运行 |
+| [PASS] 压测工具 Release 编译 | exit=0；证据=raw/validation/load-tester-build.txt |
+| [PASS] H2 Console 默认关闭 | server.yaml 中 h2ConsoleEnable=false |
+| [PASS] NAS 测试目标固定版本 | TARGET_IMAGE=nginx:1.27.4-alpine |
+| [PASS] 测试目标 Nginx 配置 | 根路径返回 200，监听 80，慢请求限速与 no-store 均存在 |
+| [PASS] README 单元测试数量 | 记录为 13 个测试 |
+| [PASS] 固定镜像引用 | 旧仓库引用 0 个，latest 镜像引用 0 个 |
+| [PASS] 敏感信息静态扫描 | 未发现私钥、Bearer 令牌、固定客户端 Token、JWT 或非占位符密码 |
+| [PASS] 生产日志级别 | 服务端与客户端 com.cky.proxy 均为 INFO |
+| [PASS] Token 日志脱敏 | 客户端 Token 校验失败日志不包含 Token 原文 |
+| [PASS] 证据脱敏回归 | SQL 参数、Token、密码、URL 凭据、JSON 密钥与 bcrypt 哈希均已脱敏 |
+
+判定：通过。所有静态校验项均成功。
+
+脚本：`docs/tests/scripts/validation/validate-test-assets.ps1`

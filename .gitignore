@@ -205,3 +205,7 @@ data/
 !docs/tests/data/generated/**
 !docs/tests/data/manifests/
 !docs/tests/data/manifests/**
+
+# .NET load tester build output
+docs/tests/tools/**/bin/
+docs/tests/tools/**/obj/

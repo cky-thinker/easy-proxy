@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$Tag = 'test-20261122-022005-689e009',
     [string]$RunId = (Get-Date -Format 'yyyyMMdd-HHmmss'),

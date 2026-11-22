@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$Registry = 'registry.cn-hangzhou.aliyuncs.com',
     [string]$Namespace = 'ckyspace',

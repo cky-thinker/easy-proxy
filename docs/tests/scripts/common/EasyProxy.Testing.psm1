@@ -1,4 +1,4 @@
-﻿Set-StrictMode -Version Latest
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $script:RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
@@ -416,25 +416,32 @@ function Test-EasyProxyFixtures {
 
     $entries = New-Object System.Collections.Generic.List[object]
     $failures = New-Object System.Collections.Generic.List[string]
+    $manifestPaths = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $manifestLineCount = 0
     foreach ($line in [IO.File]::ReadAllLines($manifestPath)) {
         if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        $manifestLineCount++
         if ($line -notmatch '^([0-9a-f]{64})  (.+)$') {
             $failures.Add("清单行格式错误")
             continue
         }
         $expectedHash = $Matches[1]
-        $relative = $Matches[2].Replace('/', [IO.Path]::DirectorySeparatorChar)
+        $manifestRelative = $Matches[2]
+        if (-not $manifestPaths.Add($manifestRelative)) {
+            $failures.Add("清单重复：$manifestRelative")
+        }
+        $relative = $manifestRelative.Replace('/', [IO.Path]::DirectorySeparatorChar)
         $fullPath = Join-Path $script:TestsRoot $relative
         if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
-            $failures.Add("缺少文件：$relative")
+            $failures.Add("缺少文件：$manifestRelative")
             continue
         }
         $actualHash = Get-EasyProxySha256 -Path $fullPath
         if ($actualHash -ne $expectedHash) {
-            $failures.Add("哈希不匹配：$relative")
+            $failures.Add("哈希不匹配：$manifestRelative")
         }
         $entries.Add([pscustomobject]@{
-            RelativePath = $relative.Replace('\', '/')
+            RelativePath = $manifestRelative.Replace('\', '/')
             FullPath     = $fullPath
             Sha256       = $actualHash
             ExpectedHash = $expectedHash
@@ -442,22 +449,40 @@ function Test-EasyProxyFixtures {
         })
     }
 
-    $listedRelative = @($entries | ForEach-Object { $_.RelativePath.Replace('data/fixtures/', '') })
+    $listedRelative = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($entry in $entries) {
+        [void]$listedRelative.Add($entry.RelativePath.Replace('data/fixtures/', ''))
+    }
     $actualFiles = @(Get-ChildItem -LiteralPath $root -Recurse -File | ForEach-Object {
         $_.FullName.Substring($root.Length + 1).Replace('\', '/')
     })
+    $actualRelative = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($actual in $actualFiles) {
-        if ($listedRelative -notcontains $actual) {
+        [void]$actualRelative.Add($actual)
+        if (-not $listedRelative.Contains($actual)) {
             $failures.Add("未纳入清单：$actual")
         }
     }
+    foreach ($listed in $listedRelative) {
+        if (-not $actualRelative.Contains($listed)) {
+            $failures.Add("清单指向不存在的文件：$listed")
+        }
+    }
 
+    $countsMatch = $manifestLineCount -eq $entries.Count -and
+        $manifestPaths.Count -eq $manifestLineCount -and
+        $actualFiles.Count -eq $entries.Count -and
+        $actualRelative.Count -eq $actualFiles.Count
     return [pscustomobject]@{
-        Passed      = ($failures.Count -eq 0 -and $entries.Count -eq 1003)
-        Count       = $entries.Count
-        Failures    = $failures.ToArray()
-        Entries     = $entries.ToArray()
-        Manifest    = $manifestPath
+        Passed           = ($failures.Count -eq 0 -and $countsMatch -and $listedRelative.SetEquals($actualRelative))
+        Count            = $entries.Count
+        ManifestCount    = $manifestLineCount
+        ActualFileCount  = $actualFiles.Count
+        CountsMatch      = $countsMatch
+        SetEquals        = $listedRelative.SetEquals($actualRelative)
+        Failures         = $failures.ToArray()
+        Entries          = $entries.ToArray()
+        Manifest         = $manifestPath
     }
 }
 
@@ -465,23 +490,64 @@ function New-EasyProxyRun {
     param(
         [string]$RunId = (Get-Date -Format 'yyyyMMdd-HHmmss'),
         [Parameter(Mandatory)][string]$TestScope,
-        [string]$Status = '进行中'
+        [string]$Status = '进行中',
+        [switch]$ReuseExisting
     )
 
     if ($RunId -notmatch '^\d{8}-\d{6}(?:-retry\d{2})?$') {
         throw "运行编号格式错误：$RunId"
     }
     $runRoot = Join-Path $script:TestsRoot "runs\$RunId"
-    if (Test-Path -LiteralPath $runRoot) {
-        throw "运行目录已存在，禁止覆盖：$runRoot"
-    }
-
     $relativeDirs = @(
         'raw\functional', 'raw\load', 'raw\health', 'raw\metrics', 'raw\logs',
         'raw\responses', 'raw\docker', 'raw\validation',
         'processed\summaries', 'processed\charts', 'processed\validation',
         'screenshots', 'tmp'
     )
+
+    if (Test-Path -LiteralPath $runRoot) {
+        if (-not $ReuseExisting) {
+            throw "运行目录已存在，禁止覆盖：$runRoot"
+        }
+        $manifestPath = Join-Path $runRoot 'manifest.md'
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+            throw "运行目录缺少 manifest.md，不能复用：$runRoot"
+        }
+        foreach ($relativeDir in $relativeDirs) {
+            New-Item -ItemType Directory -Path (Join-Path $runRoot $relativeDir) -Force | Out-Null
+        }
+        $manifestText = [IO.File]::ReadAllText($manifestPath)
+        $branch = ''
+        $commit = ''
+        $startedAt = ''
+        $existingScope = $TestScope
+        foreach ($line in ($manifestText -split "`n")) {
+            if ($line -match '^\| Git 分支/提交 \| `([^`]*)` / `([^`]*)` \|$') {
+                $branch = $Matches[1]
+                $commit = $Matches[2]
+            }
+            elseif ($line -match '^\| 开始时间 \| ([^|]+) \|$') {
+                $startedAt = $Matches[1].Trim()
+            }
+            elseif ($line -match '^\| 测试范围 \| ([^|]+) \|$') {
+                $existingScope = $Matches[1].Trim()
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($branch) -or [string]::IsNullOrWhiteSpace($commit)) {
+            throw "无法从运行清单读取 Git 分支/提交：$manifestPath"
+        }
+        return [pscustomobject]@{
+            RunId     = $RunId
+            RunRoot   = $runRoot
+            TestScope = $existingScope
+            StartedAt = $startedAt
+            Branch    = $branch
+            Commit    = $commit
+            Status    = $Status
+            Reused    = $true
+        }
+    }
+
     New-Item -ItemType Directory -Path $runRoot -Force | Out-Null
     foreach ($relativeDir in $relativeDirs) {
         New-Item -ItemType Directory -Path (Join-Path $runRoot $relativeDir) -Force | Out-Null
@@ -497,6 +563,7 @@ function New-EasyProxyRun {
         Branch    = $branch
         Commit    = $commit
         Status    = $Status
+        Reused    = $false
     }
     Write-EasyProxyRunManifest -Run $run
     return $run
@@ -598,6 +665,51 @@ function Write-EasyProxyRunManifest {
     Write-LfText -Path (Join-Path $Run.RunRoot 'manifest.md') -Text ($manifest + "`n")
 }
 
+function New-EasyProxyEvidencePath {
+    param(
+        [Parameter(Mandatory)][string]$RunRoot,
+        [Parameter(Mandatory)][string]$RelativePath
+    )
+    $root = [IO.Path]::GetFullPath($RunRoot).TrimEnd('\', '/')
+    $path = [IO.Path]::GetFullPath((Join-Path $root $RelativePath))
+    if (-not $path.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "证据路径必须位于运行目录内：$RelativePath"
+    }
+    if (Test-Path -LiteralPath $path) {
+        throw "证据文件已存在，禁止覆盖：$path"
+    }
+    New-Item -ItemType Directory -Path (Split-Path -Path $path -Parent) -Force | Out-Null
+    return $path
+}
+
+function Write-EasyProxyTestResults {
+    param(
+        [Parameter(Mandatory)][object]$Run,
+        [Parameter(Mandatory)][string]$Phase,
+        [Parameter(Mandatory)][object[]]$Results
+    )
+    if ($Phase -notmatch '^[A-Za-z0-9_-]+$') {
+        throw "阶段名称不合法：$Phase"
+    }
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $relative = "processed/summaries/$Phase-results-$stamp.csv"
+    $path = New-EasyProxyEvidencePath -RunRoot $Run.RunRoot -RelativePath $relative
+    $normalized = foreach ($item in $Results) {
+        [pscustomobject][ordered]@{
+            testId          = [string]$item.TestId
+            name            = [string]$item.Name
+            status          = [string]$item.Status
+            startedAt       = [string]$item.StartedAt
+            endedAt         = [string]$item.EndedAt
+            durationSeconds = [math]::Round([double]$item.DurationSeconds, 3)
+            detail          = [string]$item.Detail
+            evidence        = [string]$item.Evidence
+        }
+    }
+    $csv = ($normalized | ConvertTo-Csv -NoTypeInformation) -join "`n"
+    Write-LfText -Path $path -Text ($csv + "`n")
+    return $path
+}
 function New-EasyProxyToken {
     $bytes = New-Object byte[] 16
     [Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
@@ -765,6 +877,27 @@ function Set-EasyProxyClientEnabled {
     return $response.Json.data
 }
 
+function Remove-EasyProxyRule {
+    param(
+        [Parameter(Mandatory)][string]$BaseUri,
+        [Parameter(Mandatory)][string]$Token,
+        [Parameter(Mandatory)][int]$Id
+    )
+    $response = Invoke-EasyProxyApi -BaseUri $BaseUri -Path "/api/proxyClientRule?id=$([Uri]::EscapeDataString([string]$Id))" -Method DELETE -Token $Token
+    Assert-EasyProxy -Condition ($response.StatusCode -eq 200 -and $response.Json.code -eq 200) -Name '删除转发规则' -Detail $(if ($response.Success) { $response.Content } else { $response.Error })
+    return $response
+}
+
+function Remove-EasyProxyClient {
+    param(
+        [Parameter(Mandatory)][string]$BaseUri,
+        [Parameter(Mandatory)][string]$Token,
+        [Parameter(Mandatory)][int]$Id
+    )
+    $response = Invoke-EasyProxyApi -BaseUri $BaseUri -Path "/api/proxyClient?id=$([Uri]::EscapeDataString([string]$Id))" -Method DELETE -Token $Token
+    Assert-EasyProxy -Condition ($response.StatusCode -eq 200 -and $response.Json.code -eq 200) -Name '删除客户端' -Detail $(if ($response.Success) { $response.Content } else { $response.Error })
+    return $response
+}
 function Invoke-EasyProxyHealth {
     param([Parameter(Mandatory)][string]$BaseUri, [int]$TimeoutSeconds = 10)
     return Invoke-EasyProxyApi -BaseUri $BaseUri -Path '/api/open/health' -TimeoutSeconds $TimeoutSeconds

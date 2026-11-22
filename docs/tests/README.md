@@ -71,6 +71,11 @@ docs/tests/
 
 - 构建并发布镜像：`scripts/build/build-and-push-images.ps1`
 - 验证 ACR 清单：`scripts/build/verify-acr-images.ps1`
+- 执行 T-01 至 T-20：`scripts/functional/Invoke-FunctionalTests.ps1`
+- 执行 T-21 至 T-30：`scripts/load/Invoke-LoadTests.ps1`
+- 执行 T-31 至 T-36：`scripts/fault-injection/Invoke-FaultInjectionTests.ps1`
+- 运行资源监控：`scripts/monitoring/Start-EasyProxyMonitor.ps1`
+- 生成最终报告：`scripts/reporting/New-TestReport.ps1`
 - 采集 WSL 构建主机：`scripts/common/capture-wsl-host.sh`
 - 确认 ACR 凭据已清除：`scripts/common/verify-acr-logged-out.sh`
 - 修复 NAS Docker Socket 权限：`scripts/common/fix-nas-docker-access.sh`
