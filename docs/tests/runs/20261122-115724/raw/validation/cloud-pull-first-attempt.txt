@@ -1,0 +1,17 @@
+# T-39 raw pull attempt (sanitized reproduction of terminal output)
+host=C20260316178252
+docker_version=Docker version 29.3.0, build 5927d80
+disk_opt_free_kib=11133344
+tag=test-20261122-022005-689e009
+
+=== server ===
+status=downloaded
+digest=sha256:37755831105cdb87e6044e2e1f016cf2faa6a811b8c97eb1f68b008fa8cbfa2a
+
+=== client ===
+status=downloaded
+digest=sha256:11f252500e74781489dc82b6b558639718e11c2170e5a206c5137a365c5e7009
+
+=== web ===
+status=failed
+error=invalid reference format
