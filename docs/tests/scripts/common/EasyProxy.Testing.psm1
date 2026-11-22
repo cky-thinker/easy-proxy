@@ -527,17 +527,15 @@ function ConvertTo-EasyProxyEncryptedPassword {
         [Parameter(Mandatory)][string]$PublicKeyPem
     )
 
-    $certificate = [Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromPem($PublicKeyPem)
-    $rsa = $certificate.GetRSAPublicKey()
-    if ($null -eq $rsa) { throw '登录公钥不是 RSA 证书。' }
+    $rsa = [Security.Cryptography.RSA]::Create()
     try {
+        $rsa.ImportFromPem($PublicKeyPem)
         $plainBytes = [Text.Encoding]::UTF8.GetBytes($Password)
         $encrypted = $rsa.Encrypt($plainBytes, [Security.Cryptography.RSAEncryptionPadding]::OaepSHA256)
         return [Convert]::ToBase64String($encrypted)
     }
     finally {
         $rsa.Dispose()
-        $certificate.Dispose()
     }
 }
 
