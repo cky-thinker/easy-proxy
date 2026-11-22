@@ -1,0 +1,9 @@
+run_id=20261122-022714
+branch=develop
+commit=f17b50e134a0550a0cd8bedf06f84f8c443934a8
+registry=registry.cn-hangzhou.aliyuncs.com
+namespace=ckyspace
+tag=test-20261122-022005-689e009
+platform=linux/amd64
+action=push-existing-images-no-rebuild
+credential_logged=no

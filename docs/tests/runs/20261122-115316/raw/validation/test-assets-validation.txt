@@ -1,0 +1,28 @@
+# 测试资产静态校验
+
+运行编号：`20261122-115316`
+Git 提交：`f17b50e134a0550a0cd8bedf06f84f8c443934a8`
+校验时间：`2026-11-22 11:53:21 +08:00`
+
+| 检查项 | 结果 |
+| --- | --- |
+| [PASS] 运行目录初始化 | 运行编号=20261122-115316；已创建 raw、processed、screenshots、tmp |
+| [PASS] 文本资产可读取 | 共 252 个纳入扫描的文件 |
+| [PASS] UTF-8 编码与 BOM | PowerShell 带 BOM，Markdown/YAML/env/Shell/CSV/JSON 无 BOM |
+| [PASS] 统一 LF 换行 | 全部通过 |
+| [PASS] UTF-8 可解码 | 全部通过 |
+| [PASS] Markdown 代码围栏 | 检查 69 个 Markdown 文件 |
+| [PASS] Markdown 相对链接 | 检查 110 个本地链接，全部存在 |
+| [PASS] 固定数据清单与哈希 | 清单 1003 行，文件 1003 个，纳入清单 1003 个；缺失/不一致/未纳入异常 0 个 |
+| [PASS] 测试用例编号 | T-01 至 T-39 连续且唯一 |
+| [PASS] PowerShell 语法 | 检查 8 个 PowerShell 文件，零错误 |
+| [PASS] H2 Console 默认关闭 | server.yaml 中 h2ConsoleEnable=false |
+| [PASS] NAS 测试目标固定版本 | TARGET_IMAGE=nginx:1.27.4-alpine |
+| [PASS] 测试目标 Nginx 配置 | 监听 80，慢请求限速与 no-store 均存在 |
+| [PASS] README 单元测试数量 | 记录为 13 个测试 |
+| [PASS] 固定镜像引用 | 旧仓库引用 0 个，latest 镜像引用 0 个 |
+| [PASS] 敏感信息静态扫描 | 未发现私钥、Bearer 令牌、固定客户端 Token、JWT 或非占位符密码 |
+
+判定：通过。所有静态校验项均成功。
+
+脚本：`docs/tests/scripts/validation/validate-test-assets.ps1`
