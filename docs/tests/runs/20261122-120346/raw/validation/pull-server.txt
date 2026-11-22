@@ -1,0 +1,8 @@
+command_started_utc=2026-11-22T04:03:49.3425332+00:00
+command_finished_utc=2026-11-22T04:03:51.7602338+00:00
+exit_code=0
+--- output ---
+test-20261122-022005-689e009: Pulling from ckyspace/easy-proxy-server
+Digest: sha256:37755831105cdb87e6044e2e1f016cf2faa6a811b8c97eb1f68b008fa8cbfa2a
+Status: Image is up to date for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-022005-689e009
+registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-022005-689e009

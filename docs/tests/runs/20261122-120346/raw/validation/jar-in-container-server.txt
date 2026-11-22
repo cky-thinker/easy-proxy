@@ -1,0 +1,5 @@
+command_started_utc=2026-11-22T04:03:52.7085840+00:00
+command_finished_utc=2026-11-22T04:03:54.1196701+00:00
+exit_code=0
+--- output ---
+63f727f770acc57fe7c5251810b81baacc82d9c8da623cd191f478fdb53b9161  /app/app.jar

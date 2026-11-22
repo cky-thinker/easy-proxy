@@ -1,0 +1,5 @@
+command_started_utc=2026-11-22T04:03:48.3663158+00:00
+command_finished_utc=2026-11-22T04:03:49.2387447+00:00
+exit_code=0
+--- output ---
+ACR_AUTH_ENTRY=yes
