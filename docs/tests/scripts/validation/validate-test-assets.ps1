@@ -225,12 +225,13 @@ $targetNginxPath = Join-Path $testsRoot 'configs\docker\target\nginx.conf'
 $targetNginxText = [IO.File]::ReadAllText($targetNginxPath)
 $nginxRequirements = [ordered]@{
     'listen 80'            = $targetNginxText -match '(?m)^\s*listen 80;\s*$'
+    'root returns 200'      = $targetNginxText -match 'location = /\s*\{[^}]*return 200'
     'slow-2s.bin'          = $targetNginxText.Contains('slow-2s.bin')
     'limit_rate 512k'      = $targetNginxText -match '(?m)^\s*limit_rate 512k;\s*$'
     'Cache-Control no-store' = $targetNginxText -match 'add_header\s+Cache-Control\s+"no-store";'
 }
 $nginxMissing = @($nginxRequirements.Keys | Where-Object { -not $nginxRequirements[$_] })
-Add-Check -Name '测试目标 Nginx 配置' -Passed ($nginxMissing.Count -eq 0) -Detail $(if ($nginxMissing.Count -eq 0) { '监听 80，慢请求限速与 no-store 均存在' } else { "缺少：$($nginxMissing -join ', ')" })
+Add-Check -Name '测试目标 Nginx 配置' -Passed ($nginxMissing.Count -eq 0) -Detail $(if ($nginxMissing.Count -eq 0) { '根路径返回 200，监听 80，慢请求限速与 no-store 均存在' } else { "缺少：$($nginxMissing -join ', ')" })
 
 $testsReadmePath = Join-Path $testsRoot 'README.md'
 $testsReadme = [IO.File]::ReadAllText($testsReadmePath)
