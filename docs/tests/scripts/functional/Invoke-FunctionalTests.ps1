@@ -255,6 +255,7 @@ try {
         $badConfigDir = "/tmp/$containerName"
         $badYaml = @('server:', "  ip: $PublicHost", '  port: 21090', '  webPort: 21092', '  token: "invalid-token-for-t16"') -join "`n"
         $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($badYaml))
+        $logSince = [DateTimeOffset]::UtcNow.AddSeconds(-2).ToString('yyyy-MM-ddTHH:mm:ssZ')
         $script = @"
 set -eu
 DOCKER=/usr/local/bin/docker
@@ -271,12 +272,14 @@ rm -rf '$badConfigDir'
 "@
         try {
             $r = Invoke-Nas -Script $script -TimeoutSeconds 90
+            $serverLogs = Invoke-Cloud -Script "/usr/bin/docker logs --since '$logSince' easy-proxy-server 2>&1 || true" -TimeoutSeconds 30
             $online = Wait-ClientOnline -TimeoutSeconds 10
-            $text = "exit=$($r.ExitCode)`n$($r.Combined)`nprimary_online=$($online.Satisfied)"
+            $serverRejected = $serverLogs.Combined -match 'Client not found for supplied token'
+            $clientClosed = $r.Combined -match '(?i)(mng socket (error|closed)|connect closed)'
+            $text = "exit=$($r.ExitCode)`n--- bad client ---`n$($r.Combined)`n--- server since $logSince ---`n$($serverLogs.Combined)`nprimary_online=$($online.Satisfied)"
             $evidence = Write-CaseEvidence -CaseId 'T-16' -Name 'bad-token' -Text $text
-            $clearRejection = $r.Combined -match '(?i)(token|unauthor|auth|denied|invalid|fail|certificate)'
-            Assert-EasyProxy -Condition ($r.ExitCode -eq 0 -and $clearRejection -and $online.Satisfied) -Name '错误 Token' -Detail $text
-            [pscustomobject]@{ Detail = '错误 Token 客户端未上线，原客户端保持在线'; Evidence = $evidence }
+            Assert-EasyProxy -Condition ($r.ExitCode -eq 0 -and $clientClosed -and $serverRejected -and $online.Satisfied) -Name '错误 Token' -Detail $text
+            [pscustomobject]@{ Detail = '服务端明确拒绝错误 Token，临时客户端连接关闭，原客户端保持在线'; Evidence = $evidence }
         }
         finally { Invoke-Nas -Script "/usr/local/bin/docker rm -f '$containerName' >/dev/null 2>&1 || true; rm -rf '$badConfigDir'" -TimeoutSeconds 30 | Out-Null }
     }
@@ -325,27 +328,31 @@ ss -lnt | grep -q ':$RulePort\b'
         }
     }
     Invoke-FunctionalCase -CaseId 'T-19' -Name '删除规则' -Action {
-        $temporaryPort = $RulePort + 1
+        $parkingPort = $RulePort + 1
         $temporaryName = "t19-delete-$stamp"
-        $temporaryRule = New-EasyProxyRule -BaseUri $webBase -Token $admin.Token -ProxyClientId $clientId -RuleName $temporaryName -ServerPort $temporaryPort -ClientAddress "${NasHost}:$NasTargetPort" -EnableFlag $true
+        $temporaryRule = $null
         try {
-            $listening = Wait-EasyProxyCondition -Name '临时规则监听' -TimeoutSeconds 30 -IntervalMilliseconds 1000 -Condition {
-                (Invoke-Cloud -Script "ss -lnt | grep -q ':$temporaryPort\b'" -TimeoutSeconds 10).ExitCode -eq 0
-            }
-            $probe = Invoke-EasyProxyHttp -Uri "http://$PublicHost`:$temporaryPort/" -TimeoutSeconds 10
+            Set-EasyProxyRuleEnabled -BaseUri $webBase -Token $admin.Token -Rule $primaryRule -Enabled $false -ServerPort $parkingPort | Out-Null
+            $primaryReleased = Wait-RuleReleased -TimeoutSeconds 60
+            $temporaryRule = New-EasyProxyRule -BaseUri $webBase -Token $admin.Token -ProxyClientId $clientId -RuleName $temporaryName -ServerPort $RulePort -ClientAddress "${NasHost}:$NasTargetPort" -EnableFlag $true
+            $listening = Wait-RuleListening -TimeoutSeconds 30
+            $probe = Invoke-EasyProxyHttp -Uri "$ruleBase/" -TimeoutSeconds 10
             Remove-EasyProxyRule -BaseUri $webBase -Token $admin.Token -Id ([int]$temporaryRule.id) | Out-Null
-            $released = Wait-EasyProxyCondition -Name '临时规则端口释放' -TimeoutSeconds 60 -IntervalMilliseconds 1000 -Condition {
-                (Invoke-Cloud -Script "if ss -lnt | grep -q ':$temporaryPort\b'; then exit 1; fi" -TimeoutSeconds 10).ExitCode -eq 0
-            }
+            $released = Wait-RuleReleased -TimeoutSeconds 60
             $remaining = @(Get-EasyProxyRules -BaseUri $webBase -Token $admin.Token) | Where-Object { [int]$_.id -eq [int]$temporaryRule.id }
-            $text = "rule_id=$($temporaryRule.id) listening=$($listening.Satisfied) probe=$($probe.StatusCode) released=$($released.Satisfied) exists_after=$($null -ne $remaining)"
+            $text = "primary_released=$($primaryReleased.Satisfied) rule_id=$($temporaryRule.id) listening=$($listening.Satisfied) probe=$($probe.StatusCode) released=$($released.Satisfied) exists_after=$($null -ne $remaining)"
             $evidence = Write-CaseEvidence -CaseId 'T-19' -Name 'delete-rule' -Text $text
-            Assert-EasyProxy -Condition ($listening.Satisfied -and $probe.StatusCode -eq 200 -and $released.Satisfied -and $null -eq $remaining) -Name '删除规则' -Detail $text
-            [pscustomobject]@{ Detail = '临时规则删除后从 API 消失且端口释放'; Evidence = $evidence }
+            Assert-EasyProxy -Condition ($primaryReleased.Satisfied -and $listening.Satisfied -and $probe.StatusCode -eq 200 -and $released.Satisfied -and $null -eq $remaining) -Name '删除规则' -Detail $text
+            [pscustomobject]@{ Detail = '临时规则使用 28080 成功转发，删除后从 API 消失且端口释放'; Evidence = $evidence }
         }
         finally {
-            $existing = @(Get-EasyProxyRules -BaseUri $webBase -Token $admin.Token) | Where-Object { [int]$_.id -eq [int]$temporaryRule.id }
-            if ($null -ne $existing) { Remove-EasyProxyRule -BaseUri $webBase -Token $admin.Token -Id ([int]$temporaryRule.id) | Out-Null }
+            if ($null -ne $temporaryRule) {
+                $existing = @(Get-EasyProxyRules -BaseUri $webBase -Token $admin.Token) | Where-Object { [int]$_.id -eq [int]$temporaryRule.id }
+                if ($null -ne $existing) { Remove-EasyProxyRule -BaseUri $webBase -Token $admin.Token -Id ([int]$temporaryRule.id) | Out-Null }
+            }
+            Set-EasyProxyRuleEnabled -BaseUri $webBase -Token $admin.Token -Rule $primaryRule -Enabled $true -ServerPort $RulePort | Out-Null
+            Wait-RuleListening -TimeoutSeconds 60 | Out-Null
+            Wait-RuleForwarding -TimeoutSeconds 60 | Out-Null
         }
     }
     Invoke-FunctionalCase -CaseId 'T-20' -Name '客户端禁用' -Action {
