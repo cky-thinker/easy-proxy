@@ -39,6 +39,8 @@ $secret = Read-EasyProxySecretMaterial -RunId $RunId
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $cloudRollbackSuffix = "-rollback-$timestamp"
 $nasRollbackSuffix = "-rollback-$timestamp"
+$cloudComposeProject = "easy-proxy-cloud-$timestamp"
+$nasComposeProject = "easy-proxy-nas-$timestamp"
 $apiBase = "http://$PublicHost`:$WebPort"
 $serverImage = "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:$Tag"
 $clientImage = "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag"
@@ -208,8 +210,8 @@ try {
         "    printf 'ROLLBACK_CONTAINER=%s\n' `"`$name$cloudRollbackSuffix`""
         '  fi'
         'done'
-        '/usr/bin/docker compose up -d --pull never'
-        '/usr/bin/docker compose ps'
+        "/usr/bin/docker compose -p '$cloudComposeProject' up -d --pull never"
+        "/usr/bin/docker compose -p '$cloudComposeProject' ps"
     ) -join "`n"
     $cloudStarted = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-start.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script $rollback -TimeoutSeconds 180
     Add-DeployCheck -Name '云服务器容器启动' -Passed ($cloudStarted.ExitCode -eq 0) -Detail "exit=$($cloudStarted.ExitCode)"
@@ -218,9 +220,11 @@ try {
     Add-DeployCheck -Name '服务端/API 健康' -Passed ([bool]$health.Satisfied) -Detail "等待 $([math]::Round($health.ElapsedMs / 1000, 1)) 秒"
     if (-not $health.Satisfied) {
         Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-health-failed.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script (@(
-            '/usr/bin/docker compose -f /opt/easy-proxy/docker-compose.yml ps'
-            '/usr/bin/docker logs --tail=300 easy-proxy-server 2>&1 || true'
-            '/usr/bin/docker logs --tail=200 easy-proxy-web 2>&1 || true'
+            "cd /opt/easy-proxy && /usr/bin/docker compose -p '$cloudComposeProject' ps"
+            "server_id=`$(/usr/bin/docker compose -p '$cloudComposeProject' ps -q server)"
+            "web_id=`$(/usr/bin/docker compose -p '$cloudComposeProject' ps -q web)"
+            'test -n "$server_id" && /usr/bin/docker logs --tail=300 "$server_id" 2>&1 || true'
+            'test -n "$web_id" && /usr/bin/docker logs --tail=200 "$web_id" 2>&1 || true'
         ) -join "`n") | Out-Null
         throw '云服务器健康检查未通过'
     }
@@ -271,12 +275,15 @@ try {
     $nasStart = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-start.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'cd /volume1/docker/easy-proxy-client'
-        'if /usr/local/bin/docker inspect easy-proxy-client >/dev/null 2>&1; then'
-        '  /usr/local/bin/docker stop easy-proxy-client >/dev/null || true'
-        "  /usr/local/bin/docker rename easy-proxy-client `"easy-proxy-client$nasRollbackSuffix`""
-        'fi'
-        '/usr/local/bin/docker compose up -d --pull never'
-        '/usr/local/bin/docker compose ps'
+        "project='$nasComposeProject'"
+        'for name in easy-proxy-client easy-proxy-target; do'
+        '  if /usr/local/bin/docker inspect "$name" >/dev/null 2>&1; then'
+        '    /usr/local/bin/docker stop "$name" >/dev/null || true'
+        "    /usr/local/bin/docker rename `"`$name`" `"`$name$nasRollbackSuffix`""
+        '  fi'
+        'done'
+        '/usr/local/bin/docker compose -p "$project" up -d --pull never'
+        '/usr/local/bin/docker compose -p "$project" ps'
         "netstat -ltn 2>/dev/null | grep -E ':18080\b' || true"
     ) -join "`n") -TimeoutSeconds 180
     Add-DeployCheck -Name 'NAS 目标与客户端启动' -Passed ($nasStart.ExitCode -eq 0) -Detail "exit=$($nasStart.ExitCode)"
@@ -325,22 +332,30 @@ try {
     $runtime = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-runtime-state.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script (@(
         'set -eu'
         'cd /opt/easy-proxy'
-        '/usr/bin/docker compose ps'
-        '/usr/bin/docker inspect easy-proxy-server easy-proxy-web --format ''{{.Name}} image={{.Config.Image}} image_id={{.Image}} restart={{.RestartCount}} status={{.State.Status}}'''
+        "project='$cloudComposeProject'"
+        '/usr/bin/docker compose -p "$project" ps'
+        'server_id="$(/usr/bin/docker compose -p "$project" ps -q server)"'
+        'web_id="$(/usr/bin/docker compose -p "$project" ps -q web)"'
+        'test -n "$server_id" -a -n "$web_id"'
+        '/usr/bin/docker inspect "$server_id" "$web_id" --format ''{{.Name}} image={{.Config.Image}} image_id={{.Image}} restart={{.RestartCount}} status={{.State.Status}}'''
         '/usr/bin/ss -lnt | grep -E '':(21090|21091|21092|28080)\b'''
-        '/usr/bin/docker logs --tail=120 easy-proxy-server 2>&1'
-        '/usr/bin/docker logs --tail=80 easy-proxy-web 2>&1'
+        '/usr/bin/docker logs --tail=120 "$server_id" 2>&1'
+        '/usr/bin/docker logs --tail=80 "$web_id" 2>&1'
     ) -join "`n") -TimeoutSeconds 120
     Add-DeployCheck -Name '运行状态归档' -Passed ($runtime.ExitCode -eq 0) -Detail "exit=$($runtime.ExitCode)"
 
     $nasRuntime = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-runtime-state.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'cd /volume1/docker/easy-proxy-client'
-        '/usr/local/bin/docker compose ps'
-        '/usr/local/bin/docker inspect easy-proxy-client easy-proxy-target --format ''{{.Name}} image={{.Config.Image}} image_id={{.Image}} restart={{.RestartCount}} status={{.State.Status}}'''
+        "project='$nasComposeProject'"
+        '/usr/local/bin/docker compose -p "$project" ps'
+        'client_id="$(/usr/local/bin/docker compose -p "$project" ps -q client)"'
+        'target_id="$(/usr/local/bin/docker compose -p "$project" ps -q target)"'
+        'test -n "$client_id" -a -n "$target_id"'
+        '/usr/local/bin/docker inspect "$client_id" "$target_id" --format ''{{.Name}} image={{.Config.Image}} image_id={{.Image}} restart={{.RestartCount}} status={{.State.Status}}'''
         'netstat -ltn 2>/dev/null | grep -E '':18080\b'' || true'
-        '/usr/local/bin/docker logs --tail=160 easy-proxy-client 2>&1'
-        '/usr/local/bin/docker logs --tail=80 easy-proxy-target 2>&1'
+        '/usr/local/bin/docker logs --tail=160 "$client_id" 2>&1'
+        '/usr/local/bin/docker logs --tail=80 "$target_id" 2>&1'
     ) -join "`n") -TimeoutSeconds 120
     Add-DeployCheck -Name 'NAS 运行状态归档' -Passed ($nasRuntime.ExitCode -eq 0) -Detail "exit=$($nasRuntime.ExitCode)"
 
@@ -351,6 +366,8 @@ try {
         "固定标签：$Tag"
         "云服务器回滚保留后缀：$cloudRollbackSuffix"
         "NAS 回滚保留后缀：$nasRollbackSuffix"
+        "云服务器 Compose 项目：$cloudComposeProject"
+        "NAS Compose 项目：$nasComposeProject"
         ''
         '| 检查项 | 结果 | 说明 |'
         '| --- | --- | --- |'
