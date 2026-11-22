@@ -39,14 +39,25 @@ function ConvertTo-SafeText {
 
     if ($null -eq $Text) { return '' }
     $safe = $Text
-    $safe = [regex]::Replace($safe, '(?im)^(\s*(?:token|password|encryptedPassword|jwtSecret|certPassword|SERVER_JWT_SECRET|SERVER_CERT_PASSWORD|ACR_PASSWORD)\s*[:=]\s*)(.+)$', '$1<REDACTED>')
-    $safe = [regex]::Replace($safe, '(?im)(Authorization\s*:\s*Bearer\s+)[^\s]+', '$1<REDACTED>')
-    $safe = [regex]::Replace($safe, '(?i)("(?:token|password|encryptedPassword|jwtSecret|certPassword)"\s*:\s*")[^"]*(")', '$1<REDACTED>$2')
-    $safe = [regex]::Replace($safe, '(?i)(https?://[^/\s:@]+:)[^/\s@]+(@)', '$1<REDACTED>$2')
-    $safe = [regex]::Replace($safe, '(?i)([?&](?:token|password|access_token)=)[^&\s]+', '$1<REDACTED>')
+
+    # MyBatis logs the complete bound-parameter list on one line. Remove the
+    # whole payload before applying narrower key/value rules.
+    $safe = [regex]::Replace($safe, '(?im)(\bParameters\s*:\s*).*$', '${1}<REDACTED>')
+
+    # Handle secrets in command output and log messages where the key is not
+    # at the beginning of the line.
+    $safe = [regex]::Replace(
+        $safe,
+        '(?im)(\b[A-Za-z0-9_-]*(?:token|password|secret)\b|\bapi[_-]?key\b)\s*[:=]\s*(?:"[^"\r\n]*"|''[^''\r\n]*''|[^\s,;}\]]+)',
+        '${1}=<REDACTED>'
+    )
+    $safe = [regex]::Replace($safe, '(?i)(Authorization\s*:\s*(?:Bearer|Basic)\s+)[^\s]+', '${1}<REDACTED>')
+    $safe = [regex]::Replace($safe, '(?i)("(?:[^"]*(?:token|password|secret)[^"]*|api[_-]?key)"\s*:\s*")[^"]*(")', '${1}<REDACTED>${2}')
+    $safe = [regex]::Replace($safe, '(?i)(https?://[^/\s:@]+:)[^/\s@]+(@)', '${1}<REDACTED>${2}')
+    $safe = [regex]::Replace($safe, '(?i)([?&](?:[^=&]*(?:token|password|secret)[^=&]*|api[_-]?key)=)[^&\s]+', '${1}<REDACTED>')
+    $safe = [regex]::Replace($safe, '(?i)\$2[abxy]\$[0-9]{2}\$[./A-Za-z0-9]{53}', '<REDACTED>')
     return $safe
 }
-
 function Write-EasyProxyEvidence {
     param(
         [Parameter(Mandatory)][string]$Path,

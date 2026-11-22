@@ -1,0 +1,10 @@
+command_started_utc=2026-11-22T04:58:47.0293952+00:00
+command_finished_utc=2026-11-22T04:58:52.9352537+00:00
+exit_code=0
+--- output ---
+1.27.4-alpine: Pulling from library/nginx
+Digest: sha256:4ff102c5d78d254a6f0da062b3cf39eaf07f01eec0927fd21e219d0af8bc0591
+Status: Image is up to date for nginx:1.27.4-alpine
+docker.io/library/nginx:1.27.4-alpine
+[registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-022005-689e009] sha256:104ad73c18d85acb73e2eddc8f92a9e5aac2b36a51501e9a5dba3457f1a8972e linux/amd64
+[nginx:1.27.4-alpine] sha256:1ff4bb4faebcfb1f7e01144fa9904a570ab9bab88694457855feb6c6bba3fa07 linux/amd64

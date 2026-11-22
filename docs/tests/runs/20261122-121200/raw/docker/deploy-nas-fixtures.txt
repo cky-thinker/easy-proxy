@@ -1,0 +1,7 @@
+command_started_utc=2026-11-22T04:58:46.8006437+00:00
+command_finished_utc=2026-11-22T04:58:47.0200987+00:00
+exit_code=0
+--- output ---
+fixture_count=1003 expected=1003
+013431e0bf376fcd1c1640878548e9a113732e10bfb4c30c426275920bff877a  /volume1/docker/easy-proxy-client/fixtures/small-1k.bin
+556ebf7a611688b52aeedf6a8cce86709c7903799153f4f5979dc50dfceabb80  /volume1/docker/easy-proxy-client/fixtures/large-10m.bin

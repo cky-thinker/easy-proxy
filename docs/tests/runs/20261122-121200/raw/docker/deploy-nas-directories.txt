@@ -1,0 +1,9 @@
+command_started_utc=2026-11-22T04:58:44.3961391+00:00
+command_finished_utc=2026-11-22T04:58:44.5906290+00:00
+exit_code=0
+--- output ---
+drwx------ 1 chenkeyudev users  92 Nov 22 12:48 /volume1/docker/easy-proxy-client
+drwx------ 1 chenkeyudev users  38 Nov 22 12:49 /volume1/docker/easy-proxy-client/config
+drwx------ 1 chenkeyudev users 116 Nov 22 01:25 /volume1/docker/easy-proxy-client/fixtures
+drwx------ 1 chenkeyudev users  12 Nov 22 12:48 /volume1/docker/easy-proxy-client/logs
+drwx------ 1 chenkeyudev users  20 Nov 22 12:48 /volume1/docker/easy-proxy-client/target

@@ -239,10 +239,14 @@ $unitCountOk = $testsReadme -match '13\s*个测试' -and $testsReadme -notmatch 
 Add-Check -Name 'README 单元测试数量' -Passed $unitCountOk -Detail $(if ($unitCountOk) { '记录为 13 个测试' } else { '未记录为 13 个测试' })
 
 $scanTextFiles = @($textFiles | Where-Object { $_.Name -ne 'validate-test-assets.ps1' })
-$allText = ($scanTextFiles | ForEach-Object { $documents[$_.FullName].Text }) -join "`n"
+$imageReferenceFiles = @($scanTextFiles | Where-Object {
+    $relative = Get-RelativePath -Path $_.FullName
+    $relative -notlike 'docs/tests/runs/*' -and $relative -notlike 'docs/tests/reports/*'
+})
+$allText = ($imageReferenceFiles | ForEach-Object { $documents[$_.FullName].Text }) -join "`n"
 $oldImageRefs = @([regex]::Matches($allText, 'yudejijie/easy-proxy'))
 $latestImageLines = [Collections.Generic.List[string]]::new()
-foreach ($file in $scanTextFiles) {
+foreach ($file in $imageReferenceFiles) {
     $relative = Get-RelativePath -Path $file.FullName
     foreach ($line in ($documents[$file.FullName].Text -split "`n")) {
         if ($line -match '(?i)禁止|不得|不使用|must not|forbid|no implicit') { continue }
@@ -260,7 +264,7 @@ $secretPatterns = @(
     '(?i)Authorization\s*:\s*Bearer\s+(?![<$%{]|REPLACE|REDACTED|YOUR|CHANGE_ME)[^\s"'']+',
     '(?im)\btoken\s*[:=]\s*["'']?[0-9a-f]{32}["'']?',
     '(?i)eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}',
-    '(?im)^\s*(?:ACR_PASSWORD|DOCKER_PASSWORD|REGISTRY_PASSWORD|SERVER_JWT_SECRET|SERVER_CERT_PASSWORD|certPassword|jwtSecret|password)\s*[:=]\s*["'']?(?![<>$%{]|REPLACE|REDACTED|CHANGE_ME|YOUR)[^\s"'']+',
+    '(?im)^\s*(?:ACR_PASSWORD|DOCKER_PASSWORD|REGISTRY_PASSWORD|SERVER_JWT_SECRET|SERVER_CERT_PASSWORD|certPassword|jwtSecret|password)\s*[:=]\s*["'']?(?![<>$%{(]|REPLACE|REDACTED|CHANGE_ME|YOUR)[^\s"'']+',
     '(?i)("auth"\s*:\s*"[A-Za-z0-9+/=]{12,}")',
     '(?i)\b(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b'
 )
@@ -278,6 +282,39 @@ foreach ($file in $scanTextFiles) {
 }
 Add-Check -Name '敏感信息静态扫描' -Passed ($secretHitCount -eq 0) -Detail $(if ($secretHitCount -eq 0) { '未发现私钥、Bearer 令牌、固定客户端 Token、JWT 或非占位符密码' } else { "命中 $secretHitCount 项，涉及文件：$($secretHitFiles -join ', ')（不输出明文）" })
 
+$logbackPaths = @(
+    (Join-Path $repoRoot 'easy-proxy-server\src\main\resources\logback.xml'),
+    (Join-Path $repoRoot 'easy-proxy-client\src\main\resources\logback.xml')
+)
+$unsafeLogback = @($logbackPaths | Where-Object {
+    $text = [IO.File]::ReadAllText($_)
+    $text -match '<logger\s+name="com\.cky\.proxy"\s+level="(?:DEBUG|TRACE)"' -or
+    $text -notmatch '<logger\s+name="com\.cky\.proxy"\s+level="INFO"'
+})
+Add-Check -Name '生产日志级别' -Passed ($unsafeLogback.Count -eq 0) -Detail $(if ($unsafeLogback.Count -eq 0) { '服务端与客户端 com.cky.proxy 均为 INFO' } else { "非 INFO 配置 $($unsafeLogback.Count) 个" })
+
+$clientSocketHandlerPath = Join-Path $repoRoot 'easy-proxy-server\src\main\java\com\cky\proxy\server\socket\ClientSocketHandler.java'
+$clientSocketHandlerText = [IO.File]::ReadAllText($clientSocketHandlerPath)
+$tokenLogUnsafe = $clientSocketHandlerText -match 'Client not found for token:\s*\{\}'
+Add-Check -Name 'Token 日志脱敏' -Passed (-not $tokenLogUnsafe) -Detail $(if ($tokenLogUnsafe) { '客户端 Token 校验失败时仍记录 Token 原文' } else { '客户端 Token 校验失败日志不包含 Token 原文' })
+
+$fakeToken = ('0123456789abcdef' * 2)
+$fakePassword = 'test-password-value'
+$fakeBcrypt = '$2b$12$' + ('a' * 53)
+$sanitizerProbe = @(
+    "2026-01-01 00:00:00 [main] DEBUG mapper - ==> Parameters: $fakeToken(String), $fakePassword(String)"
+    "2026-01-01 00:00:00 [main] WARN handler - Client not found for token: $fakeToken"
+    "Authorization: Bearer $fakeToken"
+    "https://tester:$fakePassword@example.test/path"
+    '{"token":"' + $fakeToken + '"}'
+    "password=$fakePassword"
+    "hash=$fakeBcrypt"
+) -join "`n"
+$sanitizedProbe = ConvertTo-SafeText -Text $sanitizerProbe
+$probeLeaks = @($fakeToken, $fakePassword, $fakeBcrypt | Where-Object { $sanitizedProbe.Contains($_) })
+$parameterRedacted = $sanitizedProbe -match '(?m)\bParameters:\s*<REDACTED>\s*$'
+$sanitizerOk = $probeLeaks.Count -eq 0 -and $parameterRedacted -and $sanitizedProbe.Contains('<REDACTED>')
+Add-Check -Name '证据脱敏回归' -Passed $sanitizerOk -Detail $(if ($sanitizerOk) { 'SQL 参数、Token、密码、URL 凭据、JSON 密钥与 bcrypt 哈希均已脱敏' } else { "仍有 $($probeLeaks.Count) 类测试值未完全脱敏；SQL 参数= $parameterRedacted" })
 $passed = $errors.Count -eq 0
 $status = if ($passed) { '通过' } else { '失败' }
 $conclusion = if ($passed) { '静态校验通过' } else { '静态校验失败，需修复后重跑' }

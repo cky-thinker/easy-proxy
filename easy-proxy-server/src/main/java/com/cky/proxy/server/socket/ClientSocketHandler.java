@@ -128,7 +128,7 @@ public class ClientSocketHandler implements Runnable {
             ProxyClient client = proxyClientService.selectByToken(token);
 
             if (client == null) {
-                log.warn("EP>>ServerMng>> Client not found for token: {}", token);
+                log.warn("EP>>ServerMng>> Client not found for supplied token");
                 sMngSocket.close();
                 return;
             }
