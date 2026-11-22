@@ -76,8 +76,17 @@ function Invoke-EasyProxyProcess {
         [Parameter(Mandatory)][string]$FilePath,
         [string[]]$ArgumentList = @(),
         [AllowNull()][string]$InputText = $null,
+        [AllowNull()][string]$InputFilePath = $null,
         [int]$TimeoutSeconds = 120
     )
+
+    if (-not [string]::IsNullOrEmpty($InputText) -and -not [string]::IsNullOrWhiteSpace($InputFilePath)) {
+        throw 'InputText 与 InputFilePath 不能同时指定'
+    }
+    $resolvedInputFilePath = $null
+    if (-not [string]::IsNullOrWhiteSpace($InputFilePath)) {
+        $resolvedInputFilePath = (Resolve-Path -LiteralPath $InputFilePath -ErrorAction Stop).Path
+    }
 
     $resolvedFilePath = $FilePath
     if (-not [IO.Path]::IsPathRooted($FilePath) -and $FilePath -notmatch '[\\/]') {
@@ -93,7 +102,7 @@ function Invoke-EasyProxyProcess {
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
-    $startInfo.RedirectStandardInput = $null -ne $InputText
+    $startInfo.RedirectStandardInput = (-not [string]::IsNullOrEmpty($InputText)) -or ($null -ne $resolvedInputFilePath)
     $startInfo.CreateNoWindow = $true
     $startInfo.StandardOutputEncoding = $script:Utf8NoBom
     $startInfo.StandardErrorEncoding = $script:Utf8NoBom
@@ -111,7 +120,18 @@ function Invoke-EasyProxyProcess {
         $stdoutTask = $process.StandardOutput.ReadToEndAsync()
         $stderrTask = $process.StandardError.ReadToEndAsync()
         if ($startInfo.RedirectStandardInput) {
-            $process.StandardInput.Write($InputText)
+            if ($null -ne $resolvedInputFilePath) {
+                $inputStream = [IO.File]::OpenRead($resolvedInputFilePath)
+                try {
+                    $inputStream.CopyTo($process.StandardInput.BaseStream)
+                }
+                finally {
+                    $inputStream.Dispose()
+                }
+            }
+            else {
+                $process.StandardInput.Write($InputText)
+            }
             $process.StandardInput.Close()
         }
         if (-not $process.WaitForExit([Math]::Max(1, $TimeoutSeconds) * 1000)) {
@@ -143,9 +163,56 @@ function Invoke-LocalCommand {
         [Parameter(Mandatory)][string]$FilePath,
         [string[]]$ArgumentList = @(),
         [AllowNull()][string]$InputText = $null,
+        [AllowNull()][string]$InputFilePath = $null,
         [int]$TimeoutSeconds = 120
     )
-    return Invoke-EasyProxyProcess -FilePath $FilePath -ArgumentList $ArgumentList -InputText $InputText -TimeoutSeconds $TimeoutSeconds
+    return Invoke-EasyProxyProcess -FilePath $FilePath -ArgumentList $ArgumentList -InputText $InputText -InputFilePath $InputFilePath -TimeoutSeconds $TimeoutSeconds
+}
+
+function Send-EasyProxyDirectory {
+    param(
+        [Parameter(Mandatory)][string]$HostName,
+        [Parameter(Mandatory)][int]$Port,
+        [Parameter(Mandatory)][string]$User,
+        [Parameter(Mandatory)][string]$LocalDirectory,
+        [Parameter(Mandatory)][string]$RemoteDirectory,
+        [int]$TimeoutSeconds = 300,
+        [string]$SshExecutable = 'ssh',
+        [string]$TarExecutable = 'tar'
+    )
+
+    if (-not (Test-Path -LiteralPath $LocalDirectory -PathType Container)) {
+        throw "本地目录不存在：$LocalDirectory"
+    }
+    $resolvedLocalDirectory = (Resolve-Path -LiteralPath $LocalDirectory -ErrorAction Stop).Path
+    $archivePath = Join-Path ([IO.Path]::GetTempPath()) ("easy-proxy-upload-$([Guid]::NewGuid().ToString('N')).tar")
+    try {
+        $archive = Invoke-EasyProxyProcess -FilePath $TarExecutable -ArgumentList @(
+            '-cf', $archivePath,
+            '-C', $resolvedLocalDirectory,
+            '.'
+        ) -TimeoutSeconds $TimeoutSeconds
+        if ($archive.ExitCode -ne 0) {
+            throw "创建上传归档失败（exit=$($archive.ExitCode)）：$($archive.Combined.Trim())"
+        }
+
+        $destination = "$User@$HostName"
+        $arguments = @(
+            '-o', 'BatchMode=yes',
+            '-o', 'StrictHostKeyChecking=accept-new',
+            '-o', 'ConnectTimeout=10',
+            '-T',
+            '-p', [string]$Port,
+            $destination,
+            'tar', '-xf', '-', '-C', $RemoteDirectory
+        )
+        return Invoke-EasyProxyProcess -FilePath $SshExecutable -ArgumentList $arguments -InputFilePath $archivePath -TimeoutSeconds $TimeoutSeconds
+    }
+    finally {
+        if (Test-Path -LiteralPath $archivePath -PathType Leaf) {
+            Remove-Item -LiteralPath $archivePath -Force
+        }
+    }
 }
 
 function Invoke-SshBash {
