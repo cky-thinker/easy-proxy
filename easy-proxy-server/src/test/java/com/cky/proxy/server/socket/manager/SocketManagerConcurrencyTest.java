@@ -60,16 +60,20 @@ class SocketManagerConcurrencyTest {
     }
 
     @Test
-    void duplicateManagementRegistrationDoesNotReplaceActiveSocket() {
-        Socket active = new Socket();
-        Socket duplicate = new Socket();
+    void reconnectingManagementSocketReplacesStaleSocket() {
+        Socket stale = new Socket();
+        Socket reconnected = new Socket();
 
-        assertTrue(ClientSocketManager.online("client", active));
-        assertFalse(ClientSocketManager.online("client", duplicate));
-        assertSame(active, ClientSocketManager.getClientSocket("client"));
-        assertEquals("client", ClientSocketManager.offline(active));
+        assertTrue(ClientSocketManager.online("client", stale));
+        assertTrue(ClientSocketManager.online("client", reconnected));
+        assertSame(reconnected, ClientSocketManager.getClientSocket("client"));
+
+        // The stale socket's delayed close must not remove the replacement.
+        assertNull(ClientSocketManager.offline(stale));
+        assertSame(reconnected, ClientSocketManager.getClientSocket("client"));
+
+        assertEquals("client", ClientSocketManager.offline(reconnected));
         assertNull(ClientSocketManager.getClientSocket("client"));
-        assertNull(ClientSocketManager.offline(duplicate));
     }
 
     @Test
