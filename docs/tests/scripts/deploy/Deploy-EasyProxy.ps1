@@ -255,13 +255,23 @@ try {
     Add-DeployCheck -Name 'NAS 敏感配置写入' -Passed $true -Detail '经 SSH stdin 写入，未在证据中记录内容'
 
     $fixturesRoot = Join-Path $testsRoot 'data\fixtures'
-    $scp = Invoke-LocalCommand -FilePath 'scp' -ArgumentList @(
-        '-P', [string]$NasPort,
-        '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=accept-new',
-        '-r', (Join-Path $fixturesRoot '*'),
-        "$NasUser@$NasHost`:/volume1/docker/easy-proxy-client/fixtures/"
-    ) -TimeoutSeconds 300
-    Add-DeployCheck -Name '测试固定数据上传' -Passed ($scp.ExitCode -eq 0) -Detail "exit=$($scp.ExitCode)"
+    $fixtureUpload = Send-EasyProxyDirectory `
+        -HostName $NasHost -Port $NasPort -User $NasUser `
+        -LocalDirectory $fixturesRoot `
+        -RemoteDirectory '/volume1/docker/easy-proxy-client/fixtures' `
+        -TimeoutSeconds 300
+    Add-DeployCheck -Name '测试固定数据上传' -Passed ($fixtureUpload.ExitCode -eq 0) -Detail "exit=$($fixtureUpload.ExitCode)，经 SSH 归档上传"
+
+    $expectedFixtureCount = @(Get-ChildItem -LiteralPath $fixturesRoot -Recurse -File -Force).Count
+    $fixtureVerify = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-fixtures.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
+        'set -eu'
+        "expected='$expectedFixtureCount'"
+        "actual=`$(find /volume1/docker/easy-proxy-client/fixtures -type f | wc -l)"
+        'test "$actual" -eq "$expected"'
+        'printf "fixture_count=%s expected=%s\n" "$actual" "$expected"'
+        'sha256sum /volume1/docker/easy-proxy-client/fixtures/small-1k.bin /volume1/docker/easy-proxy-client/fixtures/large-10m.bin'
+    ) -join "`n")
+    Add-DeployCheck -Name '测试固定数据校验' -Passed ($fixtureVerify.ExitCode -eq 0) -Detail "文件数=$expectedFixtureCount，关键样本 SHA256 已留证"
 
     $nasPull = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-pull.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
