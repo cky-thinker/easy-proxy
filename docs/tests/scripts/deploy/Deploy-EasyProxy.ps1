@@ -210,6 +210,10 @@ try {
         "    printf 'ROLLBACK_CONTAINER=%s\n' `"`$name$cloudRollbackSuffix`""
         '  fi'
         'done'
+        'for leftover in $(/usr/bin/docker ps --format "{{.Names}}" | grep -E "^easy-proxy-(server|web)-rollback-[0-9]{8}-[0-9]{6}$" || true); do'
+        '  /usr/bin/docker stop "$leftover" >/dev/null || true'
+        '  printf "STOPPED_OLD_ROLLBACK=%s\n" "$leftover"'
+        'done'
         "/usr/bin/docker compose -p '$cloudComposeProject' up -d --pull never"
         "/usr/bin/docker compose -p '$cloudComposeProject' ps"
     ) -join "`n"
