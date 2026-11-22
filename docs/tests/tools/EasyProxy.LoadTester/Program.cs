@@ -1000,8 +1000,10 @@ internal sealed class RunMetrics
         {
             Interlocked.Increment(ref _status5xx);
         }
-        if (!sample.HashMatches) Interlocked.Increment(ref _hashMismatch);
-        if (!sample.SizeMatches) Interlocked.Increment(ref _sizeMismatch);
+        // Only completed responses with a validated body can be data mismatches.
+        // Timeouts, cancellation and transport failures leave both match flags false.
+        if (sample.ErrorType == "hash_mismatch") Interlocked.Increment(ref _hashMismatch);
+        if (sample.ErrorType == "size_mismatch") Interlocked.Increment(ref _sizeMismatch);
         _statusCodes.AddOrUpdate(sample.StatusCode.ToString(CultureInfo.InvariantCulture), 1, static (_, count) => count + 1);
         if (!sample.Success)
         {
