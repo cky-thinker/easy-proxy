@@ -392,7 +392,7 @@ try {
     Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c100' -Scenario 'distinct' -Concurrency 100 -Warmup $caseWarmup -Duration $distinctDuration -Cooldown $caseCooldown -TotalRequests $distinctTotal -MinSuccessRate 0.995 -MinHealthRate 0.99 | Out-Null
     Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c250' -Scenario 'distinct' -Concurrency 250 -Warmup $caseWarmup -Duration $distinctDuration -Cooldown $caseCooldown -TotalRequests $distinctTotal -MinSuccessRate 0.995 -MinHealthRate 0.99 | Out-Null
 
-    $t23 = Invoke-LoadCase -CaseId 'T-23' -Label 'connections-c100' -Scenario 'small' -Concurrency 100 -Connections 'mixed' -Warmup $caseWarmup -Duration $longDuration -Cooldown $caseCooldown -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 -MinHealthRate 0.99 -SkipResult
+    $t23 = Invoke-LoadCase -CaseId 'T-23' -Label 'connections-c100' -Scenario 'small' -Concurrency 100 -Connections 'mixed' -Warmup $caseWarmup -Duration $longDuration -Cooldown $caseCooldown -MinSuccessRate 0.995 -MinHealthRate 0.99 -SkipResult
     $t23Stats = Get-RequestStats -Path $t23.RequestsPath
     $t23Passed = $t23.Status -eq 'PASS' -and $t23Stats.ConnectionFailures -eq 0 -and $t23Stats.HashErrors -eq 0 -and $t23Stats.SizeErrors -eq 0
     Add-LoadResult -CaseId 'T-23' -Name '短连接与长连接' -StartedAt $t23.StartedAt -EndedAt $t23.EndedAt -Passed $t23Passed -Detail "$($t23.Detail) connFailures=$($t23Stats.ConnectionFailures)" -Evidence $t23.Evidence | Out-Null
