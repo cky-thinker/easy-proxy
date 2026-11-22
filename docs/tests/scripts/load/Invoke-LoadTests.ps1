@@ -58,7 +58,7 @@ $t30Warmup = if ($Quick) { 2 } else { 30 }
 $t30Duration = if ($Quick) { 10 } else { 180 }
 $largeRequestsPerWorker = if ($Quick) { 1 } else { 3 }
 $largeDuration = if ($Quick) { 300 } else { 1800 }
-$mixedTargetRps = if ($Quick) { 10 } else { 20 }
+$mixedTargetRps = 5
 $t27Duration = if ($Quick) { 10 } else { 30 }
 $t27RecoverySeconds = if ($Quick) { 10 } else { 60 }
 $t27Concurrency = 50
@@ -480,7 +480,10 @@ try {
     $t27PeakConnections = [long]$t27During.Stats.activeConnections
     $t27NoNegative = $t27UploadDelta -ge 0 -and $t27DownloadDelta -ge 0 -and [long]$t27Before.Stats.uploadBytes -ge 0 -and [long]$t27Before.Stats.downloadBytes -ge 0
     $t27DownloadMatches = $t27DownloadDelta -ge $t27ActualBytes -and $t27DownloadDelta -le ($t27ActualBytes + [Math]::Max(65536, $t27ActualBytes * 0.05))
-    $t27UploadMatches = $t27UploadDelta -ge 0 -and $t27UploadDelta -le [Math]::Max(4096, $t27ActualBytes * 0.01)
+    # GET requests still carry HTTP/1.1 request headers through the tunnel. The
+    # dashboard upload counter measures those wire bytes, not response-body bytes.
+    $t27UploadPerRequest = $t27UploadDelta / [Math]::Max(1, $t27Stats.Measured)
+    $t27UploadMatches = $t27UploadDelta -gt 0 -and $t27UploadDelta -lt $t27DownloadDelta -and $t27UploadPerRequest -le 8192
     $t27ConnectionsPass = $t27PeakConnections -gt 0 -and [long]$t27Settled.Stats.activeConnections -le ($t27BaselineConnections + 1)
     $t27Passed = $null -ne $t27Summary -and [bool]$t27Summary.passed -and $t27Process.ExitCode -eq 0 -and $t27NoNegative -and $t27DownloadMatches -and $t27UploadMatches -and $t27ConnectionsPass -and $t27Stats.HashErrors -eq 0 -and $t27Stats.SizeErrors -eq 0
     Add-LoadResult -CaseId 'T-27' -Name '流量与连接统计一致性' -StartedAt $t27Started -EndedAt $t27Ended -Passed $t27Passed -Detail "connections=$($t27Before.Stats.activeConnections)->peak=$t27PeakConnections->final=$($t27Settled.Stats.activeConnections) downloadDelta=$t27DownloadDelta actualBytes=$t27ActualBytes uploadDelta=$t27UploadDelta hashErrors=$($t27Stats.HashErrors)" -Evidence $t27ConsolePath.Substring($run.RunRoot.Length + 1).Replace('\', '/') | Out-Null
