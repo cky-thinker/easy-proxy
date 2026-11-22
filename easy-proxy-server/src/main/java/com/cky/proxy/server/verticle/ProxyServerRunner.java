@@ -25,6 +25,7 @@ import com.cky.proxy.server.service.ProxyClientService;
 import com.cky.proxy.server.socket.ClientSocketHandler;
 import com.cky.proxy.server.socket.UserProxySocketHandler;
 import com.cky.proxy.server.socket.manager.ClientDataSocketManager;
+import com.cky.proxy.server.socket.manager.ClientSocketManager;
 import com.cky.proxy.server.socket.manager.RuleListenSocketManager;
 import com.cky.proxy.server.socket.manager.TrafficStatisticManager;
 import com.cky.proxy.server.util.BeanContext;
@@ -264,6 +265,7 @@ public class ProxyServerRunner {
             for (ProxyClientRule rule : rules) {
                 stopRuleServer(rule.getId(), null);
             }
+            closeClientConnection(client);
         } else {
             for (ProxyClientRule rule : rules) {
                 updateRuleServer(rule.getId());
@@ -272,9 +274,26 @@ public class ProxyServerRunner {
     }
 
     private void stopClientServers(Integer clientId) {
+        ProxyClient client = proxyClientService.getProxyClientById(clientId);
         proxyClientRuleService.getProxyClientRules(clientId).forEach(rule -> {
             stopRuleServer(rule.getId(), null);
         });
+        if (client != null) {
+            closeClientConnection(client);
+        }
+    }
+
+    private void closeClientConnection(ProxyClient client) {
+        Socket socket = ClientSocketManager.getClientSocket(client.getToken());
+        if (socket == null || socket.isClosed()) {
+            return;
+        }
+        try {
+            socket.close();
+            log.info("Closed management connection for disabled client {}", client.getName());
+        } catch (IOException e) {
+            log.error("Failed to close management connection for client {}", client.getName(), e);
+        }
     }
 
 }
