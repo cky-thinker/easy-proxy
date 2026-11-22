@@ -41,6 +41,19 @@ if ($Quick) {
 if ($WarmupSeconds -lt 0 -or $MeasuredSeconds -lt 1 -or $CooldownSeconds -lt 0 -or $SoakSeconds -lt 1) {
     throw '负载测试时长参数不合法'
 }
+$caseWarmup = if ($Quick) { 2 } else { 60 }
+$caseCooldown = if ($Quick) { 2 } else { 60 }
+$distinctDuration = if ($Quick) { 20 } else { 300 }
+$distinctTotal = if ($Quick) { 100 } else { 1000 }
+$longDuration = if ($Quick) { 10 } else { 300 }
+$mixedDuration = if ($Quick) { 10 } else { 600 }
+$resourceWarmup = if ($Quick) { 2 } else { 120 }
+$resourceDuration = if ($Quick) { 15 } else { 900 }
+$resourceCooldown = if ($Quick) { 2 } else { 120 }
+$soakWarmup = if ($Quick) { 2 } else { 120 }
+$soakCooldown = if ($Quick) { 2 } else { 120 }
+$t30Warmup = if ($Quick) { 2 } else { 30 }
+$t30Duration = if ($Quick) { 10 } else { 180 }
 
 function Add-LoadResult {
     param([string]$CaseId, [string]$Name, [DateTimeOffset]$StartedAt, [DateTimeOffset]$EndedAt, [bool]$Passed, [string]$Detail, [string]$Evidence)
@@ -249,29 +262,29 @@ try {
     Invoke-LoadCase -CaseId 'T-21' -Label 'small-c250' -Scenario 'small' -Concurrency 250 -MinSuccessRate 0.99 -MaxP95Ms 1000 -MaxP99Ms 2000 | Out-Null
     Invoke-LoadCase -CaseId 'T-21' -Label 'small-c500' -Scenario 'small' -Concurrency 500 -MinSuccessRate 0.95 -MaxP95Ms 2000 -MaxP99Ms 5000 | Out-Null
 
-    Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c10' -Scenario 'distinct' -Concurrency 10 -Warmup 10 -Duration 300 -Cooldown 10 -TotalRequests 1000 -MinSuccessRate 1 -MaxP95Ms 500 -MaxP99Ms 1000 | Out-Null
-    Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c100' -Scenario 'distinct' -Concurrency 100 -Warmup 10 -Duration 300 -Cooldown 10 -TotalRequests 1000 -MinSuccessRate 1 -MaxP95Ms 500 -MaxP99Ms 1000 | Out-Null
-    Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c250' -Scenario 'distinct' -Concurrency 250 -Warmup 10 -Duration 300 -Cooldown 10 -TotalRequests 1000 -MinSuccessRate 1 -MaxP95Ms 1000 -MaxP99Ms 2000 | Out-Null
+    Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c10' -Scenario 'distinct' -Concurrency 10 -Warmup $caseWarmup -Duration $distinctDuration -Cooldown $caseCooldown -TotalRequests $distinctTotal -MinSuccessRate 1 -MaxP95Ms 500 -MaxP99Ms 1000 | Out-Null
+    Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c100' -Scenario 'distinct' -Concurrency 100 -Warmup $caseWarmup -Duration $distinctDuration -Cooldown $caseCooldown -TotalRequests $distinctTotal -MinSuccessRate 1 -MaxP95Ms 500 -MaxP99Ms 1000 | Out-Null
+    Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c250' -Scenario 'distinct' -Concurrency 250 -Warmup $caseWarmup -Duration $distinctDuration -Cooldown $caseCooldown -TotalRequests $distinctTotal -MinSuccessRate 1 -MaxP95Ms 1000 -MaxP99Ms 2000 | Out-Null
 
-    Invoke-LoadCase -CaseId 'T-23' -Label 'connections-c100' -Scenario 'small' -Concurrency 100 -Connections 'mixed' -Warmup 60 -Duration 300 -Cooldown 60 -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 | Out-Null
-    Invoke-LoadCase -CaseId 'T-24' -Label 'high-c250' -Scenario 'small' -Concurrency 250 -Warmup 60 -Duration $HighLoadSeconds -Cooldown 60 -MinSuccessRate 0.99 -MaxP95Ms 1000 -MaxP99Ms 2000 | Out-Null
-    Invoke-LoadCase -CaseId 'T-24' -Label 'saturation-c500' -Scenario 'small' -Concurrency 500 -Warmup 60 -Duration $SaturationSeconds -Cooldown 60 -MinSuccessRate 0.95 -MaxP95Ms 2000 -MaxP99Ms 5000 | Out-Null
-    Invoke-LoadCase -CaseId 'T-25' -Label 'large-c100' -Scenario 'large' -Concurrency 100 -Warmup 60 -Duration 300 -Cooldown 60 -RequestTimeoutSeconds 60 -MinSuccessRate 0.995 | Out-Null
-    Invoke-LoadCase -CaseId 'T-26' -Label 'mixed-c100' -Scenario 'mixed' -Concurrency 100 -Warmup 60 -Duration 600 -Cooldown 60 -RequestTimeoutSeconds 60 -MinSuccessRate 0.995 | Out-Null
-    Invoke-LoadCase -CaseId 'T-27' -Label 'slow-c100' -Scenario 'slow' -Concurrency 100 -Warmup 60 -Duration 300 -Cooldown 60 -RequestTimeoutSeconds 60 -MinSuccessRate 0.995 | Out-Null
+    Invoke-LoadCase -CaseId 'T-23' -Label 'connections-c100' -Scenario 'small' -Concurrency 100 -Connections 'mixed' -Warmup $caseWarmup -Duration $longDuration -Cooldown $caseCooldown -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 | Out-Null
+    Invoke-LoadCase -CaseId 'T-24' -Label 'high-c250' -Scenario 'small' -Concurrency 250 -Warmup $caseWarmup -Duration $HighLoadSeconds -Cooldown $caseCooldown -MinSuccessRate 0.99 -MaxP95Ms 1000 -MaxP99Ms 2000 | Out-Null
+    Invoke-LoadCase -CaseId 'T-24' -Label 'saturation-c500' -Scenario 'small' -Concurrency 500 -Warmup $caseWarmup -Duration $SaturationSeconds -Cooldown $caseCooldown -MinSuccessRate 0.95 -MaxP95Ms 2000 -MaxP99Ms 5000 | Out-Null
+    Invoke-LoadCase -CaseId 'T-25' -Label 'large-c100' -Scenario 'large' -Concurrency 100 -Warmup $caseWarmup -Duration $longDuration -Cooldown $caseCooldown -RequestTimeoutSeconds 60 -MinSuccessRate 0.995 | Out-Null
+    Invoke-LoadCase -CaseId 'T-26' -Label 'mixed-c100' -Scenario 'mixed' -Concurrency 100 -Warmup $caseWarmup -Duration $mixedDuration -Cooldown $caseCooldown -RequestTimeoutSeconds 60 -MinSuccessRate 0.995 | Out-Null
+    Invoke-LoadCase -CaseId 'T-27' -Label 'slow-c100' -Scenario 'slow' -Concurrency 100 -Warmup $caseWarmup -Duration $longDuration -Cooldown $caseCooldown -RequestTimeoutSeconds 60 -MinSuccessRate 0.995 | Out-Null
 
     $resourceStart = [DateTimeOffset]::UtcNow
-    $t28 = Invoke-LoadCase -CaseId 'T-28' -Label 'resource-c100' -Scenario 'small' -Concurrency 100 -Warmup 120 -Duration 900 -Cooldown 120 -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 -SkipResult
+    $t28 = Invoke-LoadCase -CaseId 'T-28' -Label 'resource-c100' -Scenario 'small' -Concurrency 100 -Warmup $resourceWarmup -Duration $resourceDuration -Cooldown $resourceCooldown -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 -SkipResult
     $resourceEnd = [DateTimeOffset]::UtcNow
     Start-Sleep -Seconds 6
     $resource = Test-ResourceThresholds -Start $resourceStart -End $resourceEnd
     Add-LoadResult -CaseId 'T-28' -Name '资源占用与泄漏' -StartedAt $resourceStart -EndedAt $resourceEnd -Passed ($t28.Status -eq 'PASS' -and $resource.Passed) -Detail $resource.Detail -Evidence $t28.Evidence | Out-Null
 
     $soakLimit = [math]::Min($SoakSeconds, 3600)
-    Invoke-LoadCase -CaseId 'T-29' -Label "soak-c100-$($soakLimit)s" -Scenario 'small' -Concurrency 100 -Warmup 120 -Duration $soakLimit -Cooldown 120 -MinSuccessRate 0.999 -MaxP95Ms 500 -MaxP99Ms 1000 -MinHealthRate 0.999 | Out-Null
+    Invoke-LoadCase -CaseId 'T-29' -Label "soak-c100-$($soakLimit)s" -Scenario 'small' -Concurrency 100 -Warmup $soakWarmup -Duration $soakLimit -Cooldown $soakCooldown -MinSuccessRate 0.999 -MaxP95Ms 500 -MaxP99Ms 1000 -MinHealthRate 0.999 | Out-Null
 
     $t30Start = [DateTimeOffset]::UtcNow
-    Invoke-LoadCase -CaseId 'T-30' -Label 'saturation-c500' -Scenario 'small' -Concurrency 500 -Warmup 30 -Duration 180 -Cooldown 0 -MinSuccessRate 0.90 -RequestTimeoutSeconds 60 | Out-Null
+    Invoke-LoadCase -CaseId 'T-30' -Label 'saturation-c500' -Scenario 'small' -Concurrency 500 -Warmup $t30Warmup -Duration $t30Duration -Cooldown 0 -MinSuccessRate 0.90 -RequestTimeoutSeconds 60 | Out-Null
     $recovery = Test-RecoveryWindow -Seconds $(if ($Quick) { 10 } else { 120 })
     $recoveryCsv = New-EasyProxyEvidencePath -RunRoot $run.RunRoot -RelativePath "raw/health/T-30_recovery_$stamp.csv"
     Write-LfText -Path $recoveryCsv -Text ("samples={0}`nsecondHalfSuccess={1}`nfirstHalfFailures={2}`n" -f $recovery.Samples, $recovery.SecondHalfSuccess, $recovery.FirstHalfFailures)
