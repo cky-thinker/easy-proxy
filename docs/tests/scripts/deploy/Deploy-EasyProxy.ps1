@@ -140,7 +140,7 @@ function Wait-ClientOnline {
 }
 
 try {
-    $preflight = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-preflight.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script @(
+    $preflight = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-preflight.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script (@(
         'set -eu'
         'printf ''cloud_host=%s\n'' "$(hostname)"'
         'printf ''cloud_uid_gid=%s:%s\n'' "$(id -u)" "$(id -g)"'
@@ -148,7 +148,7 @@ try {
         '/usr/bin/docker compose version'
         '/usr/bin/docker ps -a --format ''{{.Names}}\t{{.Status}}\t{{.Image}}'''
         '/usr/bin/ss -lnt | grep -E '':(21090|21091|21092|28080)\b'' || true'
-    ) -join "`n"
+    ) -join "`n")
     Add-DeployCheck -Name '云服务器 SSH 与预检' -Passed ($preflight.ExitCode -eq 0) -Detail "exit=$($preflight.ExitCode)"
 
     $prepareCloud = @(
@@ -214,11 +214,11 @@ try {
     $health = Wait-CloudHealth -TimeoutSeconds 120
     Add-DeployCheck -Name '服务端/API 健康' -Passed ([bool]$health.Satisfied) -Detail "等待 $([math]::Round($health.ElapsedMs / 1000, 1)) 秒"
     if (-not $health.Satisfied) {
-        Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-health-failed.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script @(
+        Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-cloud-health-failed.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script (@(
             '/usr/bin/docker compose -f /opt/easy-proxy/docker-compose.yml ps'
             '/usr/bin/docker logs --tail=300 easy-proxy-server 2>&1 || true'
             '/usr/bin/docker logs --tail=200 easy-proxy-web 2>&1 || true'
-        ) -join "`n" | Out-Null
+        ) -join "`n") | Out-Null
         throw '云服务器健康检查未通过'
     }
 
@@ -256,16 +256,16 @@ try {
     ) -TimeoutSeconds 300
     Add-DeployCheck -Name '测试固定数据上传' -Passed ($scp.ExitCode -eq 0) -Detail "exit=$($scp.ExitCode)"
 
-    $nasPull = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-pull.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script @(
+    $nasPull = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-pull.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'DOCKER=/usr/local/bin/docker'
         "`$DOCKER image inspect registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag >/dev/null"
         '$DOCKER pull nginx:1.27.4-alpine'
         "`$DOCKER image inspect registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:$Tag nginx:1.27.4-alpine --format '{{.RepoTags}} {{.Id}} {{.Os}}/{{.Architecture}}'"
-    ) -join "`n" -TimeoutSeconds 300
+    ) -join "`n") -TimeoutSeconds 300
     Add-DeployCheck -Name 'NAS 固定镜像可用' -Passed ($nasPull.ExitCode -eq 0) -Detail "exit=$($nasPull.ExitCode)"
 
-    $nasStart = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-start.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script @(
+    $nasStart = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-start.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'cd /volume1/docker/easy-proxy-client'
         'if /usr/local/bin/docker inspect easy-proxy-client >/dev/null 2>&1; then'
@@ -275,7 +275,7 @@ try {
         '/usr/local/bin/docker compose up -d --pull never'
         '/usr/local/bin/docker compose ps'
         "netstat -ltn 2>/dev/null | grep -E ':18080\b' || true"
-    ) -join "`n" -TimeoutSeconds 180
+    ) -join "`n") -TimeoutSeconds 180
     Add-DeployCheck -Name 'NAS 目标与客户端启动' -Passed ($nasStart.ExitCode -eq 0) -Detail "exit=$($nasStart.ExitCode)"
 
     $online = Wait-ClientOnline -AdminToken $admin.Token -TimeoutSeconds 90
@@ -311,15 +311,15 @@ try {
         'printf ''SERVER_CERT_SHA256=%s\n'' "$(openssl x509 -in /opt/easy-proxy/server/config/cert.pem -noout -fingerprint -sha256 | sed ''s/^.*=//'')"'
     ) -join "`n"
     $serverCert = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-server-cert.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script $certScript
-    $nasCert = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-client-cert.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script @(
+    $nasCert = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-client-cert.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'printf ''CLIENT_CERT_SHA256=%s\n'' "$(openssl x509 -in /volume1/docker/easy-proxy-client/config/cert.pem -noout -fingerprint -sha256 | sed ''s/^.*=//'')"'
-    ) -join "`n"
+    ) -join "`n")
     $serverFp = if ($serverCert.StdOut -match 'SERVER_CERT_SHA256=([0-9A-Fa-f:]+)') { $Matches[1] } else { '' }
     $clientFp = if ($nasCert.StdOut -match 'CLIENT_CERT_SHA256=([0-9A-Fa-f:]+)') { $Matches[1] } else { '' }
     Add-DeployCheck -Name '客户端/服务端证书指纹一致' -Passed (-not [string]::IsNullOrWhiteSpace($serverFp) -and $serverFp -eq $clientFp) -Detail $(if ($serverFp -eq $clientFp) { "SHA256=$serverFp" } else { '指纹不一致或无法读取' })
 
-    $runtime = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-runtime-state.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script @(
+    $runtime = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-runtime-state.txt') -HostName $CloudHost -Port $CloudPort -User $CloudUser -Script (@(
         'set -eu'
         'cd /opt/easy-proxy'
         '/usr/bin/docker compose ps'
@@ -327,10 +327,10 @@ try {
         '/usr/bin/ss -lnt | grep -E '':(21090|21091|21092|28080)\b'''
         '/usr/bin/docker logs --tail=120 easy-proxy-server 2>&1'
         '/usr/bin/docker logs --tail=80 easy-proxy-web 2>&1'
-    ) -join "`n" -TimeoutSeconds 120
+    ) -join "`n") -TimeoutSeconds 120
     Add-DeployCheck -Name '运行状态归档' -Passed ($runtime.ExitCode -eq 0) -Detail "exit=$($runtime.ExitCode)"
 
-    $nasRuntime = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-runtime-state.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script @(
+    $nasRuntime = Write-RemoteEvidence -Path (Join-Path $rawDocker 'deploy-nas-runtime-state.txt') -HostName $NasHost -Port $NasPort -User $NasUser -Script (@(
         'set -eu'
         'cd /volume1/docker/easy-proxy-client'
         '/usr/local/bin/docker compose ps'
@@ -338,7 +338,7 @@ try {
         'netstat -ltn 2>/dev/null | grep -E '':18080\b'' || true'
         '/usr/local/bin/docker logs --tail=160 easy-proxy-client 2>&1'
         '/usr/local/bin/docker logs --tail=80 easy-proxy-target 2>&1'
-    ) -join "`n" -TimeoutSeconds 120
+    ) -join "`n") -TimeoutSeconds 120
     Add-DeployCheck -Name 'NAS 运行状态归档' -Passed ($nasRuntime.ExitCode -eq 0) -Detail "exit=$($nasRuntime.ExitCode)"
 
     $summary = @(
