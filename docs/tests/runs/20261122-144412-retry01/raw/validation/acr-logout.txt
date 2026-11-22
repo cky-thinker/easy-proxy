@@ -1,0 +1,6 @@
+command_started_utc=2026-11-22T06:49:57.5942646+00:00
+command_finished_utc=2026-11-22T06:49:58.9393434+00:00
+exit_code=0
+--- output ---
+Removing login credentials for registry.cn-hangzhou.aliyuncs.com
+ACR_AUTH_ENTRY=no

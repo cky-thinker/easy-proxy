@@ -1,0 +1,37 @@
+"testId","name","status","startedAt","endedAt","durationSeconds","detail","evidence"
+"T-01","NAS 公钥登录","PASS","2026-11-22T06:59:53.6988819+00:00","2026-11-22T06:59:53.9737443+00:00","0.275","BatchMode 公钥登录成功","raw/functional/T-01_nas-ssh_20261122-145950.txt"
+"T-02","云服务器公钥登录","PASS","2026-11-22T06:59:53.9978334+00:00","2026-11-22T06:59:55.5243018+00:00","1.526","BatchMode 公钥登录成功","raw/functional/T-02_cloud-ssh_20261122-145950.txt"
+"T-03","Docker 环境","PASS","2026-11-22T06:59:55.5313803+00:00","2026-11-22T06:59:56.7602585+00:00","1.229","云端与 NAS Docker/Compose 命令成功","raw/functional/T-03_docker-version_20261122-145950.txt"
+"T-04","NAS 目标服务","PASS","2026-11-22T06:59:56.7654686+00:00","2026-11-22T06:59:56.7965821+00:00","0.031","HTTP 200，目标页面正确","raw/functional/T-04_nas-target_20261122-145950.txt"
+"T-05","服务端本机健康检查","PASS","2026-11-22T06:59:56.8017262+00:00","2026-11-22T06:59:58.3410592+00:00","1.539","云端本机 API 健康","raw/functional/T-05_cloud-api-health_20261122-145950.txt"
+"T-06","Web 健康检查","PASS","2026-11-22T06:59:58.3465692+00:00","2026-11-22T06:59:58.4687216+00:00","0.122","公网 Web 健康","raw/functional/T-06_web-health_20261122-145950.txt"
+"T-07","客户端在线","PASS","2026-11-22T06:59:58.4790225+00:00","2026-11-22T06:59:59.4694783+00:00","0.99","在线，等待 0.8 秒；无持续鉴权/证书错误","raw/functional/T-07_client-online_20261122-145950.txt"
+"T-08","规则监听","PASS","2026-11-22T06:59:59.4737666+00:00","2026-11-22T07:00:01.5942015+00:00","2.12","云端 28080 正在监听","raw/functional/T-08_rule-listening_20261122-145950.txt"
+"T-09","公网访问","PASS","2026-11-22T07:00:01.5989143+00:00","2026-11-22T07:00:02.4991520+00:00","0.9","公网规则端口返回 NAS 目标页面","raw/functional/T-09_public-e2e_20261122-145950.txt"
+"T-10","响应头","PASS","2026-11-22T07:00:02.5039508+00:00","2026-11-22T07:00:03.3845636+00:00","0.881","HTTP 200 且包含 Content-Type","raw/functional/T-10_response-headers_20261122-145950.txt"
+"T-11","数据完整性","PASS","2026-11-22T07:00:03.3889433+00:00","2026-11-22T07:00:22.1467743+00:00","18.758","大小文件 SHA-256 均与固定数据清单一致","raw/functional/T-11_hashes_20261122-145950.txt"
+"T-12","流量统计","PASS","2026-11-22T07:00:22.1641701+00:00","2026-11-22T07:00:23.0305273+00:00","0.866","实时流量与规则报表 API 均可读取","raw/functional/T-12_traffic_20261122-145950.txt"
+"T-13","客户端重连","PASS","2026-11-22T07:00:23.0344376+00:00","2026-11-22T07:00:32.6302106+00:00","9.596","30 秒内在线，1 秒内转发恢复","raw/functional/T-13_client-restart_20261122-145950.txt"
+"T-14","服务端重启","PASS","2026-11-22T07:00:32.6348643+00:00","2026-11-22T07:00:41.7797191+00:00","9.145","Web、客户端在线、规则监听与转发均恢复","raw/functional/T-14_server-restart_20261122-145950.txt"
+"T-15","规则持久化","PASS","2026-11-22T07:00:41.7842469+00:00","2026-11-22T07:00:43.2867385+00:00","1.502","重启后原规则仍存在并监听","raw/functional/T-15_rule-persistence_20261122-145950.txt"
+"T-16","错误 Token","FAIL","2026-11-22T07:00:43.2912187+00:00","2026-11-22T07:00:59.6168785+00:00","16.326","错误 Token 失败：exit=0
+Using JAR: app.jar
+Starting in foreground mode...
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [1;31mERROR[0;39m [1;35mc.c.p.c.h.ClientMngSocketManager
+[0;39m - EP>>ClientMng>> Mng socket error: null
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mc.c.p.c.h.ClientMngSocketManager
+[0;39m - EP>>ClientMng>> Mng socket closed
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [1;31mERROR[0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - EP>>ClientMng>> Connect closed
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - next connect wait time 2000ms
+[31m2026-11-22 15:00:52[0;39m [32m[virtual-40][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - try connect 68.64.181.242:21090...
+
+primary_online=True","raw/functional/T-16_failure_20261122-145950.txt"
+"T-17","端口冲突","PASS","2026-11-22T07:00:59.6234172+00:00","2026-11-22T07:01:22.1000468+00:00","22.477","冲突被服务端记录，未影响云服务器其他服务","raw/functional/T-17_port-conflict_20261122-145950.txt"
+"T-18","禁用规则","PASS","2026-11-22T07:01:22.1047660+00:00","2026-11-22T07:01:35.8676866+00:00","13.763","禁用后端口释放，公网请求失败","raw/functional/T-18_disable-rule_20261122-145950.txt"
+"T-19","删除规则","FAIL","2026-11-22T07:01:35.8727875+00:00","2026-11-22T07:01:51.2986168+00:00","15.426","删除规则 失败：rule_id=2 listening=True probe=0 released=True exists_after=False","raw/functional/T-19_failure_20261122-145950.txt"
+"T-20","客户端禁用","FAIL","2026-11-22T07:01:51.3032320+00:00","2026-11-22T07:03:03.8282521+00:00","72.525","客户端禁用 失败：offline=False elapsed=61.7
+probe_status=0
+probe_error=The request was canceled due to the configured HttpClient.Timeout of 5 seconds elapsing.","raw/functional/T-20_failure_20261122-145950.txt"

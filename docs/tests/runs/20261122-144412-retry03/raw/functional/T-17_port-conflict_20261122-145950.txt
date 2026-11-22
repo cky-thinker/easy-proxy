@@ -1,0 +1,137 @@
+conflict_start=0
+
+--- server logs ---
+Using JAR: app.jar
+Starting in foreground mode...
+[31m2026-11-22 14:58:51[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.c.p.s.c.DatabaseConnectionManager
+[0;39m - SqlSessionFactory initialized successfully.
+[31m2026-11-22 14:58:52[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.cky.proxy.server.util.BeanContext
+[0;39m - Schema initialized.
+[31m2026-11-22 14:58:52[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.cky.proxy.server.util.BeanContext
+[0;39m - 数据库初始化完成
+[31m2026-11-22 14:58:52[0;39m [32m[main][0;39m [31mWARN [0;39m [1;35mc.c.proxy.server.util.CertGenerator
+[0;39m - 读取现有证书失败，重新生成: Keystore was tampered with, or password was incorrect
+[31m2026-11-22 14:58:53[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.c.proxy.server.util.CertGenerator
+[0;39m - JKS证书生成成功：/app/config/cert.jks
+[31m2026-11-22 14:58:53[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.c.proxy.server.util.CertGenerator
+[0;39m - PEM公钥证书导出成功：/app/config/cert.pem
+[31m2026-11-22 14:58:53[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.server.ProxyServer
+[0;39m - ProxyServer start...
+[31m2026-11-22 14:58:53[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.server.ProxyServer
+[0;39m - WebManage start...
+[31m2026-11-22 14:58:53[0;39m [32m[virtual-33][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Init client server 21090
+[31m2026-11-22 14:58:53[0;39m [32m[virtual-35][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.WebManageServer
+[0;39m - HTTP server started on port 21091
+[31m2026-11-22 14:58:53[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Server started on port 21090
+[31m2026-11-22 14:58:53[0;39m [32m[virtual-33][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Traffic statistics task will start in 65370 ms
+[31m2026-11-22 14:58:58[0;39m [32m[virtual-91][0;39m [34mINFO [0;39m [1;35mo.h.validator.internal.util.Version
+[0;39m - HV000001: Hibernate Validator null
+[31m2026-11-22 14:59:29[0;39m [32m[virtual-129][0;39m [34mINFO [0;39m [1;35mc.c.p.s.service.ProxyClientService
+[0;39m - EP>>ProxyClientService>> Update proxy client status, id: 1, status: online
+[31m2026-11-22 14:59:33[0;39m [32m[virtual-171][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Listening for rule nas-http-18080 on port 28080
+[31m2026-11-22 14:59:38[0;39m [32m[virtual-181][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 14:59:38[0;39m [32m[virtual-181][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Data socket closed /68.64.181.242:21090:/101.71.200.101:59107
+[31m2026-11-22 14:59:59[0;39m [32m[pool-1-thread-1][0;39m [34mINFO [0;39m [1;35mc.c.p.s.s.m.TrafficStatisticManager
+[0;39m - Start flushing traffic statistics...
+[31m2026-11-22 15:00:00[0;39m [32m[pool-1-thread-1][0;39m [34mINFO [0;39m [1;35mc.c.p.s.s.m.TrafficStatisticManager
+[0;39m - Flush traffic statistics finished.
+[31m2026-11-22 15:00:02[0;39m [32m[virtual-241][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:02[0;39m [32m[virtual-241][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Data socket closed /68.64.181.242:21090:/101.71.200.101:60726
+[31m2026-11-22 15:00:03[0;39m [32m[virtual-243][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:03[0;39m [32m[virtual-243][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Data socket closed /68.64.181.242:21090:/101.71.200.101:60729
+[31m2026-11-22 15:00:04[0;39m [32m[virtual-245][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:04[0;39m [32m[virtual-245][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Data socket closed /68.64.181.242:21090:/101.71.200.101:60737
+[31m2026-11-22 15:00:20[0;39m [32m[virtual-247][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:20[0;39m [32m[virtual-247][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Data socket closed /68.64.181.242:21090:/101.71.200.101:60769
+[31m2026-11-22 15:00:23[0;39m [32m[virtual-117][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:23[0;39m [32m[virtual-117][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket closed /68.64.181.242:21090:/101.71.200.101:59100
+[31m2026-11-22 15:00:24[0;39m [32m[virtual-262][0;39m [34mINFO [0;39m [1;35mc.c.p.s.service.ProxyClientService
+[0;39m - EP>>ProxyClientService>> Update proxy client status, id: 1, status: offline
+[31m2026-11-22 15:00:30[0;39m [32m[virtual-289][0;39m [34mINFO [0;39m [1;35mc.c.p.s.service.ProxyClientService
+[0;39m - EP>>ProxyClientService>> Update proxy client status, id: 1, status: online
+[31m2026-11-22 15:00:32[0;39m [32m[virtual-308][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:32[0;39m [32m[virtual-308][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Data socket closed /68.64.181.242:21090:/101.71.200.101:59782
+Using JAR: app.jar
+Starting in foreground mode...
+[31m2026-11-22 15:00:35[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.c.p.s.c.DatabaseConnectionManager
+[0;39m - SqlSessionFactory initialized successfully.
+[31m2026-11-22 15:00:36[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.cky.proxy.server.util.BeanContext
+[0;39m - Schema initialized.
+[31m2026-11-22 15:00:36[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.cky.proxy.server.util.BeanContext
+[0;39m - 数据库初始化完成
+[31m2026-11-22 15:00:36[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.server.ProxyServer
+[0;39m - ProxyServer start...
+[31m2026-11-22 15:00:36[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.server.ProxyServer
+[0;39m - WebManage start...
+[31m2026-11-22 15:00:36[0;39m [32m[virtual-32][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Init client server 21090
+[31m2026-11-22 15:00:36[0;39m [32m[virtual-34][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.WebManageServer
+[0;39m - HTTP server started on port 21091
+[31m2026-11-22 15:00:36[0;39m [32m[virtual-38][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Server started on port 21090
+[31m2026-11-22 15:00:37[0;39m [32m[virtual-32][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Listening for rule nas-http-18080 on port 28080
+[31m2026-11-22 15:00:37[0;39m [32m[virtual-32][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Traffic statistics task will start in 3561570 ms
+[31m2026-11-22 15:00:38[0;39m [32m[virtual-57][0;39m [34mINFO [0;39m [1;35mc.c.p.s.service.ProxyClientService
+[0;39m - EP>>ProxyClientService>> Update proxy client status, id: 1, status: online
+[31m2026-11-22 15:00:42[0;39m [32m[virtual-71][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:42[0;39m [32m[virtual-71][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Data socket closed /68.64.181.242:21090:/101.71.200.101:59557
+[31m2026-11-22 15:00:49[0;39m [32m[virtual-82][0;39m [31mWARN [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>ServerMng>> Client not found for supplied token
+[31m2026-11-22 15:00:49[0;39m [32m[virtual-82][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:49[0;39m [32m[virtual-82][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket closed 0.0.0.0/0.0.0.0:21090:/101.71.200.101:60808
+[31m2026-11-22 15:00:49[0;39m [32m[virtual-82][0;39m [31mWARN [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>ServerMng>> Client token is blank
+[31m2026-11-22 15:00:57[0;39m [32m[virtual-86][0;39m [31mWARN [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>ServerMng>> Client not found for supplied token
+[31m2026-11-22 15:00:57[0;39m [32m[virtual-86][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket error or closed: null
+[31m2026-11-22 15:00:57[0;39m [32m[virtual-86][0;39m [34mINFO [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>Client>> Client socket closed 0.0.0.0/0.0.0.0:21090:/101.71.200.101:60815
+[31m2026-11-22 15:00:57[0;39m [32m[virtual-86][0;39m [31mWARN [0;39m [1;35mc.c.p.s.socket.ClientSocketHandler
+[0;39m - EP>>ServerMng>> Client token is blank
+[31m2026-11-22 15:01:00[0;39m [32m[virtual-98][0;39m [34mINFO [0;39m [1;35mo.h.validator.internal.util.Version
+[0;39m - HV000001: Hibernate Validator null
+[31m2026-11-22 15:01:00[0;39m [32m[virtual-111][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Stopped server for rule 1
+[31m2026-11-22 15:01:09[0;39m [32m[virtual-129][0;39m [1;31mERROR[0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Failed listening for rule nas-http-18080
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:522)
+	at java.base/sun.nio.ch.Net.bind(Net.java:511)
+	at java.base/sun.nio.ch.NioSocketImpl.bind(NioSocketImpl.java:641)
+	at java.base/java.net.ServerSocket.bind(ServerSocket.java:326)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:222)
+	at java.base/java.net.ServerSocket.<init>(ServerSocket.java:138)
+	at com.cky.proxy.server.verticle.ProxyServerRunner.startServerForRule(ProxyServerRunner.java:232)
+	at com.cky.proxy.server.verticle.ProxyServerRunner.lambda$updateRuleServer$0(ProxyServerRunner.java:226)
+	at com.cky.proxy.server.verticle.ProxyServerRunner.stopRuleServer(ProxyServerRunner.java:201)
+	at com.cky.proxy.server.verticle.ProxyServerRunner.updateRuleServer(ProxyServerRunner.java:217)
+	at com.cky.proxy.server.verticle.ProxyServerRunner.lambda$eventBusSubscribe$0(ProxyServerRunner.java:146)
+	at com.cky.proxy.server.util.EventBusUtil.lambda$subscribe$1(EventBusUtil.java:59)
+	at com.cky.proxy.server.util.EventBusUtil.lambda$publish$0(EventBusUtil.java:51)
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:460)

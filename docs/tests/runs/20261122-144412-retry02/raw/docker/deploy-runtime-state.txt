@@ -1,0 +1,104 @@
+command_started_utc=2026-11-22T06:58:00.2977896+00:00
+command_finished_utc=2026-11-22T06:58:01.2932135+00:00
+exit_code=0
+--- output ---
+NAME                IMAGE                                                                                       COMMAND                  SERVICE   CREATED         STATUS         PORTS
+easy-proxy-server   registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-144412-aba070f   "/app/start.sh run"      server    4 minutes ago   Up 3 minutes   
+easy-proxy-web      registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-144412-aba070f      "/docker-entrypoint.…"   web       4 minutes ago   Up 3 minutes   
+/easy-proxy-server image=registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-144412-aba070f image_id=sha256:6c5ae6e1d3ef49dc5def2c7c54568e5af7c70e4eb12b6ba5da4a58e327019d9e restart=0 status=running
+/easy-proxy-web image=registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-144412-aba070f image_id=sha256:471123ace2c06375f83122a9cea7df29ba2222baa956a10a91ed4b579d5eb1ae restart=0 status=running
+LISTEN 0      511          0.0.0.0:21092      0.0.0.0:*          
+LISTEN 0      50                 *:21091            *:*          
+LISTEN 0      50                 *:21090            *:*          
+LISTEN 0      50                 *:28080            *:*          
+Using JAR: app.jar
+Starting in foreground mode...
+[31m2026-11-22 14:54:02[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.c.p.s.c.DatabaseConnectionManager
+[0;39m - SqlSessionFactory initialized successfully.
+[31m2026-11-22 14:54:02[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.cky.proxy.server.util.BeanContext
+[0;39m - Schema initialized.
+[31m2026-11-22 14:54:03[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.cky.proxy.server.util.BeanContext
+[0;39m - 数据库初始化完成
+[31m2026-11-22 14:54:03[0;39m [32m[main][0;39m [31mWARN [0;39m [1;35mc.c.proxy.server.util.CertGenerator
+[0;39m - 读取现有证书失败，重新生成: Keystore was tampered with, or password was incorrect
+[31m2026-11-22 14:54:03[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.c.proxy.server.util.CertGenerator
+[0;39m - JKS证书生成成功：/app/config/cert.jks
+[31m2026-11-22 14:54:03[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mc.c.proxy.server.util.CertGenerator
+[0;39m - PEM公钥证书导出成功：/app/config/cert.pem
+[31m2026-11-22 14:54:03[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.server.ProxyServer
+[0;39m - ProxyServer start...
+[31m2026-11-22 14:54:03[0;39m [32m[main][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.server.ProxyServer
+[0;39m - WebManage start...
+[31m2026-11-22 14:54:03[0;39m [32m[virtual-33][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Init client server 21090
+[31m2026-11-22 14:54:03[0;39m [32m[virtual-35][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.WebManageServer
+[0;39m - HTTP server started on port 21091
+[31m2026-11-22 14:54:03[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Server started on port 21090
+[31m2026-11-22 14:54:04[0;39m [32m[virtual-33][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Traffic statistics task will start in 354828 ms
+[31m2026-11-22 14:54:10[0;39m [32m[virtual-91][0;39m [34mINFO [0;39m [1;35mo.h.validator.internal.util.Version
+[0;39m - HV000001: Hibernate Validator null
+[31m2026-11-22 14:56:55[0;39m [32m[virtual-405][0;39m [34mINFO [0;39m [1;35mc.c.p.s.verticle.ProxyServerRunner
+[0;39m - Listening for rule nas-http-18080 on port 28080
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/11/22 06:54:01 [notice] 1#1: using the "epoll" event method
+2026/11/22 06:54:01 [notice] 1#1: nginx/1.30.7
+2026/11/22 06:54:01 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
+2026/11/22 06:54:01 [notice] 1#1: OS: Linux 5.15.0-198-generic
+2026/11/22 06:54:01 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1024:524288
+2026/11/22 06:54:01 [notice] 1#1: start worker processes
+2026/11/22 06:54:01 [notice] 1#1: start worker process 30
+2026/11/22 06:54:01 [notice] 1#1: start worker process 31
+2026/11/22 06:54:01 [error] 31#31: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 101.71.200.101, server: _, request: "GET /api/open/health HTTP/1.1", upstream: "http://127.0.0.1:21091/api/open/health", host: "68.64.181.242:21092"
+101.71.200.101 - - [22/Nov/2026:06:54:01 +0000] "GET /api/open/health HTTP/1.1" 502 157 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:04 +0000] "GET /api/open/health HTTP/1.1" 200 15 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:04 +0000] "GET /api/open/checkInit HTTP/1.1" 200 60 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:04 +0000] "GET /api/open/loginConfig HTTP/1.1" 200 585 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:06 +0000] "POST /api/open/initUser HTTP/1.1" 200 259 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:07 +0000] "POST /api/open/loginUser HTTP/1.1" 200 324 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:09 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 31 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:11 +0000] "POST /api/proxyClient HTTP/1.1" 200 212 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:21 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:24 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:26 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:29 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:32 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:34 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:37 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:39 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:42 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:44 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:48 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:54 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:56 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:54:59 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:01 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:04 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:07 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:09 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:12 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:14 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:17 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:21 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:24 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:27 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:29 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:32 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:34 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:37 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:40 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:42 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:45 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:47 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:55:50 +0000] "GET /api/proxyClient/all HTTP/1.1" 200 214 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:56:53 +0000] "GET /api/proxyClientRule/all HTTP/1.1" 200 31 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"
+101.71.200.101 - - [22/Nov/2026:06:56:55 +0000] "POST /api/proxyClientRule HTTP/1.1" 200 263 "-" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; zh-CN) PowerShell/7.6.9" "-"

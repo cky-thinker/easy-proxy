@@ -1,0 +1,15 @@
+错误 Token 失败：exit=0
+Using JAR: app.jar
+Starting in foreground mode...
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [1;31mERROR[0;39m [1;35mc.c.p.c.h.ClientMngSocketManager
+[0;39m - EP>>ClientMng>> Mng socket error: null
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mc.c.p.c.h.ClientMngSocketManager
+[0;39m - EP>>ClientMng>> Mng socket closed
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [1;31mERROR[0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - EP>>ClientMng>> Connect closed
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - next connect wait time 2000ms
+[31m2026-11-22 15:00:52[0;39m [32m[virtual-40][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - try connect 68.64.181.242:21090...
+
+primary_online=True

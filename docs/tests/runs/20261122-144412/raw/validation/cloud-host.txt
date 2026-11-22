@@ -1,0 +1,10 @@
+command_started_utc=2026-11-22T06:46:25.0503977+00:00
+command_finished_utc=2026-11-22T06:46:27.5897542+00:00
+exit_code=0
+--- output ---
+hostname=C20260316178252
+uname=Linux C20260316178252 5.15.0-198-generic #208-Ubuntu SMP Fri Sep 4 10:22:38 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+docker_client=29.3.0
+docker_server=29.3.0
+Filesystem     1024-blocks     Used Available Capacity Mounted on
+/dev/vda1         30297152 19214584  11066184      64% /

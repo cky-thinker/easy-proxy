@@ -1,0 +1,2 @@
+status=200
+Easy Proxy NAS target OK

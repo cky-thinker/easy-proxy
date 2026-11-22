@@ -1,0 +1,6 @@
+status=200
+Server: nginx/1.27.4
+Date: Sun, 22 Nov 2026 07:00:03 GMT
+Connection: keep-alive
+Content-Type: application/octet-stream text/plain
+Content-Length: 25

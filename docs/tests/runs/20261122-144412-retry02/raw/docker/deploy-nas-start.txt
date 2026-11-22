@@ -1,0 +1,9 @@
+command_started_utc=2026-11-22T06:54:14.4061952+00:00
+command_finished_utc=2026-11-22T06:54:21.2895207+00:00
+exit_code=1
+--- output ---
+ Network easy-proxy-nas-20261122-145352_default  Creating
+ Network easy-proxy-nas-20261122-145352_default  Created
+ Container easy-proxy-client  Creating
+ Container easy-proxy-target  Creating
+Error response from daemon: No such image: registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-144412-aba070f

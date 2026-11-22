@@ -1,0 +1,2 @@
+Removing login credentials for registry.cn-hangzhou.aliyuncs.com
+ACR_AUTH_ENTRY=no

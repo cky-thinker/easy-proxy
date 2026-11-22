@@ -1,0 +1,4 @@
+realtime_status=200
+{"code":200,"msg":"","data":{"downloadSpeed":0,"uploadSpeed":0}}
+report_status=200
+{"code":200,"msg":"","data":{"page":1,"pageSize":10,"totalPage":1,"total":1,"list":[{"id":1,"proxyClientId":1,"proxyClientRuleId":1,"uploadBytes":178,"downloadBytes":213,"createTime":1795330799003,"updateTime":1795330799003}]}}

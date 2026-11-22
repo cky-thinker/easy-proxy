@@ -1,0 +1,5 @@
+command_started_utc=2026-11-22T06:46:47.0701827+00:00
+command_finished_utc=2026-11-22T06:46:48.1591184+00:00
+exit_code=0
+--- output ---
+registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web@sha256:471123ace2c06375f83122a9cea7df29ba2222baa956a10a91ed4b579d5eb1ae|linux/amd64|sha256:471123ace2c06375f83122a9cea7df29ba2222baa956a10a91ed4b579d5eb1ae

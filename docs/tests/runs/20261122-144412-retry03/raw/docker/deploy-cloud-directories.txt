@@ -1,0 +1,9 @@
+command_started_utc=2026-11-22T06:58:43.8147383+00:00
+command_finished_utc=2026-11-22T06:58:45.2586256+00:00
+exit_code=0
+--- output ---
+drwx------ 3 yudejijie yudejijie 4096 Nov 22 04:41 /opt/easy-proxy
+drwx------ 5 yudejijie yudejijie 4096 Nov 22 04:41 /opt/easy-proxy/server
+drwx------ 2 yudejijie yudejijie 4096 Nov 22 04:44 /opt/easy-proxy/server/config
+drwx------ 2 yudejijie yudejijie 4096 Nov 22 06:54 /opt/easy-proxy/server/data
+drwx------ 2 yudejijie yudejijie 4096 Nov 22 06:54 /opt/easy-proxy/server/logs

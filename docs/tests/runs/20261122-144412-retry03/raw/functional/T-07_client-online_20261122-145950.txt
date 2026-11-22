@@ -1,0 +1,4 @@
+online=True elapsedSec=0.8
+--- client logs ---
+Using JAR: app.jar
+Starting in foreground mode...

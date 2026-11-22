@@ -1,0 +1,18 @@
+command_started_utc=2026-11-22T06:51:21.7839722+00:00
+command_finished_utc=2026-11-22T06:51:23.9203717+00:00
+exit_code=0
+--- output ---
+ROLLBACK_CONTAINER=easy-proxy-server-rollback-20261122-145115
+ROLLBACK_CONTAINER=easy-proxy-web-rollback-20261122-145115
+NAME                IMAGE                                                                                       COMMAND                  SERVICE   CREATED                  STATUS                  PORTS
+easy-proxy-server   registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-144412-aba070f   "/app/start.sh run"      server    Less than a second ago   Up Less than a second   
+easy-proxy-web      registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-144412-aba070f      "/docker-entrypoint.…"   web       Less than a second ago   Up Less than a second   
+
+ Container easy-proxy-server Creating 
+ Container easy-proxy-server Created 
+ Container easy-proxy-web Creating 
+ Container easy-proxy-web Created 
+ Container easy-proxy-server Starting 
+ Container easy-proxy-server Started 
+ Container easy-proxy-web Starting 
+ Container easy-proxy-web Started

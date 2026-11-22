@@ -1,0 +1,7 @@
+CLOUD exit=0
+client=29.3.0 server=29.3.0
+Docker Compose version v5.1.0
+
+NAS exit=0
+client=24.0.2 server=24.0.2
+Docker Compose version v2.20.1-6047-g6817716

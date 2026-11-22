@@ -1,0 +1,5 @@
+command_started_utc=2026-11-22T06:54:14.1846766+00:00
+command_finished_utc=2026-11-22T06:54:14.3855268+00:00
+exit_code=1
+--- output ---
+Error response from daemon: No such image: registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-144412-aba070f

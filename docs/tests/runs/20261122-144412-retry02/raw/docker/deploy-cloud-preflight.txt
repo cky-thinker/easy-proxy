@@ -1,0 +1,20 @@
+command_started_utc=2026-11-22T06:53:52.3317909+00:00
+command_finished_utc=2026-11-22T06:53:53.9799800+00:00
+exit_code=0
+--- output ---
+cloud_host=C20260316178252
+cloud_uid_gid=1000:1000
+client=29.3.0 server=29.3.0
+Docker Compose version v5.1.0
+easy-proxy-web	Up 2 minutes	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-144412-aba070f
+easy-proxy-server	Restarting (1) 27 seconds ago	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-144412-aba070f
+easy-proxy-web-rollback-20261122-145115	Exited (0) 2 minutes ago	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-022005-689e009
+easy-proxy-server-rollback-20261122-145115	Exited (143) 2 minutes ago	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-022005-689e009
+easy-proxy-web-rollback-20261122-125830	Exited (1) 2 hours ago	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-022005-689e009
+easy-proxy-server-rollback-20261122-125830	Exited (143) 2 hours ago	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-022005-689e009
+easy-proxy-web-rollback-20261122-124735	Exited (0) 2 hours ago	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-web:test-20261122-022005-689e009
+easy-proxy-server-rollback-20261122-124735	Exited (143) 2 hours ago	registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-022005-689e009
+proxy-server	Up 2 days	118.178.58.96:7080/public/proxy-server:v1.1.5
+easy-proxy-web-rollback-20261122-124423	Exited (0) 2 hours ago	yudejijie/easy-proxy-web:v0.1.13
+easy-proxy-server-rollback-20261122-124107	Exited (143) 2 hours ago	yudejijie/easy-proxy-server:v0.1.13
+LISTEN 0      511          0.0.0.0:21092      0.0.0.0:*

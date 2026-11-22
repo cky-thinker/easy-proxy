@@ -1,0 +1,23 @@
+command_started_utc=2026-11-22T06:46:39.1568924+00:00
+command_finished_utc=2026-11-22T06:46:42.9342080+00:00
+exit_code=0
+--- output ---
+test-20261122-144412-aba070f: Pulling from ckyspace/easy-proxy-client
+647558483b95: Pulling fs layer
+6b457de1db47: Pulling fs layer
+b25252fee400: Pulling fs layer
+4f4fb700ef54: Pulling fs layer
+604b025b9fea: Pulling fs layer
+4f4fb700ef54: Already exists
+6b457de1db47: Download complete
+604b025b9fea: Download complete
+b25252fee400: Download complete
+647558483b95: Download complete
+647558483b95: Pull complete
+4f4fb700ef54: Pull complete
+6b457de1db47: Pull complete
+604b025b9fea: Pull complete
+b25252fee400: Pull complete
+Digest: sha256:7e509b6de3021788f2b66abf6e6f05b6af12b2811f451cce9280099da8a89354
+Status: Downloaded newer image for registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-144412-aba070f
+registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-144412-aba070f

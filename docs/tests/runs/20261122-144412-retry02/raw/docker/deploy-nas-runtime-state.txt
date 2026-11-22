@@ -1,0 +1,5 @@
+command_started_utc=2026-11-22T06:58:01.3051165+00:00
+command_finished_utc=2026-11-22T06:58:01.6579860+00:00
+exit_code=1
+--- output ---
+NAME                IMAGE               COMMAND             SERVICE             CREATED             STATUS              PORTS

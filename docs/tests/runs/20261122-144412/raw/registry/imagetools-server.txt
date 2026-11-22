@@ -1,0 +1,3 @@
+Name:      registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-server:test-20261122-144412-aba070f
+MediaType: application/vnd.oci.image.manifest.v1+json
+Digest:    sha256:6c5ae6e1d3ef49dc5def2c7c54568e5af7c70e4eb12b6ba5da4a58e327019d9e

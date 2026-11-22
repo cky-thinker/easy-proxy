@@ -1,0 +1,20 @@
+command_started_utc=2026-11-22T06:59:18.1256632+00:00
+command_finished_utc=2026-11-22T06:59:26.2888507+00:00
+exit_code=0
+--- output ---
+NAME                IMAGE                                                                                       COMMAND                  SERVICE             CREATED             STATUS                  PORTS
+easy-proxy-client   registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-144412-aba070f   "/app/start.sh run"      client              7 seconds ago       Up 2 seconds            
+easy-proxy-target   nginx:1.27.4-alpine                                                                         "/docker-entrypoint.…"   target              7 seconds ago       Up Less than a second   0.0.0.0:18080->80/tcp, :::18080->80/tcp
+tcp        0      0 0.0.0.0:18080           0.0.0.0:*               LISTEN     
+tcp6       0      0 :::18080                :::*                    LISTEN     
+
+ Network easy-proxy-nas-20261122-145841_default  Creating
+ Network easy-proxy-nas-20261122-145841_default  Created
+ Container easy-proxy-target  Creating
+ Container easy-proxy-client  Creating
+ Container easy-proxy-target  Created
+ Container easy-proxy-client  Created
+ Container easy-proxy-target  Starting
+ Container easy-proxy-client  Starting
+ Container easy-proxy-client  Started
+ Container easy-proxy-target  Started

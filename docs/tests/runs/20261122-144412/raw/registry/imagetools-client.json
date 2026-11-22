@@ -1,0 +1,191 @@
+{
+  "name": "registry.cn-hangzhou.aliyuncs.com/ckyspace/easy-proxy-client:test-20261122-144412-aba070f",
+  "manifest": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:7e509b6de3021788f2b66abf6e6f05b6af12b2811f451cce9280099da8a89354",
+    "size": 2563
+  },
+  "image": {
+    "created": "2026-11-22T14:45:54.551213191+08:00",
+    "architecture": "amd64",
+    "os": "linux",
+    "config": {
+      "Env": [
+        "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "JAVA_HOME=/opt/java/openjdk",
+        "LANG=en_US.UTF-8",
+        "LANGUAGE=en_US:en",
+        "LC_ALL=en_US.UTF-8",
+        "JAVA_VERSION=jdk-25.0.5.1+2",
+        "TZ=Asia/Shanghai"
+      ],
+      "Entrypoint": [
+        "/app/start.sh",
+        "run"
+      ],
+      "WorkingDir": "/app",
+      "Labels": {
+        "org.opencontainers.image.created": "2026-11-06T10:28:50.132595+00:00",
+        "org.opencontainers.image.description": "The Ubuntu container image maintained by Canonical\n\nUbuntu is a Debian-based Linux operating system that runs from the desktop to the cloud, to all your internet connected things.\nIt is the world's most popular operating system across public clouds and OpenStack clouds.\nIt is the number one platform for containers; from Docker to Kubernetes to LXD, Ubuntu can run your containers at scale.\nFast, secure and simple, Ubuntu powers millions of PCs worldwide.\n",
+        "org.opencontainers.image.title": "ubuntu",
+        "org.opencontainers.image.version": "26.04"
+      }
+    },
+    "rootfs": {
+      "type": "layers",
+      "diff_ids": [
+        "sha256:2a89eb4dbc78f8fe790775a4e807e1355ba2f6b145c8dd7a267a782df1605124",
+        "sha256:758b22fe15be2c330dcead0c1b50476c074e113ec507627c6430337ffc9daa5e",
+        "sha256:179ddf851a1801d1aca350f671844552efb0454a34e25fc96da80314e93727af",
+        "sha256:76c28429da1d04831572409a540f84fe03eaa0aa9b761aaf82a87d1e73be819c",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:03428c5abda160e0ef3cece1251764825c8502830a21d042fd9e14732585407d",
+        "sha256:2225007140195c74790015ed4237b0b8dc5fdeab515f195cc44134234fdddba1",
+        "sha256:06d9c96e77c4e0cfc396c0187ac4dc021aae555a8ca2ba59bade52154b59bf9e",
+        "sha256:7ce5610c8e4ebeae7c57f281532de63e49aa92123e042856a6325203ae7979a0",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:47bdb0ab91f4e513714e01cc84d4b166fc7b2a9cf80eee559605eb83406e3673",
+        "sha256:6b5af283f5a938f9ac1e31b286e067ebcf2ad916b600e39f83ff7c2351bca010"
+      ]
+    },
+    "history": [
+      {
+        "created": "2026-11-06T10:28:49.539971557Z",
+        "created_by": "umoci raw add-layer --image /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/ubuntu:rockcraft-base /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/.temp_layer.8947.tar --tag 26.04"
+      },
+      {
+        "created": "2026-11-06T10:28:50.066213635Z",
+        "created_by": "umoci config --image /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/ubuntu:26.04 --clear=config.entrypoint --clear=config.cmd",
+        "comment": "Set entrypoint",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-06T10:28:50.09514263Z",
+        "created_by": "umoci config --image /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/ubuntu:26.04 --clear=config.cmd --config.cmd /bin/bash",
+        "comment": "Set default commands",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-06T10:28:50.124897422Z",
+        "created_by": "umoci config --image /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/ubuntu:26.04 --config.env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "comment": "Set default PATH for bare-based rock",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-06T10:28:50.148020867Z",
+        "created_by": "umoci config --image /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/ubuntu:26.04 --clear=config.labels --config.label org.opencontainers.image.version=26.04 --config.label org.opencontainers.image.title=ubuntu --config.label org.opencontainers.image.created=2026-11-06T10:28:50.132595+00:00 --config.label org.opencontainers.image.description=The Ubuntu container image maintained by Canonical\n\nUbuntu is a Debian-based Linux operating system that runs from the desktop to the cloud, to all your internet connected things.\nIt is the world's most popular operating system across public clouds and OpenStack clouds.\nIt is the number one platform for containers; from Docker to Kubernetes to LXD, Ubuntu can run your containers at scale.\nFast, secure and simple, Ubuntu powers millions of PCs worldwide.\n",
+        "comment": "Set labels",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-06T10:28:50.179663443Z",
+        "created_by": "umoci config --image /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/ubuntu:26.04 --clear=manifest.annotations --manifest.annotation org.opencontainers.image.version=26.04 --manifest.annotation org.opencontainers.image.title=ubuntu --manifest.annotation org.opencontainers.image.created=2026-11-06T10:28:50.132595+00:00 --manifest.annotation org.opencontainers.image.description=The Ubuntu container image maintained by Canonical\n\nUbuntu is a Debian-based Linux operating system that runs from the desktop to the cloud, to all your internet connected things.\nIt is the world's most popular operating system across public clouds and OpenStack clouds.\nIt is the number one platform for containers; from Docker to Kubernetes to LXD, Ubuntu can run your containers at scale.\nFast, secure and simple, Ubuntu powers millions of PCs worldwide.\n",
+        "comment": "Set annotations",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-06T10:28:50.193437721Z",
+        "created_by": "umoci raw add-layer --image /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/ubuntu:26.04 /home/buildd/rockcraft-ubuntu-f9b0ae373a9aa61a96756fa393588993/images/.temp_layer.control_data.8947.tar",
+        "comment": "Add rock control metadata"
+      },
+      {
+        "created": "2026-11-20T17:40:33.871203563Z",
+        "created_by": "ENV JAVA_HOME=/opt/java/openjdk",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-20T17:40:33.871203563Z",
+        "created_by": "ENV PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-20T17:40:33.871203563Z",
+        "created_by": "ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-20T17:40:33.871203563Z",
+        "created_by": "RUN /bin/sh -c set -eux;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends         fontconfig         ca-certificates p11-kit         binutils         tzdata         locales     ;     echo \"en_US.UTF-8 UTF-8\" \u003e\u003e /etc/locale.gen;     locale-gen en_US.UTF-8;     rm -rf /var/lib/apt/lists/* # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-20T17:40:33.871203563Z",
+        "created_by": "ENV JAVA_VERSION=jdk-25.0.5.1+2",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-20T17:40:48.910928046Z",
+        "created_by": "RUN /bin/sh -c set -eux;     ARCH=\"$(dpkg --print-architecture)\";     case \"${ARCH}\" in        amd64)          ESUM='760f91b22c3efc9bd1b64ff950598231be82928cc807e30691a0e7a2995a62c0';          BINARY_URL='https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_x64_linux_hotspot_25.0.5.1_2.tar.gz';          ;;        arm64)          ESUM='c37879e0d08eeb1baa69fcbb7758cd455b7b1c0ceab1e2a136ccb1713c530984';          BINARY_URL='https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_aarch64_linux_hotspot_25.0.5.1_2.tar.gz';          ;;        ppc64el)          ESUM='cfffd074eb1fb7a7b38cae9341363c1c35094a5b5f7d49c08b406159dae65872';          BINARY_URL='https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_ppc64le_linux_hotspot_25.0.5.1_2.tar.gz';          ;;        s390x)          ESUM='01da4a2bbc08b3d7afb44de5bb83e2fbd838e06b83aabf3ca0204f916438e339';          BINARY_URL='https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5.1%2B2/OpenJDK25U-jdk_s390x_linux_hotspot_25.0.5.1_2.tar.gz';          ;;        *)          echo \"Unsupported arch: ${ARCH}\";          exit 1;          ;;     esac;     savedAptMark=\"$(apt-mark showmanual)\";     apt-get update;     apt-get install -y --no-install-recommends wget gnupg;     wget --progress=dot:giga -O /tmp/openjdk.tar.gz ${BINARY_URL};     wget --progress=dot:giga -O /tmp/openjdk.tar.gz.sig ${BINARY_URL}.sig;     export GNUPGHOME=\"$(mktemp -d)\";     gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 3B04D753C9050D9A5D343F39843C48A565F8F04B;     gpg --batch --verify /tmp/openjdk.tar.gz.sig /tmp/openjdk.tar.gz;     rm -rf \"${GNUPGHOME}\" /tmp/openjdk.tar.gz.sig;     echo \"${ESUM} */tmp/openjdk.tar.gz\" | sha256sum -c -;     mkdir -p \"$JAVA_HOME\";     tar --extract         --file /tmp/openjdk.tar.gz         --directory \"$JAVA_HOME\"         --strip-components 1         --no-same-owner     ;     rm -f /tmp/openjdk.tar.gz ${JAVA_HOME}/lib/src.zip;     apt-mark auto '.*' \u003e /dev/null;     apt-mark manual $savedAptMark \u003e /dev/null;     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;     rm -rf /var/lib/apt/lists/*;     find \"$JAVA_HOME/lib\" -name '*.so' -exec dirname '{}' ';' | sort -u \u003e /etc/ld.so.conf.d/docker-openjdk.conf;     ldconfig;     java -Xshare:dump; # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-20T17:40:50.299112077Z",
+        "created_by": "RUN /bin/sh -c set -eux;     echo \"Verifying install ...\";     fileEncoding=\"$(echo 'System.out.println(System.getProperty(\"file.encoding\"))' | jshell -s -)\"; [ \"$fileEncoding\" = 'UTF-8' ]; rm -rf ~/.java;     echo \"javac --version\"; javac --version;     echo \"java --version\"; java --version;     echo \"Complete.\" # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-20T17:40:50.329118847Z",
+        "created_by": "COPY --chmod=755 entrypoint.sh /__cacert_entrypoint.sh # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-20T17:40:50.329118847Z",
+        "created_by": "ENTRYPOINT [\"/__cacert_entrypoint.sh\"]",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-20T17:40:50.329118847Z",
+        "created_by": "CMD [\"jshell\"]",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-21T23:31:36.769525056+08:00",
+        "created_by": "WORKDIR /app",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-22T14:45:53.593447666+08:00",
+        "created_by": "COPY target/*-fat.jar app.jar # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-22T14:45:53.628932342+08:00",
+        "created_by": "COPY deploy/start.sh /app/start.sh # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-22T14:45:53.871564531+08:00",
+        "created_by": "RUN /bin/sh -c chmod +x /app/start.sh # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-22T14:45:54.232670908+08:00",
+        "created_by": "RUN /bin/sh -c mkdir -p /app/logs # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-22T14:45:54.551213191+08:00",
+        "created_by": "RUN /bin/sh -c mkdir -p /app/config # buildkit",
+        "comment": "buildkit.dockerfile.v0"
+      },
+      {
+        "created": "2026-11-22T14:45:54.551213191+08:00",
+        "created_by": "ENV TZ=Asia/Shanghai",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      },
+      {
+        "created": "2026-11-22T14:45:54.551213191+08:00",
+        "created_by": "ENTRYPOINT [\"/app/start.sh\" \"run\"]",
+        "comment": "buildkit.dockerfile.v0",
+        "empty_layer": true
+      }
+    ]
+  }
+}

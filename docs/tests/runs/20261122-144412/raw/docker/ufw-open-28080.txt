@@ -1,0 +1,34 @@
+Skipping adding existing rule
+Skipping adding existing rule (v6)
+UFW_TEMP_CONTAINER=removed
+
+Unable to find image 'nginx:1.27.4-alpine' locally
+1.27.4-alpine: Pulling from library/nginx
+0c7e4c092ab7: Pulling fs layer
+984583bcf083: Pulling fs layer
+f18232174bc9: Pulling fs layer
+ccc35e35d420: Pulling fs layer
+43f2ec460bdf: Pulling fs layer
+6d79cc6084d4: Pulling fs layer
+ab3286a73463: Pulling fs layer
+8d27c072a58f: Pulling fs layer
+eee2e1c0bab8: Download complete
+43f2ec460bdf: Download complete
+68697693b101: Download complete
+6d79cc6084d4: Download complete
+8d27c072a58f: Download complete
+ab3286a73463: Download complete
+984583bcf083: Download complete
+ccc35e35d420: Download complete
+f18232174bc9: Download complete
+f18232174bc9: Pull complete
+43f2ec460bdf: Pull complete
+8d27c072a58f: Pull complete
+ab3286a73463: Pull complete
+984583bcf083: Pull complete
+ccc35e35d420: Pull complete
+6d79cc6084d4: Pull complete
+0c7e4c092ab7: Download complete
+0c7e4c092ab7: Pull complete
+Digest: sha256:4ff102c5d78d254a6f0da062b3cf39eaf07f01eec0927fd21e219d0af8bc0591
+Status: Downloaded newer image for nginx:1.27.4-alpine

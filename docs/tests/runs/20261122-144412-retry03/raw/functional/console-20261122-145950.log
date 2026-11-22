@@ -1,0 +1,36 @@
+[PASS] T-01 NAS 公钥登录 :: BatchMode 公钥登录成功
+[PASS] T-02 云服务器公钥登录 :: BatchMode 公钥登录成功
+[PASS] T-03 Docker 环境 :: 云端与 NAS Docker/Compose 命令成功
+[PASS] T-04 NAS 目标服务 :: HTTP 200，目标页面正确
+[PASS] T-05 服务端本机健康检查 :: 云端本机 API 健康
+[PASS] T-06 Web 健康检查 :: 公网 Web 健康
+[PASS] T-07 客户端在线 :: 在线，等待 0.8 秒；无持续鉴权/证书错误
+[PASS] T-08 规则监听 :: 云端 28080 正在监听
+[PASS] T-09 公网访问 :: 公网规则端口返回 NAS 目标页面
+[PASS] T-10 响应头 :: HTTP 200 且包含 Content-Type
+[PASS] T-11 数据完整性 :: 大小文件 SHA-256 均与固定数据清单一致
+[PASS] T-12 流量统计 :: 实时流量与规则报表 API 均可读取
+[PASS] T-13 客户端重连 :: 30 秒内在线，1 秒内转发恢复
+[PASS] T-14 服务端重启 :: Web、客户端在线、规则监听与转发均恢复
+[PASS] T-15 规则持久化 :: 重启后原规则仍存在并监听
+[FAIL] T-16 错误 Token=<REDACTED> 错误 Token 失败：exit=0
+Using JAR: app.jar
+Starting in foreground mode...
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [1;31mERROR[0;39m [1;35mc.c.p.c.h.ClientMngSocketManager
+[0;39m - EP>>ClientMng>> Mng socket error: null
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mc.c.p.c.h.ClientMngSocketManager
+[0;39m - EP>>ClientMng>> Mng socket closed
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [1;31mERROR[0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - EP>>ClientMng>> Connect closed
+[31m2026-11-22 15:00:50[0;39m [32m[virtual-39][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - next connect wait time 2000ms
+[31m2026-11-22 15:00:52[0;39m [32m[virtual-40][0;39m [34mINFO [0;39m [1;35mcom.cky.proxy.client.ClientRunner
+[0;39m - try connect 68.64.181.242:21090...
+
+primary_online=True
+[PASS] T-17 端口冲突 :: 冲突被服务端记录，未影响云服务器其他服务
+[PASS] T-18 禁用规则 :: 禁用后端口释放，公网请求失败
+[FAIL] T-19 删除规则 :: 删除规则 失败：rule_id=2 listening=True probe=0 released=True exists_after=False
+[FAIL] T-20 客户端禁用 :: 客户端禁用 失败：offline=False elapsed=61.7
+probe_status=0
+probe_error=The request was canceled due to the configured HttpClient.Timeout of 5 seconds elapsing.
