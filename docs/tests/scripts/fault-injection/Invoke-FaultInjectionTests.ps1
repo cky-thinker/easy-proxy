@@ -97,7 +97,7 @@ function Complete-LoadProcess {
     $consolePath = Join-Path $rawLoad "$($Load.Prefix)-console.txt"
     $stdout = if (Test-Path -LiteralPath $Load.Stdout) { [IO.File]::ReadAllText($Load.Stdout) } else { '' }
     $stderr = if (Test-Path -LiteralPath $Load.Stderr) { [IO.File]::ReadAllText($Load.Stderr) } else { '' }
-    Write-EasyProxyEvidence -Path $consolePath -Text (@("exit_code=$($Load.Process.ExitCode)", '--- stdout ---', $stdout.TrimEnd(), '--- stderr ---', $stderr.TrimEnd()) -join "`n") 
+    Write-EasyProxyEvidence -Path $consolePath -Text (@("exit_code=$($Load.Process.ExitCode)", '--- stdout ---', $stdout.TrimEnd(), '--- stderr ---', $stderr.TrimEnd()) -join "`n")
     $measuredFailures = 0
     $server5xx = 0
     if ($null -ne $summary) {
