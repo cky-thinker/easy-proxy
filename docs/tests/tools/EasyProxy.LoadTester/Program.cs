@@ -601,7 +601,9 @@ internal static class LoadRunner
         Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
-        var cooldownEnd = options.WarmupSeconds + options.DurationSeconds + options.CooldownSeconds;
+        // Cooldown starts when the load workers have finished. For request-count
+        // bounded runs they may stop well before the configured measured window.
+        var cooldownEnd = stopwatch.Elapsed.TotalSeconds + options.CooldownSeconds;
         while (!cancellationToken.IsCancellationRequested && stopwatch.Elapsed.TotalSeconds < cooldownEnd)
         {
             await rateGate.WaitAsync(cancellationToken);
