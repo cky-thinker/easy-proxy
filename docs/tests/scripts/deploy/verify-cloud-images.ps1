@@ -30,7 +30,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
 Import-Module -Name (Join-Path $repoRoot 'docs\tests\scripts\common\EasyProxy.Testing.psm1') -Force
 
 $testScope = 'T-39 云服务器镜像拉取、RepoDigest/平台核验、容器内 JAR 一致性与 ACR 注销'
-$run = New-EasyProxyRun -RunId $RunId -TestScope $testScope
+$run = New-EasyProxyRun -RunId $RunId -TestScope $testScope -ReuseExisting
 $rawValidation = Join-Path $run.RunRoot 'raw\validation'
 $processedValidation = Join-Path $run.RunRoot 'processed\validation'
 $reportPath = Join-Path $repoRoot "docs\tests\reports\$RunId-t39-cloud-image-verification.md"
