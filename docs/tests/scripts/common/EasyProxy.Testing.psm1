@@ -205,7 +205,12 @@ function Invoke-EasyProxyHttp {
     $startedAt = [DateTimeOffset]::UtcNow
     try {
         $response = Invoke-WebRequest @parameters
-        $content = [string]$response.Content
+        $content = if ($response.Content -is [byte[]]) {
+            [Text.Encoding]::UTF8.GetString($response.Content)
+        }
+        else {
+            [string]$response.Content
+        }
         $json = $null
         if (-not [string]::IsNullOrWhiteSpace($content)) {
             try { $json = $content | ConvertFrom-Json -Depth 30 } catch { }
