@@ -90,6 +90,7 @@ internal sealed class Options
     public int CooldownSeconds { get; private set; }
     public int TargetRps { get; private set; }
     public long TotalRequests { get; private set; }
+    public int RequestsPerWorker { get; private set; }
     public string Connections { get; private set; } = "keep-alive";
     public int RequestTimeoutSeconds { get; private set; } = 30;
     public string HealthUrl { get; private set; } = "";
@@ -116,6 +117,7 @@ EasyProxy.LoadTester options:
   --cooldown-seconds N           Post-load low-rate recovery probe duration (default: 0)
   --target-rps N                 Optional aggregate requests/second cap (0 = unlimited)
   --total-requests N             Optional total request cap for measured phase (0 = unlimited)
+  --requests-per-worker N       Exact measured requests per worker (0 = unlimited)
   --connections MODE             keep-alive|close|mixed (default: keep-alive)
   --request-timeout-seconds N    Per-request timeout (default: 30)
   --health-url URL               Independent health/data probe URL (default: base URL small fixture)
@@ -160,6 +162,7 @@ EasyProxy.LoadTester options:
                 case "--cooldown-seconds": options.CooldownSeconds = ParseInt(key, NextValue()); break;
                 case "--target-rps": options.TargetRps = ParseInt(key, NextValue()); break;
                 case "--total-requests": options.TotalRequests = ParseLong(key, NextValue()); break;
+                case "--requests-per-worker": options.RequestsPerWorker = ParseInt(key, NextValue()); break;
                 case "--connections": options.Connections = NextValue().ToLowerInvariant(); break;
                 case "--request-timeout-seconds": options.RequestTimeoutSeconds = ParseInt(key, NextValue()); break;
                 case "--health-url": options.HealthUrl = NextValue(); break;
@@ -201,7 +204,7 @@ EasyProxy.LoadTester options:
         }
         if (Concurrency is < 1 or > 4096) throw new ArgumentException("--concurrency must be 1..4096");
         if (WarmupSeconds < 0 || DurationSeconds < 1 || CooldownSeconds < 0) throw new ArgumentException("Invalid duration");
-        if (TargetRps < 0 || TotalRequests < 0) throw new ArgumentException("Rate and request counts cannot be negative");
+        if (TargetRps < 0 || TotalRequests < 0 || RequestsPerWorker < 0) throw new ArgumentException("Rate and request counts cannot be negative");
         if (RequestTimeoutSeconds < 1) throw new ArgumentException("--request-timeout-seconds must be positive");
         if (HealthIntervalSeconds < 1) throw new ArgumentException("--health-interval-seconds must be positive");
         if (HealthStopSeconds < 0) throw new ArgumentException("--health-stop-seconds cannot be negative");
@@ -538,6 +541,7 @@ internal static class LoadRunner
         Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
+        var measuredRequests = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
             var elapsed = stopwatch.Elapsed.TotalSeconds;
@@ -548,10 +552,15 @@ internal static class LoadRunner
             }
 
             var phase = elapsed < options.WarmupSeconds ? "warmup" : "measured";
+            if (phase == "measured" && options.RequestsPerWorker > 0 && measuredRequests >= options.RequestsPerWorker)
+            {
+                break;
+            }
             if (phase == "measured" && !measuredLimit.TryAcquire())
             {
                 break;
             }
+            if (phase == "measured") measuredRequests++;
 
             await rateGate.WaitAsync(cancellationToken);
             if (stopwatch.Elapsed.TotalSeconds >= measuredEnd)
@@ -1116,6 +1125,7 @@ internal sealed class RunMetrics
                 options.CooldownSeconds,
                 options.TargetRps,
                 options.TotalRequests,
+                options.RequestsPerWorker,
                 options.Connections,
                 options.RequestTimeoutSeconds,
                 options.HealthUrl,
