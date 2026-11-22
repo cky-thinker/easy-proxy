@@ -173,7 +173,8 @@ try {
     $serverYaml = $serverTemplate.Replace('<CHANGE_ME_STRONG_RANDOM_CERT_PASSWORD>', [string]$secret.CertPassword).
         Replace('<CHANGE_ME_STRONG_RANDOM_JWT_SECRET>', [string]$secret.JwtSecret).
         Replace('<CHANGE_ME_DB_USER>', [string]$secret.DbUsername).
-        Replace('<CHANGE_ME_STRONG_RANDOM_DB_PASSWORD>', [string]$secret.DbPassword)
+        Replace('<CHANGE_ME_STRONG_RANDOM_DB_PASSWORD>', [string]$secret.DbPassword).
+        Replace('jdbc:h2:./data/database', "jdbc:h2:./data/database-$($RunId.Replace('-', ''))")
     $cloudEnv = @(
         "EASY_PROXY_VERSION=$Tag"
         "SERVER_JWT_SECRET=$($secret.JwtSecret)"
