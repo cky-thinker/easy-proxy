@@ -109,7 +109,7 @@ function Upload-TextViaSsh {
 function Wait-CloudHealth {
     param([int]$TimeoutSeconds = 120)
     return Wait-EasyProxyCondition -Name '云服务器健康检查' -TimeoutSeconds $TimeoutSeconds -IntervalMilliseconds 2000 -Condition {
-        $response = Invoke-EasyProxyHttp -Uri "http://$PublicHost`:$ApiPort/api/open/health" -TimeoutSeconds 5
+        $response = Invoke-EasyProxyHttp -Uri "$apiBase/api/open/health" -TimeoutSeconds 5
         $response.StatusCode -eq 200 -and $response.Content -match '"status"\s*:\s*"UP"'
     }
 }
@@ -133,7 +133,7 @@ function Wait-RuleReleased {
 function Wait-ClientOnline {
     param([Parameter(Mandatory)][string]$AdminToken, [int]$TimeoutSeconds = 60)
     return Wait-EasyProxyCondition -Name 'NAS 客户端在线' -TimeoutSeconds $TimeoutSeconds -IntervalMilliseconds 2000 -Condition {
-        $clients = @(Get-EasyProxyClients -BaseUri "http://$PublicHost`:$ApiPort" -Token $AdminToken)
+        $clients = @(Get-EasyProxyClients -BaseUri "$apiBase" -Token $AdminToken)
         $item = $clients | Where-Object { $_.name -eq $ClientName } | Select-Object -First 1
         $null -ne $item -and [string]$item.status -eq 'online' -and [bool]$item.enableFlag
     }
@@ -222,13 +222,13 @@ try {
         throw '云服务器健康检查未通过'
     }
 
-    $admin = Initialize-EasyProxyAdmin -BaseUri "http://$PublicHost`:$ApiPort" -Username ([string]$secret.AdminUsername) -Password ([string]$secret.AdminPassword)
+    $admin = Initialize-EasyProxyAdmin -BaseUri "$apiBase" -Username ([string]$secret.AdminUsername) -Password ([string]$secret.AdminPassword)
     Add-DeployCheck -Name '管理员初始化与登录' -Passed (-not [string]::IsNullOrWhiteSpace($admin.Token)) -Detail 'JWT 仅保存在进程内存'
 
-    $clients = @(Get-EasyProxyClients -BaseUri "http://$PublicHost`:$ApiPort" -Token $admin.Token)
+    $clients = @(Get-EasyProxyClients -BaseUri "$apiBase" -Token $admin.Token)
     $client = $clients | Where-Object { $_.name -eq $ClientName } | Select-Object -First 1
     if ($null -eq $client) {
-        $client = New-EasyProxyClient -BaseUri "http://$PublicHost`:$ApiPort" -Token $admin.Token -ClientName $ClientName -ClientToken ([string]$secret.ClientToken)
+        $client = New-EasyProxyClient -BaseUri "$apiBase" -Token $admin.Token -ClientName $ClientName -ClientToken ([string]$secret.ClientToken)
     }
     Add-DeployCheck -Name 'NAS 客户端记录' -Passed ($null -ne $client -and -not [string]::IsNullOrWhiteSpace([string]$client.id)) -Detail "id=$([string]$client.id)"
 
@@ -287,13 +287,13 @@ try {
     }
     Add-DeployCheck -Name 'NAS 目标服务可用' -Passed ([bool]$targetLocal.Satisfied) -Detail "等待 $([math]::Round($targetLocal.ElapsedMs / 1000, 1)) 秒"
 
-    $rules = @(Get-EasyProxyRules -BaseUri "http://$PublicHost`:$ApiPort" -Token $admin.Token)
+    $rules = @(Get-EasyProxyRules -BaseUri "$apiBase" -Token $admin.Token)
     $rule = $rules | Where-Object { $_.name -eq $RuleName } | Select-Object -First 1
     if ($null -eq $rule) {
-        $rule = New-EasyProxyRule -BaseUri "http://$PublicHost`:$ApiPort" -Token $admin.Token -ProxyClientId ([int]$client.id) -RuleName $RuleName -ServerPort $RulePort -ClientAddress "${NasHost}:$NasTargetPort" -EnableFlag $true
+        $rule = New-EasyProxyRule -BaseUri "$apiBase" -Token $admin.Token -ProxyClientId ([int]$client.id) -RuleName $RuleName -ServerPort $RulePort -ClientAddress "${NasHost}:$NasTargetPort" -EnableFlag $true
     }
     else {
-        $rule = Set-EasyProxyRuleEnabled -BaseUri "http://$PublicHost`:$ApiPort" -Token $admin.Token -Rule $rule -Enabled $true
+        $rule = Set-EasyProxyRuleEnabled -BaseUri "$apiBase" -Token $admin.Token -Rule $rule -Enabled $true
     }
     Add-DeployCheck -Name '转发规则生效' -Passed ($null -ne $rule -and [bool]$rule.enableFlag) -Detail "id=$([string]$rule.id)，$RulePort -> ${NasHost}:$NasTargetPort"
 
