@@ -58,7 +58,11 @@ $t30Warmup = if ($Quick) { 2 } else { 30 }
 $t30Duration = if ($Quick) { 10 } else { 180 }
 $largeRequestsPerWorker = if ($Quick) { 1 } else { 3 }
 $largeDuration = if ($Quick) { 300 } else { 1800 }
-$mixedTargetRps = 5
+# 20% of the mixed workload is a 10 MiB file. At 5 req/s that asks for roughly
+# 10 MB/s before small/slow traffic, above the measured tunnel capacity. Keep
+# the full run within capacity so the test measures starvation, not an
+# intentionally unbounded backlog. The reduced smoke run still uses 5 req/s.
+$mixedTargetRps = if ($Quick) { 5 } else { 1 }
 $t27Duration = if ($Quick) { 10 } else { 30 }
 $t27RecoverySeconds = if ($Quick) { 10 } else { 60 }
 $t27Concurrency = 50
