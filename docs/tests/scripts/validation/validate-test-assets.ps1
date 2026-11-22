@@ -277,21 +277,35 @@ foreach ($file in $scanTextFiles) {
 }
 Add-Check -Name '敏感信息静态扫描' -Passed ($secretHitCount -eq 0) -Detail $(if ($secretHitCount -eq 0) { '未发现私钥、Bearer 令牌、固定客户端 Token、JWT 或非占位符密码' } else { "命中 $secretHitCount 项，涉及文件：$($secretHitFiles -join ', ')（不输出明文）" })
 
+$passed = $errors.Count -eq 0
+$status = if ($passed) { '通过' } else { '失败' }
+$conclusion = if ($passed) { '静态校验通过' } else { '静态校验失败，需修复后重跑' }
+$results = if ($passed) {
+    "全部 $($checks.Count) 项静态校验通过。"
+}
+else {
+    "静态校验失败：$($errors.Count) 项未通过。"
+}
+$endedAt = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')
+$run.Status = $status
+
+$checkRows = foreach ($check in $checks) {
+    $parts = $check -split ' :: ', 2
+    "| $($parts[0]) | $($parts[1]) |"
+}
+
 $summary = [Collections.Generic.List[string]]::new()
 $summary.Add('# 测试资产静态校验')
 $summary.Add('')
 $summary.Add("运行编号：``$RunId``")
 $summary.Add("Git 提交：``$($run.Commit)``")
-$summary.Add("校验时间：``$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')``")
+$summary.Add("校验时间：``$endedAt``")
 $summary.Add('')
 $summary.Add('| 检查项 | 结果 |')
 $summary.Add('| --- | --- |')
-foreach ($check in $checks) {
-    $parts = $check -split ' :: ', 2
-    $summary.Add("| $($parts[0]) | $($parts[1]) |")
-}
+foreach ($row in $checkRows) { $summary.Add($row) }
 $summary.Add('')
-if ($errors.Count -eq 0) {
+if ($passed) {
     $summary.Add('判定：通过。所有静态校验项均成功。')
 }
 else {
@@ -305,14 +319,83 @@ $summary.Add('脚本：`docs/tests/scripts/validation/validate-test-assets.ps1`'
 $summaryText = ($summary -join "`n") + "`n"
 Write-LfText -Path $OutputPath -Text $summaryText -Encoding 'Utf8NoBom'
 $evidenceRelative = Get-RelativePath -Path $OutputPath
-Write-EasyProxyRunManifest -Run $run `
-    -TestParameters '运行仓库静态资产、固定数据、安全配置、镜像版本、脚本语法与敏感信息扫描。' `
-    -Results $(if ($errors.Count -eq 0) { '全部静态校验通过。' } else { "静态校验失败 $($errors.Count) 项。" }) `
-    -Conclusion $(if ($errors.Count -eq 0) { '静态校验通过' } else { '静态校验失败，需修复后重跑' }) `
-    -Limitations '本轮仅验证测试资产与配置，不代表已完成部署、端到端或性能验收。'
-Write-Output $summaryText
-Write-Output "EVIDENCE=$evidenceRelative"
 
-if ($errors.Count -gt 0) {
+$reportPath = Join-Path $testsRoot "reports\$RunId-test-assets-validation.md"
+$reportLines = @(
+    "# $RunId 测试资产静态校验报告"
+    ''
+    '## 结论'
+    ''
+    "- 总体判定：**$status**。"
+    "- $results"
+    '- 本报告只证明静态资产满足要求，不代表构建、发布、部署、端到端或性能测试已通过。'
+    ''
+    '## 测试范围'
+    ''
+    '- 检查纳入 Git 的文本编码、BOM 与 LF 换行。'
+    '- 检查 Markdown 围栏和本地相对链接。'
+    '- 校验固定数据文件清单与 SHA-256。'
+    '- 检查 T-01 至 T-39 编号完整性、PowerShell 语法、固定镜像版本和安全默认值。'
+    '- 扫描私钥、Bearer 令牌、固定客户端 Token、JWT 和非占位符密码。'
+    ''
+    '## 环境与版本'
+    ''
+    "- Git 提交：``$($run.Commit)``。"
+    '- 执行环境：Windows PowerShell，仓库工作区。'
+    "- 运行编号：``$RunId``。"
+    ''
+    '## 结果'
+    ''
+    '| 检查项 | 结果 |'
+    '| --- | --- |'
+    $checkRows
+    ''
+    '## 归档校验'
+    ''
+    "- 运行清单：[manifest.md](../runs/$RunId/manifest.md)"
+    "- 原始输出：[test-assets-validation.txt](../runs/$RunId/raw/validation/test-assets-validation.txt)"
+    "- 哈希清单：``docs/tests/runs/$RunId/SHA256SUMS.txt``"
+)
+Write-LfText -Path $reportPath -Text (($reportLines -join "`n") + "`n") -Encoding 'Utf8NoBom'
+
+$indexPath = Join-Path $testsRoot 'reports\index.md'
+$indexText = [IO.File]::ReadAllText($indexPath)
+if ($indexText -notmatch [regex]::Escape("$RunId")) {
+    $indexRow = '| `{0}` | {1} | 测试资产静态校验 | {2}：{3} | [查看报告]({0}-test-assets-validation.md) |' -f $RunId, (Get-Date -Format 'yyyy-MM-dd'), $status, $results
+    $indexText = $indexText.TrimEnd() + "`n" + $indexRow + "`n"
+    Write-LfText -Path $indexPath -Text $indexText -Encoding 'Utf8NoBom'
+}
+
+$evidenceIndex = @(
+    '| 测试编号 | 证据 | 相对路径 | 完整性 |'
+    '| --- | --- | --- | --- |'
+    '| 前置 | 静态校验结果 | `raw/validation/test-assets-validation.txt` | 完整 |'
+) -join "`n"
+$cleanup = @(
+    '- [x] 不涉及临时容器与防火墙规则'
+    '- [x] 敏感字段已复核'
+    '- [x] `SHA256SUMS.txt` 已生成并复核'
+    '- [x] 报告已登记到 `reports/index.md`'
+) -join "`n"
+$limitations = '本轮仅验证测试资产与配置，不代表已完成部署、端到端或性能验收。'
+Write-EasyProxyRunManifest -Run $run `
+    -EndedAt $endedAt `
+    -TestParameters '运行仓库静态资产、固定数据、安全配置、镜像版本、脚本语法与敏感信息扫描。' `
+    -Results $results `
+    -Conclusion $conclusion `
+    -EvidenceIndex $evidenceIndex `
+    -Limitations $limitations `
+    -Cleanup $cleanup
+& (Join-Path $repoRoot 'docs\tests\scripts\common\New-RunChecksums.ps1') -RunId $RunId | Out-Null
+
+Write-Output $summaryText
+Write-Output "RUN_ID=$RunId"
+Write-Output "STATUS=$status"
+Write-Output "EVIDENCE=$evidenceRelative"
+Write-Output "REPORT=$($reportPath.Substring($repoRoot.Length + 1).Replace('\', '/'))"
+Write-Output "MANIFEST=docs/tests/runs/$RunId/manifest.md"
+Write-Output "CHECKSUMS=docs/tests/runs/$RunId/SHA256SUMS.txt"
+
+if (-not $passed) {
     exit 1
 }

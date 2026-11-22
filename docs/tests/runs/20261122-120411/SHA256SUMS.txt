@@ -1,0 +1,3 @@
+3bffa26be8c0de9c17eb26fa95b314c78eb736c07b5e4b0dcd91edca7539d3b0  defects/DEF-VAL-001.md
+c5157371e19da77bf0857a25ffa0a17d394bed916522e22317857ecb70b842ae  manifest.md
+0c7077da1cfbef095f8c5035ef25abaec4898d84c06ace9ad8999ac58c815a42  raw/validation/test-assets-validation.txt
