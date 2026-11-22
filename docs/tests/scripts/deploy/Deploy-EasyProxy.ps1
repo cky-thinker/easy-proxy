@@ -202,7 +202,7 @@ try {
         '  if /usr/bin/docker inspect "$name" >/dev/null 2>&1; then'
         '    /usr/bin/docker stop "$name" >/dev/null || true'
         "    /usr/bin/docker rename `"`$name`" `"`$name$cloudRollbackSuffix`""
-        '    printf ''ROLLBACK_CONTAINER=%s\n'' "$name$cloudRollbackSuffix"'
+        "    printf 'ROLLBACK_CONTAINER=%s\n' `"`$name$cloudRollbackSuffix`""
         '  fi'
         'done'
         '/usr/bin/docker compose up -d --pull never'
