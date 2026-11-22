@@ -39,6 +39,7 @@ public class ClientSocketHandler implements Runnable {
     @Override
     public void run() {
         try {
+            clientSocket.setTcpNoDelay(true);
             DataInputStream in = new DataInputStream(clientSocket.getInputStream());
             while (true) {
                 Message msg = Message.readMsg(in);
@@ -61,7 +62,7 @@ public class ClientSocketHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            log.error("EP>>Client>> Client socket error or closed: {}", e.getMessage());
+            log.debug("EP>>Client>> Client socket closed: {}", e.getMessage());
         } finally {
             handleClose(clientSocket);
         }
@@ -70,17 +71,19 @@ public class ClientSocketHandler implements Runnable {
     private void handleClose(Socket socket) {
         if (ClientDataSocketManager.isDataSocket(socket)) {
             log.info("EP>>Client>> Data socket closed {}", SocketUtil.getSocketName(socket));
-            // remove related user sockets
             String userId = ClientDataSocketManager.getUserId(socket);
-            ClientDataSocketManager.offline(userId);
-            closeUserConnectionGracefully(userId);
+            ClientDataSocketManager.offline(userId, socket);
+            if (StrUtil.isNotBlank(userId)) {
+                closeUserConnectionGracefully(userId);
+            }
         } else {
             log.info("EP>>Client>> Client socket closed {}", SocketUtil.getSocketName(socket));
             // remove all related user sockets and data sockets
             String token = ClientSocketManager.offline(socket);
             // Update offline status
             if (StrUtil.isBlank(token)) {
-                log.warn("EP>>ServerMng>> Client token is blank");
+                log.debug("EP>>ServerMng>> Client token is blank");
+                closeSocket(socket);
                 return;
             }
 
@@ -94,24 +97,18 @@ public class ClientSocketHandler implements Runnable {
                     for (String userId : userIds) {
                         Socket dataSocket = ClientDataSocketManager.getDataSocket(userId);
                         if (dataSocket != null) {
-                            try {
-                                dataSocket.close();
-                            } catch (IOException e) {
-                            }
+                            closeSocket(dataSocket);
                         }
                         ClientDataSocketManager.closeDataSocket(userId);
-                        Socket proxySocket = RuleListenSocketManager.getProxySocket(userId);
-                        if (proxySocket != null) {
-                            try {
-                                proxySocket.close();
-                            } catch (IOException e) {
-                            }
-                        }
                         RuleListenSocketManager.userConnectionClose(userId);
                     }
                 }
             }
         }
+        closeSocket(socket);
+    }
+
+    private void closeSocket(Socket socket) {
         try {
             socket.close();
         } catch (IOException e) {
@@ -139,28 +136,31 @@ public class ClientSocketHandler implements Runnable {
                 return;
             }
 
-            // Update online status
-            EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, token);
         } catch (Exception e) {
             log.error("EP>>ServerMng>> Process auth error", e);
             sMngSocket.close();
             return;
         }
 
-        Socket existedMngSocket = ClientSocketManager.getClientSocket(token);
-        if (existedMngSocket != null) {
-            log.info("EP>>ServerMng>> Socket {} is connected, Can't connect again {}",
+        if (!ClientSocketManager.online(token, sMngSocket)) {
+            Socket existedMngSocket = ClientSocketManager.getClientSocket(token);
+            log.info("EP>>ServerMng>> Socket {} is already connected, rejecting {}",
                     SocketUtil.getSocketName(existedMngSocket), SocketUtil.getSocketName(sMngSocket));
             sMngSocket.close();
+            return;
         }
-        ClientSocketManager.online(token, sMngSocket);
+        EventBusUtil.publish(EventBusUtil.SOCKET_CLIENT_ONLINE, token);
         log.debug("EP>>ServerMng>> Process auth success");
     }
 
     private void processConnect(Message msg, Socket dataSocket) {
         log.debug("EP>>ServerMng>> Process connect");
         String userId = msg.getToken();
-        ClientDataSocketManager.online(userId, dataSocket);
+        if (!ClientDataSocketManager.online(userId, dataSocket)) {
+            log.warn("EP>>ServerMng>> Duplicate data socket for user {}", userId);
+            closeSocket(dataSocket);
+            return;
+        }
         log.debug("EP>>ServerMng>> Process connect success");
     }
 

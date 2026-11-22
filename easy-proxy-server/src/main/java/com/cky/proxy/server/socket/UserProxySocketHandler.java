@@ -35,6 +35,7 @@ public class UserProxySocketHandler implements Runnable {
 
     @Override
     public void run() {
+        configureUserConnection();
         Socket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
         if (clientSocket == null) {
             log.debug("EP>>UserProxy>> Can't found client socket {}:{}", proxyClientConfig.getName(),
@@ -103,8 +104,17 @@ public class UserProxySocketHandler implements Runnable {
         }
     }
 
+    private void configureUserConnection() {
+        try {
+            userConnection.setTcpNoDelay(true);
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+
     private void processClose(String userId) {
         log.debug("EP>>UserProxy>> User proxy socket closed");
+        configureUserConnection();
         Socket clientSocket = ClientSocketManager.getClientSocket(proxyClientConfig.getToken());
         if (clientSocket != null) {
             try {

@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ProxyServerRunner {
+    private static final int SOCKET_BACKLOG = 1024;
+
     private ProxyClientService proxyClientService = BeanContext.getProxyClientService();
     private ProxyClientRuleService proxyClientRuleService = BeanContext.getProxyClientRuleService();
 
@@ -63,7 +65,7 @@ public class ProxyServerRunner {
             sslContext.init(kmf.getKeyManagers(), null, null);
             SSLServerSocketFactory ssf = sslContext.getServerSocketFactory();
             
-            mainServerSocket = ssf.createServerSocket(proxyPort);
+            mainServerSocket = ssf.createServerSocket(proxyPort, SOCKET_BACKLOG);
             
             Thread.ofVirtual().start(() -> {
                 log.info("Server started on port {}", proxyPort);
@@ -230,7 +232,7 @@ public class ProxyServerRunner {
 
     private void startServerForRule(ProxyClient client, ProxyClientRule rule) {
         try {
-            ServerSocket serverSocket = new ServerSocket(rule.getServerPort());
+            ServerSocket serverSocket = new ServerSocket(rule.getServerPort(), SOCKET_BACKLOG);
             log.info("Listening for rule {} on port {}", rule.getName(), rule.getServerPort());
             RuleListenSocketManager.addRuleListenSocket(rule.getId(), serverSocket);
             // Update bandwidth limit

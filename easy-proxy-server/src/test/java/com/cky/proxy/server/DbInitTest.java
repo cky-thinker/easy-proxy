@@ -33,7 +33,7 @@ public class DbInitTest {
     public void dataInit() {
         BeanContext beanContext = BeanContext.getInstance();
         com.cky.proxy.server.config.DatabaseProperty db = new com.cky.proxy.server.config.DatabaseProperty();
-        db.setUrl("jdbc:h2:./data/database");
+        db.setUrl("jdbc:h2:mem:easy-proxy-tests;DB_CLOSE_DELAY=-1");
         db.setUsername("test");
         db.setPassword("test");
         com.cky.proxy.server.config.ConfigProperty.getInstance().setDb(db);

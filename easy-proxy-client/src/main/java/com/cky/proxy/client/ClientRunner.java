@@ -1,6 +1,9 @@
 package com.cky.proxy.client;
 
+import java.net.InetSocketAddress;
 import java.net.Socket;
+
+import javax.net.ssl.SSLSocket;
 
 import com.cky.proxy.client.config.ConfigProperty;
 import com.cky.proxy.client.config.ServerProperty;
@@ -29,7 +32,10 @@ public class ClientRunner {
     private void connectMngServer() {
         log.debug("EP>>ClientMng>> Connect mng server");
         try {
-            Socket mngSocket = SslUtil.getSslSocketFactory().createSocket(serverIp, serverPort);
+            SSLSocket mngSocket = (SSLSocket) SslUtil.getSslSocketFactory().createSocket();
+            mngSocket.connect(new InetSocketAddress(serverIp, serverPort), 10000);
+            mngSocket.setTcpNoDelay(true);
+            mngSocket.startHandshake();
             log.debug("EP>>ClientMng>> Connect success");
             this.waitTime = 1000; // 重试等待时间重置
             ClientMngSocketManager manager = new ClientMngSocketManager(token, mngSocket);

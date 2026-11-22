@@ -48,7 +48,7 @@ class UserServiceSecurityTest {
     @BeforeAll
     static void initEnvironment() throws Exception {
         DatabaseProperty db = new DatabaseProperty();
-        db.setUrl("jdbc:h2:./data/database");
+        db.setUrl("jdbc:h2:mem:easy-proxy-tests;DB_CLOSE_DELAY=-1");
         db.setUsername("test");
         db.setPassword("test");
 

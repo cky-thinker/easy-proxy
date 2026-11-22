@@ -3,7 +3,10 @@ package com.cky.proxy.client.handler;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+
+import javax.net.ssl.SSLSocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +31,20 @@ public class ClientProxySocketManager {
 
     public void init() {
         log.debug("EP>>ClientProxy>> Proxy socket {} create success", proxySocket.getRemoteSocketAddress());
+        try {
+            proxySocket.setTcpNoDelay(true);
+        } catch (IOException e) {
+            log.debug("EP>>ClientProxy>> Unable to enable TCP_NODELAY: {}", e.getMessage());
+        }
         ProxySocketContext.online(userId, proxySocket);
 
         ServerProperty server = ConfigProperty.getInstance().getServer();
         log.debug("EP>>ClientProxy>> Create data socket");
         try {
-            Socket dataSocket = SslUtil.getSslSocketFactory().createSocket(server.getIp(), server.getPort());
+            SSLSocket dataSocket = (SSLSocket) SslUtil.getSslSocketFactory().createSocket();
+            dataSocket.connect(new InetSocketAddress(server.getIp(), server.getPort()), 10000);
+            dataSocket.setTcpNoDelay(true);
+            dataSocket.startHandshake();
 
             // Send CONNECT message
             Message.createConnectMsg(userId).writeTo(dataSocket);
