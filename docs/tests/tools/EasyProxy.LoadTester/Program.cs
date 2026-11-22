@@ -551,6 +551,16 @@ internal static class LoadRunner
                 break;
             }
 
+            await rateGate.WaitAsync(cancellationToken);
+            elapsed = stopwatch.Elapsed.TotalSeconds;
+            if (elapsed >= measuredEnd)
+            {
+                break;
+            }
+
+            // Classify the request after rate limiting. A worker can reserve a
+            // slot during warmup that is not actually available until the
+            // measured window, and the opposite can happen at the boundary.
             var phase = elapsed < options.WarmupSeconds ? "warmup" : "measured";
             if (phase == "measured" && options.RequestsPerWorker > 0 && measuredRequests >= options.RequestsPerWorker)
             {
@@ -561,12 +571,6 @@ internal static class LoadRunner
                 break;
             }
             if (phase == "measured") measuredRequests++;
-
-            await rateGate.WaitAsync(cancellationToken);
-            if (stopwatch.Elapsed.TotalSeconds >= measuredEnd)
-            {
-                break;
-            }
 
             var index = metrics.NextIndex();
             var fixture = selector.Next(index);
