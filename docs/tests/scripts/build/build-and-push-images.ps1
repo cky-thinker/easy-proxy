@@ -13,7 +13,10 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
-$runRoot = Join-Path $repoRoot "docs\tests\runs\$RunId"
+$testsRoot = Join-Path $repoRoot 'docs\tests'
+Import-Module -Name (Join-Path $testsRoot 'scripts\common\EasyProxy.Testing.psm1') -Force
+$run = New-EasyProxyRun -RunId $RunId -TestScope 'T-37 构建与单元测试；T-38 镜像发布与 ACR 凭据注销'
+$runRoot = $run.RunRoot
 $buildLogRoot = Join-Path $runRoot 'raw\build'
 $registryLogRoot = Join-Path $runRoot 'raw\registry'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
