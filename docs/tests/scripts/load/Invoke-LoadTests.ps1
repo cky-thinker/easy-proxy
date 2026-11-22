@@ -383,7 +383,7 @@ try {
     Add-LoadResult -CaseId 'T-21' -Name '容量梯度-空闲' -StartedAt $idleStart -EndedAt $idleEnded -Passed $idlePass -Detail "health=$idleSuccess/$idleSamples" -Evidence "raw/health/T-21_idle_$stamp.csv" | Out-Null
 
     $t21C10 = Invoke-LoadCase -CaseId 'T-21' -Label 'small-c10' -Scenario 'small' -Concurrency 10 -MinSuccessRate 0.995 -MinHealthRate 0.99
-    $t21C100 = Invoke-LoadCase -CaseId 'T-21' -Label 'small-c100' -Scenario 'small' -Concurrency 100 -MinSuccessRate 0.995 -MinHealthRate 0.99
+    $t21C100 = Invoke-LoadCase -CaseId 'T-21' -Label 'small-c100' -Scenario 'small' -Concurrency 100 -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 -MinHealthRate 0.99
     $t21C250 = Invoke-LoadCase -CaseId 'T-21' -Label 'small-c250' -Scenario 'small' -Concurrency 250 -MinSuccessRate 0.99 -MinHealthRate 0.99
     $t21C500 = Invoke-LoadCase -CaseId 'T-21' -Label 'small-c500' -Scenario 'small' -Concurrency 500 -MinSuccessRate 0.95 -MinHealthRate 0.99
     $baselineP95 = if ($null -ne $t21C100.Summary) { [double]$t21C100.Summary.measured.latencyMs.p95 } else { 0.0 }
@@ -392,7 +392,7 @@ try {
     Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c100' -Scenario 'distinct' -Concurrency 100 -Warmup $caseWarmup -Duration $distinctDuration -Cooldown $caseCooldown -TotalRequests $distinctTotal -MinSuccessRate 0.995 -MinHealthRate 0.99 | Out-Null
     Invoke-LoadCase -CaseId 'T-22' -Label 'distinct-c250' -Scenario 'distinct' -Concurrency 250 -Warmup $caseWarmup -Duration $distinctDuration -Cooldown $caseCooldown -TotalRequests $distinctTotal -MinSuccessRate 0.995 -MinHealthRate 0.99 | Out-Null
 
-    $t23 = Invoke-LoadCase -CaseId 'T-23' -Label 'connections-c100' -Scenario 'small' -Concurrency 100 -Connections 'mixed' -Warmup $caseWarmup -Duration $longDuration -Cooldown $caseCooldown -MinSuccessRate 0.995 -MinHealthRate 0.99 -SkipResult
+    $t23 = Invoke-LoadCase -CaseId 'T-23' -Label 'connections-c100' -Scenario 'small' -Concurrency 100 -Connections 'mixed' -Warmup $caseWarmup -Duration $longDuration -Cooldown $caseCooldown -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 -MinHealthRate 0.99 -SkipResult
     $t23Stats = Get-RequestStats -Path $t23.RequestsPath
     $t23Passed = $t23.Status -eq 'PASS' -and $t23Stats.ConnectionFailures -eq 0 -and $t23Stats.HashErrors -eq 0 -and $t23Stats.SizeErrors -eq 0
     Add-LoadResult -CaseId 'T-23' -Name '短连接与长连接' -StartedAt $t23.StartedAt -EndedAt $t23.EndedAt -Passed $t23Passed -Detail "$($t23.Detail) connFailures=$($t23Stats.ConnectionFailures)" -Evidence $t23.Evidence | Out-Null
@@ -486,7 +486,7 @@ try {
     Add-LoadResult -CaseId 'T-27' -Name '流量与连接统计一致性' -StartedAt $t27Started -EndedAt $t27Ended -Passed $t27Passed -Detail "connections=$($t27Before.Stats.activeConnections)->peak=$t27PeakConnections->final=$($t27Settled.Stats.activeConnections) downloadDelta=$t27DownloadDelta actualBytes=$t27ActualBytes uploadDelta=$t27UploadDelta hashErrors=$($t27Stats.HashErrors)" -Evidence $t27ConsolePath.Substring($run.RunRoot.Length + 1).Replace('\', '/') | Out-Null
 
     $resourceStart = [DateTimeOffset]::UtcNow
-    $t28 = Invoke-LoadCase -CaseId 'T-28' -Label 'resource-c100' -Scenario 'small' -Concurrency 100 -Warmup $resourceWarmup -Duration $resourceDuration -Cooldown $resourceCooldown -MinSuccessRate 0.995 -MinHealthRate 0.99 -SkipResult
+    $t28 = Invoke-LoadCase -CaseId 'T-28' -Label 'resource-c100' -Scenario 'small' -Concurrency 100 -Warmup $resourceWarmup -Duration $resourceDuration -Cooldown $resourceCooldown -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 -MinHealthRate 0.99 -SkipResult
     $resourceEnd = [DateTimeOffset]::UtcNow
     Start-Sleep -Seconds 6
     $resource = Test-ResourceThresholds -Start $resourceStart -End $resourceEnd
