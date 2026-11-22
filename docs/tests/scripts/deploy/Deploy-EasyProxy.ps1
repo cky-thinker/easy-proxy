@@ -153,10 +153,13 @@ try {
 
     $prepareCloud = @(
         'set -eu'
-        'if /usr/bin/docker inspect easy-proxy-web >/dev/null 2>&1; then'
-        '  /usr/bin/docker run --rm --user 0:0 -v /opt:/hostopt yudejijie/easy-proxy-web:v0.1.13 sh -c "install -d -m 700 -o 1000 -g 1000 /hostopt/easy-proxy /hostopt/easy-proxy/server /hostopt/easy-proxy/server/config /hostopt/easy-proxy/server/data /hostopt/easy-proxy/server/logs"'
+        "root_image='$webImage'"
+        'owner_id="$(id -u)"'
+        'group_id="$(id -g)"'
+        'if /usr/bin/docker image inspect "$root_image" >/dev/null 2>&1; then'
+        '  /usr/bin/docker run --rm --user 0:0 -v /opt:/hostopt "$root_image" sh -c "install -d -m 700 -o $owner_id -g $group_id /hostopt/easy-proxy /hostopt/easy-proxy/server /hostopt/easy-proxy/server/config /hostopt/easy-proxy/server/data /hostopt/easy-proxy/server/logs"'
         'else'
-        '  printf ''缺少可用于创建目录的现有根权限容器镜像\n'' >&2'
+        '  printf ''缺少可用于创建目录的容器镜像：%s\n'' "$root_image" >&2'
         '  exit 2'
         'fi'
         'ls -ld /opt/easy-proxy /opt/easy-proxy/server /opt/easy-proxy/server/config /opt/easy-proxy/server/data /opt/easy-proxy/server/logs'
