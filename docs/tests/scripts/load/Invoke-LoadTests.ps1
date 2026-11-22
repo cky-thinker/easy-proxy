@@ -491,14 +491,17 @@ try {
     $t27ActualBytes = [long]$t27Stats.SuccessfulBytes
     $t27PeakConnections = [long]$t27During.Stats.activeConnections
     $t27NoNegative = $t27UploadDelta -ge 0 -and $t27DownloadDelta -ge 0 -and [long]$t27Before.Stats.uploadBytes -ge 0 -and [long]$t27Before.Stats.downloadBytes -ge 0
-    $t27DownloadMatches = $t27DownloadDelta -ge $t27ActualBytes -and $t27DownloadDelta -le ($t27ActualBytes + [Math]::Max(65536, $t27ActualBytes * 0.05))
-    # GET requests still carry HTTP/1.1 request headers through the tunnel. The
-    # dashboard upload counter measures those wire bytes, not response-body bytes.
+    # The dashboard counters measure tunnel wire bytes. Responses contain the
+    # fixture body plus HTTP headers/status line, while requests contain headers
+    # instead of a body. Validate direction and bounded per-request overhead
+    # rather than treating response-body bytes as an exact counter value.
+    $t27DownloadPerRequest = ($t27DownloadDelta - $t27ActualBytes) / [Math]::Max(1, $t27Stats.Measured)
+    $t27DownloadMatches = $t27DownloadDelta -ge $t27ActualBytes -and $t27DownloadPerRequest -le 4096
     $t27UploadPerRequest = $t27UploadDelta / [Math]::Max(1, $t27Stats.Measured)
     $t27UploadMatches = $t27UploadDelta -gt 0 -and $t27UploadDelta -lt $t27DownloadDelta -and $t27UploadPerRequest -le 8192
     $t27ConnectionsPass = $t27PeakConnections -gt 0 -and [long]$t27Settled.Stats.activeConnections -le ($t27BaselineConnections + 1)
     $t27Passed = $null -ne $t27Summary -and [bool]$t27Summary.passed -and $t27Process.ExitCode -eq 0 -and $t27NoNegative -and $t27DownloadMatches -and $t27UploadMatches -and $t27ConnectionsPass -and $t27Stats.HashErrors -eq 0 -and $t27Stats.SizeErrors -eq 0
-    Add-LoadResult -CaseId 'T-27' -Name '流量与连接统计一致性' -StartedAt $t27Started -EndedAt $t27Ended -Passed $t27Passed -Detail "connections=$($t27Before.Stats.activeConnections)->peak=$t27PeakConnections->final=$($t27Settled.Stats.activeConnections) downloadDelta=$t27DownloadDelta actualBytes=$t27ActualBytes uploadDelta=$t27UploadDelta hashErrors=$($t27Stats.HashErrors)" -Evidence $t27ConsolePath.Substring($run.RunRoot.Length + 1).Replace('\', '/') | Out-Null
+    Add-LoadResult -CaseId 'T-27' -Name '流量与连接统计一致性' -StartedAt $t27Started -EndedAt $t27Ended -Passed $t27Passed -Detail "connections=$($t27Before.Stats.activeConnections)->peak=$t27PeakConnections->final=$($t27Settled.Stats.activeConnections) downloadDelta=$t27DownloadDelta actualBytes=$t27ActualBytes downloadOverheadPerRequest=$([math]::Round($t27DownloadPerRequest, 3)) uploadDelta=$t27UploadDelta hashErrors=$($t27Stats.HashErrors)" -Evidence $t27ConsolePath.Substring($run.RunRoot.Length + 1).Replace('\', '/') | Out-Null
 
     $resourceStart = [DateTimeOffset]::UtcNow
     $t28 = Invoke-LoadCase -CaseId 'T-28' -Label 'resource-c100' -Scenario 'small' -Concurrency 100 -Warmup $resourceWarmup -Duration $resourceDuration -Cooldown $resourceCooldown -MinSuccessRate 0.995 -MaxP95Ms 500 -MaxP99Ms 1000 -MinHealthRate 0.99 -SkipResult
